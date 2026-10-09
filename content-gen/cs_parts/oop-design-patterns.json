@@ -1,0 +1,351 @@
+{
+ "id": "oop-design-patterns",
+ "name": "OOP & Design Principles",
+ "order": 10,
+ "icon": "🧩",
+ "description": "OOP pillars, SOLID, DRY/KISS/YAGNI, composition vs inheritance and the GoF design patterns most asked in Java interviews.",
+ "notes": [
+  {
+   "id": "oop-n01",
+   "title": "The Four Pillars of OOP",
+   "content": "Object-Oriented Programming organises software around **objects** — bundles of state (fields) and behaviour (methods) — modelled after real-world or domain concepts. A **class** is the blueprint; an **object** is an instance.\n\n### 1. Encapsulation\nBundling data with the methods that operate on it and **restricting direct access** to internal state. Expose behaviour, not data.\n```java\npublic class BankAccount {\n    private BigDecimal balance = BigDecimal.ZERO;   // hidden state\n\n    public void deposit(BigDecimal amt) {\n        if (amt.signum() <= 0) throw new IllegalArgumentException(\"Amount must be positive\");\n        balance = balance.add(amt);\n    }\n    public BigDecimal getBalance() { return balance; }   // no setter: invariants protected\n}\n```\nBenefits: invariants enforced in one place, internal representation can change without breaking callers, easier debugging. Note: getters/setters for every field is *not* real encapsulation (\"anemic\" objects) — prefer meaningful methods like `deposit()`.\n\n### 2. Abstraction\nExposing **what** an object does while hiding **how**. Achieved with **interfaces** and **abstract classes**.\n```java\npublic interface PaymentGateway { PaymentResult charge(Order order); }\nclass RazorpayGateway implements PaymentGateway { ... }\nclass StripeGateway implements PaymentGateway { ... }\n```\nThe checkout service depends only on `PaymentGateway`; it doesn't care about HTTP calls, signatures or retries.\n\n*Encapsulation vs abstraction:* encapsulation is about **hiding data/implementation details inside a class** (access modifiers); abstraction is about **designing a simplified interface** that hides complexity (interfaces, abstract types). Encapsulation is a means; abstraction is a design view.\n\n### 3. Inheritance\nA class (subclass) acquires fields and methods of another (superclass) — an **is-a** relationship — enabling reuse and polymorphism.\n```java\nabstract class Notification {\n    abstract void send(String to, String msg);\n    void sendAll(List<String> to, String msg) { to.forEach(t -> send(t, msg)); }\n}\nclass SmsNotification extends Notification { void send(String to, String msg) { /* SMS API */ } }\n```\nTypes: single, multilevel, hierarchical; **multiple inheritance of classes is not allowed in Java** (diamond problem) but a class can implement multiple interfaces (default-method conflicts must be resolved explicitly). Use inheritance carefully — see \"composition over inheritance\".\n\n### 4. Polymorphism\n\"Many forms\": the same call behaves differently depending on the object.\n- **Compile-time (static) polymorphism** – **method overloading**: same name, different parameter lists; resolved by the compiler.\n```java\nint add(int a, int b); double add(double a, double b); int add(int a, int b, int c);\n```\n- **Runtime (dynamic) polymorphism** – **method overriding**: subclass provides its own implementation; the JVM picks the method based on the **actual object type** at runtime (dynamic dispatch via vtable).\n```java\nNotification n = new SmsNotification();\nn.send(\"98xxxx\", \"Order shipped\");   // SmsNotification.send runs\n```\n\n### Overloading vs overriding\n| Overloading | Overriding |\n|---|---|\n| Same class (or subclass), same name, **different parameters** | Subclass, **same signature** |\n| Compile time | Runtime |\n| Return type can differ | Same or covariant return type |\n| Any access modifier | Can't reduce visibility |\n| static methods can be overloaded | static methods are **hidden**, not overridden |\n\n### Other OOP terms to know\n- **Association** (uses-a), **aggregation** (has-a, independent lifecycle: Department has Employees), **composition** (strong has-a, dependent lifecycle: Order has OrderItems; delete the order, items go too).\n- **Cohesion** (how focused a class is — want high) and **coupling** (how dependent classes are on each other — want low).\n- **Constructor**, `this`, `super`, static vs instance members, `final` classes/methods, immutability (`String`, records).\n- **Abstract class vs interface** — covered in Q&A; since Java 8 interfaces can have default/static methods and since Java 9 private methods."
+  },
+  {
+   "id": "oop-n02",
+   "title": "SOLID Principles",
+   "content": "SOLID (Robert C. Martin) is a set of five design principles for maintainable, extensible OO code. Interviewers expect a definition **plus** a violation **plus** the fix — ideally from your own project.\n\n### S — Single Responsibility Principle\n*A class should have only one reason to change* (one actor/responsibility).\n\n❌ Violation:\n```java\nclass InvoiceService {\n    Invoice calculate(Order o) { ... }\n    void saveToDb(Invoice i) { ... }\n    byte[] generatePdf(Invoice i) { ... }\n    void email(Invoice i) { ... }\n}\n```\nChanges to PDF layout, DB schema or email provider all touch this class.\n✅ Split into `InvoiceCalculator`, `InvoiceRepository`, `InvoicePdfGenerator`, `InvoiceMailer`, orchestrated by a thin service.\n\n### O — Open/Closed Principle\n*Software entities should be open for extension, closed for modification.* Add new behaviour by adding code, not editing working code.\n\n❌\n```java\ndouble discount(Customer c) {\n    if (c.type() == GOLD) return 0.2;\n    else if (c.type() == SILVER) return 0.1;\n    // new tier = edit this method\n}\n```\n✅\n```java\ninterface DiscountPolicy { boolean supports(CustomerType t); double rate(); }\n@Component class GoldDiscount implements DiscountPolicy { ... }\n// Spring injects List<DiscountPolicy>; a new tier = a new class\n```\nThis is the **Strategy pattern** — the usual way to achieve OCP.\n\n### L — Liskov Substitution Principle\n*Objects of a subclass must be usable wherever the superclass is expected without breaking correctness.* Subclasses must honour the parent's contract: not strengthen preconditions, not weaken postconditions, not throw unexpected exceptions.\n\n❌ Classic: `Square extends Rectangle` — setting width on a square also changes height, breaking code that assumes `setWidth` leaves height unchanged. Another: `ReadOnlyList extends ArrayList` throwing `UnsupportedOperationException` from `add()` (Java's `Collections.unmodifiableList` is a real-world LSP compromise).\n✅ Model them as separate types implementing a common `Shape` interface with `area()`.\n\n### I — Interface Segregation Principle\n*Clients shouldn't be forced to depend on methods they don't use.* Prefer several small, role-specific interfaces over one fat interface.\n\n❌\n```java\ninterface Worker { void work(); void eat(); void attendMeeting(); }\nclass RobotWorker implements Worker { public void eat() { throw new UnsupportedOperationException(); } }\n```\n✅ `Workable`, `Feedable`, `MeetingAttendee` interfaces. Spring Data's `CrudRepository`, `PagingAndSortingRepository`, `ListCrudRepository` are segregated this way.\n\n### D — Dependency Inversion Principle\n*High-level modules shouldn't depend on low-level modules; both should depend on abstractions. Abstractions shouldn't depend on details.*\n\n❌\n```java\nclass OrderService { private MySqlOrderRepository repo = new MySqlOrderRepository(); }\n```\n✅\n```java\nclass OrderService {\n    private final OrderRepository repo;           // abstraction\n    OrderService(OrderRepository repo) { this.repo = repo; }   // injected\n}\n```\n**DIP is a principle; Dependency Injection is a technique to achieve it; IoC containers (Spring) automate DI.** This enables swapping implementations and mocking in unit tests (Mockito).\n\n### How to answer \"Have you applied SOLID?\"\nGive one concrete story: \"Our notification module had a giant `if (channel == SMS) ... else if (EMAIL)` block. I refactored it to a `NotificationSender` interface with SMS, Email and WhatsApp implementations registered as Spring beans in a map keyed by channel. Adding WhatsApp later was a new class plus config — no change to existing code (OCP), each sender has one job (SRP), and the service depends on the interface (DIP).\"\n\n### Caveat\nPrinciples are guidelines, not laws. Over-applying them creates needless indirection (an interface for every class with one implementation). Balance with KISS and YAGNI."
+  },
+  {
+   "id": "oop-n03",
+   "title": "DRY, KISS, YAGNI, Coupling/Cohesion & Other Principles",
+   "content": "### DRY — Don't Repeat Yourself\n*Every piece of knowledge should have a single, authoritative representation.* Duplication of **knowledge** (business rules, validation logic, constants) means bugs get fixed in one place but not another.\n- ✅ Extract the GST calculation into one `TaxCalculator`, share validation via a common DTO validator, keep constants in one place.\n- ⚠ Don't over-DRY: two pieces of code that *look* similar but change for different reasons should stay separate. Premature abstraction creates coupling (\"**WET** – write everything twice – is better than the wrong abstraction\"; the \"rule of three\": abstract on the third occurrence).\n\n### KISS — Keep It Simple, Stupid\nPrefer the simplest solution that works. Readable code beats clever code.\n```java\n// clever\nreturn list.stream().collect(Collectors.reducing(0, e -> e.getAmt(), Integer::sum));\n// simple\nreturn list.stream().mapToInt(Item::getAmt).sum();\n```\nSimple designs are easier to test, debug and onboard. Avoid microservices, Kafka or NgRx where a module, a method call or a service with a signal is enough.\n\n### YAGNI — You Aren't Gonna Need It\nDon't build features or abstractions for **hypothetical** future needs. Build for today's requirements; design so change is easy, but don't implement the change in advance. Speculative generality (plugin frameworks for one plugin, config flags no one uses) adds maintenance cost.\n\n### Coupling & cohesion\n- **Cohesion** – how strongly related the responsibilities inside a module are. **High cohesion** is good (an `OrderPricing` class only deals with pricing).\n- **Coupling** – how much a module depends on others' internals. **Low (loose) coupling** is good — depend on interfaces, communicate via well-defined contracts/events.\nGoal: **high cohesion, low coupling.** Microservices aim for this at the system level (\"bounded contexts\").\n\n### Law of Demeter (principle of least knowledge)\nA method should only talk to its immediate friends — avoid \"train wrecks\":\n```java\norder.getCustomer().getAddress().getCity().getPincode();   // ❌ knows the whole object graph\norder.shippingPincode();                                    // ✅ ask, don't dig\n```\nRelated: **Tell, Don't Ask** — tell objects what to do rather than querying their state and deciding for them.\n\n### Separation of Concerns\nSplit a program into distinct sections each addressing one concern: controller (HTTP), service (business logic), repository (persistence); in Angular: components (UI), services (data/logic), interceptors (cross-cutting).\n\n### Program to an interface, not an implementation\n`List<String> names = new ArrayList<>();` — callers depend on `List`, so switching to `LinkedList` is trivial.\n\n### Favour immutability\nImmutable objects (`final` fields, no setters, Java `record`s) are thread-safe, easy to reason about, and safe as map keys.\n```java\npublic record Money(BigDecimal amount, String currency) {}\n```\n\n### Fail fast\nValidate inputs early and throw meaningful exceptions (`Objects.requireNonNull`, Bean Validation `@Valid`), rather than propagating bad state.\n\n### Principle of Least Astonishment\nAPIs should behave as users expect — a method `getUser()` shouldn't create a user.\n\n### GRASP (brief)\nInformation Expert (assign responsibility to the class with the data), Creator, Controller, Low Coupling, High Cohesion, Polymorphism, Pure Fabrication, Indirection, Protected Variations — another vocabulary for the same goals.\n\n### Code smells to recognise\nLong method, large class (God object), long parameter list, duplicated code, feature envy (a method using another class's data more than its own), switch statements on type, primitive obsession (using `String` for email/phone instead of value objects), shotgun surgery (one change touches many classes). Mentioning refactorings you applied (Extract Method, Replace Conditional with Polymorphism, Introduce Parameter Object) signals maturity."
+  },
+  {
+   "id": "oop-n04",
+   "title": "Composition vs Inheritance",
+   "content": "Both let you reuse code, but they create very different relationships.\n\n- **Inheritance** – **is-a**. `Car extends Vehicle`. The subclass gets the parent's implementation at compile time.\n- **Composition** – **has-a**. `Car` has an `Engine` field and delegates to it. Behaviour is assembled from parts at runtime.\n\n### Problems with inheritance\n1. **Tight coupling / fragile base class** – changes in the parent can silently break subclasses. Subclasses depend on the parent's implementation details, breaking encapsulation.\n2. **Rigid hierarchy** – behaviour is fixed at compile time; Java allows only single class inheritance.\n3. **Class explosion** – combining features via subclasses multiplies classes: `SmsUrgentNotification`, `EmailUrgentNotification`, `SmsScheduledNotification`…\n4. **Inherits everything**, including methods that don't make sense (Java's `Stack extends Vector` exposes `insertElementAt`, letting you break stack semantics).\n\nClassic example (Effective Java): `InstrumentedHashSet extends HashSet` overrides `add` and `addAll` to count insertions — but `HashSet.addAll` internally calls `add`, so elements are counted twice. The subclass depended on an undocumented implementation detail.\n\n### Composition solves it\n```java\nclass InstrumentedSet<E> implements Set<E> {     // wrapper / decorator\n    private final Set<E> inner;\n    private int addCount = 0;\n    InstrumentedSet(Set<E> inner) { this.inner = inner; }\n    public boolean add(E e) { addCount++; return inner.add(e); }\n    public boolean addAll(Collection<? extends E> c) { addCount += c.size(); return inner.addAll(c); }\n    // other methods delegate to inner\n}\n```\nWorks with any `Set` implementation, and is immune to `HashSet` internals.\n\n### Strategy via composition\n```java\nclass NotificationService {\n    private final MessageSender sender;          // SMS, Email, WhatsApp\n    private final RetryPolicy retryPolicy;       // fixed, exponential\n    NotificationService(MessageSender s, RetryPolicy r) { sender = s; retryPolicy = r; }\n}\n```\nAny sender × any retry policy without creating subclasses for each combination; swap at runtime or in tests.\n\n### Comparison\n| Inheritance | Composition |\n|---|---|\n| is-a | has-a |\n| Static, compile-time | Dynamic, can change at runtime |\n| White-box reuse (sees internals) | Black-box reuse (via interface) |\n| Tighter coupling | Looser coupling |\n| Less code initially | A bit more delegation code |\n| Natural for true taxonomies & frameworks (template method) | Default choice for behaviour reuse |\n\n### When inheritance is right\n- A genuine, stable **is-a** relationship that satisfies **Liskov substitution** (`ArrayList` is a `List` — via interface inheritance).\n- Framework extension points designed for it (`extends OncePerRequestFilter`, `extends RuntimeException` for custom exceptions, abstract template classes).\n- Shared state + behaviour among closely related types inside your own module, with a small hierarchy (≤ 2 levels).\n\nRule of thumb: **\"Favour composition over inheritance\"** (GoF). Inherit **interfaces** freely; inherit **implementations** sparingly. In Java, `sealed` interfaces + records give you closed hierarchies without implementation inheritance.\n\n### Angular/Spring parallel\nSpring beans are composed via DI rather than inherited; Angular discourages component inheritance and offers composition via services, directives (`hostDirectives`) and content projection — both frameworks are built around composition."
+  },
+  {
+   "id": "oop-n05",
+   "title": "Design Patterns: Creational",
+   "content": "Design patterns are proven, reusable solutions to common design problems (Gang of Four catalogued 23, grouped as **creational, structural, behavioural**). Interviewers at product companies typically ask: Singleton (with thread safety), Factory, Builder, Strategy, Observer, Decorator, Adapter — and \"where does Spring use them?\"\n\n### Singleton\nEnsure **one instance** of a class with a global access point (config, cache manager, connection pool).\n```java\n// Thread-safe lazy singleton: double-checked locking\npublic final class ConfigManager {\n    private static volatile ConfigManager instance;   // volatile prevents reordering\n    private ConfigManager() {}\n    public static ConfigManager getInstance() {\n        if (instance == null) {\n            synchronized (ConfigManager.class) {\n                if (instance == null) instance = new ConfigManager();\n            }\n        }\n        return instance;\n    }\n}\n// Simplest & safest: enum singleton (serialization- and reflection-safe)\npublic enum IdGenerator { INSTANCE; private final AtomicLong seq = new AtomicLong(); public long next() { return seq.incrementAndGet(); } }\n// Also good: Bill Pugh holder idiom\npublic class Registry { private Registry() {} private static class Holder { static final Registry I = new Registry(); } public static Registry get() { return Holder.I; } }\n```\nBreaking singletons: reflection (guard in constructor), serialization (`readResolve`), cloning, multiple class loaders. Downsides: global state, hard to test. In Spring, beans are **singleton-scoped by default per container** — prefer that over hand-written singletons.\n\n### Factory Method / Simple Factory\nDelegate object creation to a method/class so clients depend on an interface, not concrete classes.\n```java\npublic class PaymentProcessorFactory {\n    private final Map<PaymentMode, PaymentProcessor> processors;\n    public PaymentProcessorFactory(List<PaymentProcessor> list) {   // Spring injects all beans\n        processors = list.stream().collect(Collectors.toMap(PaymentProcessor::mode, p -> p));\n    }\n    public PaymentProcessor get(PaymentMode mode) {\n        return Optional.ofNullable(processors.get(mode)).orElseThrow(() -> new IllegalArgumentException(\"Unsupported \" + mode));\n    }\n}\n```\nJDK examples: `Calendar.getInstance()`, `List.of()`, `NumberFormat.getInstance()`. Spring: `BeanFactory`, `FactoryBean`.\n\n### Abstract Factory\nA factory of **families of related objects** (e.g. `UIFactory` producing `Button` + `Checkbox` for Light vs Dark themes; `DocumentBuilderFactory`).\n\n### Builder\nConstruct complex objects step by step, avoiding telescoping constructors and enabling immutability.\n```java\npublic final class HttpRequestSpec {\n    private final String url; private final String method; private final Map<String,String> headers; private final Duration timeout;\n    private HttpRequestSpec(Builder b) { url = b.url; method = b.method; headers = Map.copyOf(b.headers); timeout = b.timeout; }\n    public static Builder builder(String url) { return new Builder(url); }\n    public static class Builder {\n        private final String url; private String method = \"GET\"; private final Map<String,String> headers = new HashMap<>(); private Duration timeout = Duration.ofSeconds(5);\n        private Builder(String url) { this.url = url; }\n        public Builder method(String m) { method = m; return this; }\n        public Builder header(String k, String v) { headers.put(k, v); return this; }\n        public Builder timeout(Duration t) { timeout = t; return this; }\n        public HttpRequestSpec build() { return new HttpRequestSpec(this); }\n    }\n}\n```\nExamples: `StringBuilder`, `HttpClient.newBuilder()`, Lombok `@Builder`, Spring's `ResponseEntity.ok().header(...).body(...)`, `UriComponentsBuilder`.\n\n### Prototype\nCreate new objects by **cloning** an existing instance (costly-to-create objects, templates). Java `Cloneable` is awkward; prefer copy constructors. Spring has **prototype scope** (new bean per injection/request from container).\n\n### Object Pool (bonus)\nReuse expensive objects: DB connection pools (HikariCP), thread pools (`ExecutorService`)."
+  },
+  {
+   "id": "oop-n06",
+   "title": "Design Patterns: Structural & Behavioural",
+   "content": "### Structural patterns (how objects are composed)\n**Adapter** – converts one interface into another that clients expect (a plug adapter). Wrap a legacy SOAP client or a third-party SDK behind your own interface.\n```java\nclass LegacySmsAdapter implements SmsSender {\n    private final OldTelcoClient client;\n    public void send(String to, String msg) { client.dispatchMessage(new TelcoMsg(to, msg, \"IN\")); }\n}\n```\nJDK: `Arrays.asList`, `InputStreamReader` (bytes → chars). Spring MVC: `HandlerAdapter`.\n\n**Decorator** – adds responsibilities to an object **dynamically** by wrapping it, without subclassing.\n```java\nDataSource ds = new EncryptionDecorator(new CompressionDecorator(new FileDataSource(\"x.dat\")));\n```\nJDK: `new BufferedReader(new InputStreamReader(new FileInputStream(f)))`, `Collections.synchronizedList`. Angular HTTP interceptors behave like a chain of decorators.\n\n**Proxy** – a surrogate controlling access to another object: lazy loading, access control, caching, remote calls, logging. **Spring AOP** creates proxies (JDK dynamic proxies or CGLIB) to implement `@Transactional`, `@Cacheable`, `@Async` — which is why **self-invocation** inside the same class bypasses them. Hibernate lazy-loaded entities are proxies too.\n\n**Facade** – a simplified interface over a complex subsystem. `CheckoutFacade.placeOrder()` hiding inventory, pricing, payment and notification services; `JdbcTemplate` is a facade over raw JDBC.\n\n**Composite** – treat individual objects and groups uniformly via a tree (file/folder, menu/submenu, org charts, Angular component tree).\n\n**Bridge**, **Flyweight** (share intrinsic state: `Integer.valueOf` cache −128..127, String pool) — know the one-line definitions.\n\n### Behavioural patterns (how objects interact)\n**Strategy** – define a family of interchangeable algorithms behind an interface and pick one at runtime. Kills `if/else` chains; enables OCP.\n```java\ninterface ShippingCostStrategy { BigDecimal cost(Order o); }\nclass StandardShipping implements ShippingCostStrategy { ... }\nclass ExpressShipping implements ShippingCostStrategy { ... }\n```\nJDK: `Comparator` passed to `sort`. Spring: `PasswordEncoder` implementations, `ResourceLoader`.\n\n**Observer (Publish–Subscribe)** – subjects notify registered observers on state change; loose coupling between producer and consumers.\n```java\n@Component class OrderService {\n    private final ApplicationEventPublisher events;\n    void place(Order o) { ...; events.publishEvent(new OrderPlacedEvent(o.getId())); }\n}\n@Component class EmailListener { @EventListener void on(OrderPlacedEvent e) { /* send mail */ } }\n```\nAlso: RxJS Observables, Angular `EventEmitter`, Kafka at the system level.\n\n**Template Method** – base class defines the algorithm skeleton, subclasses fill specific steps. Spring's `JdbcTemplate`, `RestTemplate` callbacks, `AbstractController`, JUnit lifecycle.\n\n**Chain of Responsibility** – pass a request along a chain of handlers until one handles it. **Servlet filters / Spring Security filter chain**, Angular HTTP interceptors, approval workflows (manager → director → CFO by amount).\n\n**Command** – encapsulate a request as an object (undo/redo, job queues, `Runnable` submitted to an executor).\n\n**State** – an object changes behaviour when its internal state changes (Order: CREATED → PAID → SHIPPED → DELIVERED, each state class allowing valid transitions only; vending machine — a common LLD question).\n\n**Iterator** – sequential access without exposing the representation (`Iterator`, `for-each`).\n\n**Mediator** – centralise communication between components (chat room; air-traffic control).\n\n### Patterns inside Spring (frequently asked)\n| Pattern | Where in Spring |\n|---|---|\n| Singleton | Default bean scope |\n| Factory | `BeanFactory`, `ApplicationContext`, `FactoryBean` |\n| Proxy | AOP: `@Transactional`, `@Cacheable`, `@Async` |\n| Template Method | `JdbcTemplate`, `RestTemplate`, `TransactionTemplate` |\n| Observer | `ApplicationEvent` / `@EventListener` |\n| Front Controller | `DispatcherServlet` |\n| Strategy | `HandlerMapping`, `PasswordEncoder`, `Resource` impls |\n| Chain of Responsibility | Security filter chain |\n| Adapter | `HandlerAdapter` |\n| Dependency Injection / IoC | The container itself |\n\n### Anti-patterns to name\nGod object, singleton abuse (hidden global state), spaghetti code, golden hammer (using one tool for everything), premature optimisation, copy-paste programming, anemic domain model (debatable)."
+  }
+ ],
+ "qa": [
+  {
+   "id": "oop-001",
+   "q": "What are the four pillars of OOP? Explain each with an example.",
+   "a": "1. **Encapsulation** – bundling state and behaviour and hiding internal details behind methods. `BankAccount` keeps `balance` private and exposes `deposit()`/`withdraw()` that enforce rules (no negative deposits).\n2. **Abstraction** – exposing only essential behaviour via interfaces/abstract classes. `PaymentGateway.charge(order)` hides whether Razorpay or Stripe is used and how HTTP calls are made.\n3. **Inheritance** – a class acquires properties/behaviour of a parent (is-a). `SavingsAccount extends Account` reuses common logic and adds interest calculation.\n4. **Polymorphism** – one interface, many implementations. Compile-time via **overloading** (`add(int,int)` / `add(double,double)`), runtime via **overriding** (`Notification n = new SmsNotification(); n.send()` calls the SMS version).\n\nTogether they produce modular, reusable, maintainable code. Tie your answer to a project class you designed.",
+   "level": "Basic",
+   "tags": [
+    "oop",
+    "pillars"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-002",
+   "q": "What is the difference between abstraction and encapsulation?",
+   "a": "| Abstraction | Encapsulation |\n|---|---|\n| Hides **complexity**; shows only **what** an object does | Hides **data/implementation**; controls **how** state is accessed |\n| Design-level concept | Implementation-level concept |\n| Achieved via **interfaces and abstract classes** | Achieved via **access modifiers** (`private`, getters/methods) |\n| Focus: the outside view/contract | Focus: protecting internal state and invariants |\n\nExample: a `Car` exposes `start()`, `accelerate()` — abstraction (you don't know about fuel injection). Inside, `engineTemperature` is `private` and only changed through methods — encapsulation.\n\nThey complement each other: encapsulation is one of the mechanisms that makes abstraction possible.",
+   "level": "Basic",
+   "tags": [
+    "oop",
+    "abstraction",
+    "encapsulation"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-003",
+   "q": "What is the difference between an abstract class and an interface in Java?",
+   "a": "| Abstract class | Interface |\n|---|---|\n| `extends` – only **one** | `implements` – **many** |\n| Can have constructors and **instance fields (state)** | No instance state; only `public static final` constants |\n| Abstract + concrete methods, any access modifier | Abstract, `default`, `static` and (Java 9+) `private` methods |\n| Models **is-a** with shared code among closely related classes | Models a **capability/contract** (`Comparable`, `Runnable`) usable by unrelated classes |\n\nWhen to use:\n- **Interface** – define a contract for multiple implementations, enable loose coupling and DI (`PaymentGateway`), or add a role to unrelated classes.\n- **Abstract class** – share state and partial implementation among related subclasses (template method: `AbstractReportGenerator` with `generate()` calling abstract `fetchData()`).\n\nSince Java 8 the gap narrowed, but interfaces still can't hold mutable instance state. Java 17 adds `sealed` to restrict implementers.",
+   "level": "Basic",
+   "tags": [
+    "oop",
+    "java",
+    "interface"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-004",
+   "q": "Explain method overloading vs method overriding.",
+   "a": "**Overloading (compile-time polymorphism):** same method name, **different parameter list** (number, types or order) in the same class or subclass. Return type alone can't distinguish overloads. Resolved by the compiler.\n```java\ndouble area(double r) {...}\ndouble area(double l, double w) {...}\n```\n**Overriding (runtime polymorphism):** a subclass provides a new implementation of a parent method with the **same signature**. Resolved at runtime based on the actual object (dynamic dispatch).\n```java\nclass Animal { String sound() { return \"...\"; } }\nclass Dog extends Animal { @Override String sound() { return \"Woof\"; } }\nAnimal a = new Dog(); a.sound(); // \"Woof\"\n```\nOverriding rules: same signature, covariant return allowed, can't reduce visibility, can't throw broader checked exceptions; `static`, `private` and `final` methods can't be overridden (static ones are *hidden*). Use `@Override` to catch mistakes.",
+   "level": "Basic",
+   "tags": [
+    "oop",
+    "polymorphism"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-005",
+   "q": "What are the SOLID principles? Explain each briefly with an example.",
+   "a": "- **S – Single Responsibility:** one reason to change. Split `InvoiceService` that calculates, saves, generates PDFs and emails into separate classes.\n- **O – Open/Closed:** open for extension, closed for modification. Replace `if (type == GOLD)` chains with a `DiscountPolicy` interface and one class per tier.\n- **L – Liskov Substitution:** subclasses must be substitutable for their base type without breaking behaviour. `Square extends Rectangle` violates it (setting width changes height).\n- **I – Interface Segregation:** many small, client-specific interfaces instead of one fat interface. Don't force `RobotWorker` to implement `eat()`.\n- **D – Dependency Inversion:** depend on abstractions, not concretions. `OrderService` depends on `OrderRepository` interface injected via constructor, not `new MySqlOrderRepository()`.\n\nBenefit: code that is easier to extend, test (mock dependencies) and maintain. Back it with one real refactoring from your project.",
+   "level": "Intermediate",
+   "tags": [
+    "solid",
+    "design-principles"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-006",
+   "q": "Explain the Open/Closed Principle with a real example.",
+   "a": "**Open for extension, closed for modification** — you should be able to add behaviour without editing tested, deployed code.\n\nViolation (every new payment mode edits this method):\n```java\npublic void pay(Order o, String mode) {\n    if (mode.equals(\"UPI\")) { ... }\n    else if (mode.equals(\"CARD\")) { ... }\n    else if (mode.equals(\"NETBANKING\")) { ... }\n}\n```\nOCP-compliant with Strategy + Spring DI:\n```java\npublic interface PaymentProcessor { String mode(); void pay(Order o); }\n@Component class UpiProcessor implements PaymentProcessor { public String mode() { return \"UPI\"; } public void pay(Order o) { ... } }\n\n@Service class PaymentService {\n    private final Map<String, PaymentProcessor> byMode;\n    PaymentService(List<PaymentProcessor> ps) { byMode = ps.stream().collect(toMap(PaymentProcessor::mode, p -> p)); }\n    public void pay(Order o, String mode) { byMode.get(mode).pay(o); }\n}\n```\nAdding \"WALLET\" = one new `@Component` class; `PaymentService` is untouched, existing tests stay valid.",
+   "level": "Intermediate",
+   "tags": [
+    "solid",
+    "ocp"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-007",
+   "q": "What is the Liskov Substitution Principle? Give a violation example.",
+   "a": "LSP: **if S is a subtype of T, objects of T can be replaced with objects of S without altering the correctness of the program.** Subclasses must honour the base class's **contract** — they may not strengthen preconditions, weaken postconditions, or throw new unexpected exceptions.\n\nViolation:\n```java\nclass Rectangle { protected int w, h; void setWidth(int w){this.w=w;} void setHeight(int h){this.h=h;} int area(){return w*h;} }\nclass Square extends Rectangle {\n    void setWidth(int w){ this.w = this.h = w; }\n    void setHeight(int h){ this.w = this.h = h; }\n}\nvoid resize(Rectangle r) { r.setWidth(5); r.setHeight(4); assert r.area() == 20; } // fails for Square (16)\n```\nAnother: a `ReadOnlyAccount extends Account` that throws on `withdraw()`.\n\nFix: don't force an is-a relationship that isn't behaviourally true. Use a common `Shape` interface with `area()`, or separate `Withdrawable` capability interfaces. Symptoms of LSP violations: `instanceof` checks and `UnsupportedOperationException` in overrides.",
+   "level": "Intermediate",
+   "tags": [
+    "solid",
+    "lsp"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-008",
+   "q": "What is the difference between Dependency Inversion, Dependency Injection and Inversion of Control?",
+   "a": "- **Dependency Inversion Principle (DIP)** – a *design principle* (the D in SOLID): high-level modules and low-level modules should both depend on **abstractions**; details depend on abstractions.\n- **Inversion of Control (IoC)** – a broader *concept*: control over object creation and flow is handed to a framework/container rather than your code (\"don't call us, we'll call you\"). Spring's container, servlet lifecycle, Angular bootstrapping.\n- **Dependency Injection (DI)** – a *technique/pattern* that implements IoC for dependencies: objects receive their collaborators from outside (constructor, setter, field) instead of creating them with `new`.\n\n```java\n@Service\nclass OrderService {\n    private final OrderRepository repo;      // abstraction (DIP)\n    OrderService(OrderRepository repo) {     // injected by Spring (DI via IoC container)\n        this.repo = repo;\n    }\n}\n```\nPrefer constructor injection: immutable dependencies, mandatory deps explicit, easy unit testing without Spring.",
+   "level": "Intermediate",
+   "tags": [
+    "solid",
+    "dip",
+    "di",
+    "spring"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-009",
+   "q": "What are DRY, KISS and YAGNI?",
+   "a": "- **DRY (Don't Repeat Yourself):** each piece of knowledge (business rule, validation, constant) should exist in one place. Duplicate GST logic in three services → one fix gets missed. But don't merge code that only *looks* similar yet changes for different reasons — the wrong abstraction is worse than duplication (rule of three).\n- **KISS (Keep It Simple, Stupid):** choose the simplest design that meets requirements; readable code over clever code. Don't introduce Kafka, microservices or NgRx when a direct call, a module or a service is enough.\n- **YAGNI (You Aren't Gonna Need It):** don't build features/abstractions for imagined future requirements. Build for today, keep code easy to change.\n\nThey balance SOLID: SOLID pushes towards abstraction and extensibility; KISS/YAGNI push back against over-engineering. Good engineers apply abstractions when there's a real, present need (e.g. second payment provider arrives).",
+   "level": "Basic",
+   "tags": [
+    "design-principles"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-010",
+   "q": "What is composition over inheritance? Why is it preferred?",
+   "a": "\"Favour composition over inheritance\" (Gang of Four) means: reuse behaviour by **holding references to other objects (has-a) and delegating**, rather than extending classes (is-a).\n\nWhy:\n1. **Loose coupling** – depends on an interface, not the parent's internals (no **fragile base class** problem).\n2. **Flexibility** – behaviour can be swapped at runtime and combined freely (a `NotificationService` with any `MessageSender` × any `RetryPolicy`), avoiding class explosion.\n3. **Java single inheritance** isn't a constraint for composition.\n4. **Better encapsulation and testability** – inject mocks for collaborators.\n\nClassic pitfall: `class CountingSet extends HashSet` overriding `add` and `addAll` double-counts because `HashSet.addAll` calls `add` internally. A wrapper (`implements Set`, delegating to an inner set) avoids it.\n\nUse inheritance for true, stable is-a relationships that satisfy LSP (custom exceptions, framework extension points like `OncePerRequestFilter`).",
+   "level": "Intermediate",
+   "tags": [
+    "composition",
+    "inheritance"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-011",
+   "q": "What is the difference between association, aggregation and composition?",
+   "a": "All three describe relationships between classes:\n\n- **Association** – a general \"uses/knows\" relationship; objects have independent lifecycles. A `Teacher` and a `Student` are associated; neither owns the other.\n- **Aggregation** – a **weak has-a** (whole–part) where parts can exist independently of the whole. A `Department` has `Employee`s; deleting the department doesn't delete employees. UML: hollow diamond.\n- **Composition** – a **strong has-a** where the part's lifecycle is bound to the whole. An `Order` has `OrderItem`s; deleting the order deletes its items. A `House` has `Room`s. UML: filled diamond.\n\n```java\nclass Order {\n    private final List<OrderItem> items = new ArrayList<>();   // created & owned by Order (composition)\n    private Customer customer;                                  // exists independently (association/aggregation)\n}\n```\nJPA mirror: composition ≈ `@OneToMany(cascade = ALL, orphanRemoval = true)`.",
+   "level": "Basic",
+   "tags": [
+    "oop",
+    "relationships"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "oop-012",
+   "q": "What is a design pattern? Name the three categories with examples.",
+   "a": "A **design pattern** is a reusable, named solution to a commonly occurring design problem in a given context — a template, not finished code. The Gang of Four book catalogued 23 patterns in three categories:\n\n1. **Creational** – object creation mechanisms: **Singleton**, **Factory Method**, **Abstract Factory**, **Builder**, **Prototype**.\n2. **Structural** – composing classes/objects into larger structures: **Adapter**, **Decorator**, **Proxy**, **Facade**, **Composite**, Bridge, Flyweight.\n3. **Behavioural** – communication and responsibility between objects: **Strategy**, **Observer**, **Template Method**, **Chain of Responsibility**, **Command**, **State**, Iterator, Mediator, Visitor, Memento, Interpreter.\n\nBenefits: shared vocabulary (\"let's use a strategy here\"), proven designs, maintainability. Risk: forcing patterns where simple code suffices (violates KISS). Mention where you've seen them in Spring/Angular to stand out.",
+   "level": "Basic",
+   "tags": [
+    "design-patterns"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-013",
+   "q": "Implement a thread-safe Singleton in Java. What are the ways to break it?",
+   "a": "```java\npublic final class AppConfig {\n    private static volatile AppConfig instance;\n    private AppConfig() {\n        if (instance != null) throw new IllegalStateException(\"Use getInstance()\"); // reflection guard\n    }\n    public static AppConfig getInstance() {\n        if (instance == null) {                          // 1st check, no lock\n            synchronized (AppConfig.class) {\n                if (instance == null) instance = new AppConfig();   // 2nd check\n            }\n        }\n        return instance;\n    }\n    private Object readResolve() { return getInstance(); }   // serialization guard\n}\n```\n`volatile` prevents another thread from seeing a partially constructed object due to instruction reordering.\n\nAlternatives: **eager init** (`private static final AppConfig I = new AppConfig();`), **Bill Pugh holder** (lazy, thread-safe via class loading), and the **enum singleton** — the most robust (handles serialization and reflection automatically).\n\nWays to break: **reflection** (calling the private constructor), **serialization/deserialization**, **cloning**, **multiple class loaders**. In Spring apps, prefer singleton-scoped beans over manual singletons.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "singleton",
+    "java"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-014",
+   "q": "Explain the Factory pattern. How is it different from Abstract Factory?",
+   "a": "**Factory (Method / Simple Factory):** encapsulates object creation so clients request an object by type/parameter and get back an interface, without knowing concrete classes.\n```java\npublic static Notification create(Channel c) {\n    return switch (c) {\n        case SMS -> new SmsNotification();\n        case EMAIL -> new EmailNotification();\n        case PUSH -> new PushNotification();\n    };\n}\n```\nBenefits: decouples clients from concrete classes, centralises creation logic, makes adding types easier.\n\n**Abstract Factory:** a factory interface that creates **families of related objects** that must be used together.\n```java\ninterface CloudFactory { Storage storage(); Queue queue(); }\nclass AwsFactory implements CloudFactory { /* S3Storage, SqsQueue */ }\nclass GcpFactory implements CloudFactory { /* GcsStorage, PubSubQueue */ }\n```\nDifference: Factory Method creates **one product**; Abstract Factory creates **a family of products** and ensures they're compatible. Spring's `BeanFactory` is a general-purpose factory.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "factory"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-015",
+   "q": "What is the Builder pattern and when would you use it?",
+   "a": "The **Builder** pattern separates the construction of a complex object from its representation, building it step by step with a fluent API, then calling `build()`.\n\nUse it when:\n- A class has **many parameters**, especially optional ones (avoids **telescoping constructors** like `new User(a, b, null, null, true, 0)`).\n- You want **immutable** objects with readable construction.\n- You need validation before creation (in `build()`).\n\n```java\nUser user = User.builder()\n    .name(\"Raj\")\n    .email(\"raj@example.com\")\n    .phone(\"98xxxxxx\")\n    .role(Role.ADMIN)\n    .build();\n```\nExamples: `StringBuilder`, `HttpClient.newBuilder()`, `HttpRequest.newBuilder()`, Lombok `@Builder`, Spring `ResponseEntity.status(201).header(...).body(...)`, `MockMvcRequestBuilders`. Downside: extra boilerplate (mitigated by Lombok or records for simple cases).",
+   "level": "Basic",
+   "tags": [
+    "design-patterns",
+    "builder"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-016",
+   "q": "Explain the Strategy pattern with an example.",
+   "a": "**Strategy** defines a family of algorithms, encapsulates each one behind a common interface, and makes them interchangeable at runtime. The client (context) holds a reference to a strategy and delegates to it.\n\n```java\npublic interface PricingStrategy { BigDecimal finalPrice(BigDecimal base); }\npublic class RegularPricing implements PricingStrategy { public BigDecimal finalPrice(BigDecimal b) { return b; } }\npublic class FestiveSalePricing implements PricingStrategy { public BigDecimal finalPrice(BigDecimal b) { return b.multiply(new BigDecimal(\"0.8\")); } }\npublic class PrimeMemberPricing implements PricingStrategy { ... }\n\npublic class Checkout {\n    private PricingStrategy pricing;\n    public Checkout(PricingStrategy pricing) { this.pricing = pricing; }\n    public void setPricing(PricingStrategy p) { this.pricing = p; }   // swap at runtime\n    public BigDecimal total(BigDecimal base) { return pricing.finalPrice(base); }\n}\n```\nBenefits: removes `if/else`/`switch` chains, follows **Open/Closed**, each algorithm testable in isolation. JDK: `Comparator` passed to `Collections.sort`. With Java 8, simple strategies can be lambdas: `Function<BigDecimal, BigDecimal>`.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "strategy"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-017",
+   "q": "Explain the Observer pattern. Where is it used in Spring and Angular?",
+   "a": "**Observer** defines a one-to-many dependency: when a **subject** changes state, all registered **observers** are notified automatically. It decouples the producer from consumers.\n\n```java\ninterface StockObserver { void onPriceChange(String symbol, double price); }\nclass StockTicker {\n    private final List<StockObserver> observers = new CopyOnWriteArrayList<>();\n    void subscribe(StockObserver o) { observers.add(o); }\n    void unsubscribe(StockObserver o) { observers.remove(o); }\n    void update(String s, double p) { observers.forEach(o -> o.onPriceChange(s, p)); }\n}\n```\n**Spring:** `ApplicationEventPublisher.publishEvent(new OrderPlacedEvent(...))` with `@EventListener` / `@TransactionalEventListener` handlers (email, analytics) — the order service doesn't know who listens.\n\n**Angular:** RxJS `Observable`/`Subject` (`subscribe`), `EventEmitter` for `@Output`, signals' `effect`. At system level, Kafka/pub-sub is the distributed form.\n\nPitfalls: memory leaks if observers aren't unsubscribed, unpredictable notification order, cascading updates.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "observer"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-018",
+   "q": "What is the Decorator pattern? How is it different from inheritance and Proxy?",
+   "a": "**Decorator** attaches additional responsibilities to an object **dynamically** by wrapping it in an object of the same interface that adds behaviour before/after delegating.\n\n```java\ninterface Notifier { void send(String msg); }\nclass EmailNotifier implements Notifier { public void send(String m) { ... } }\nclass SlackDecorator implements Notifier {\n    private final Notifier inner;\n    SlackDecorator(Notifier inner) { this.inner = inner; }\n    public void send(String m) { inner.send(m); postToSlack(m); }\n}\nNotifier n = new SlackDecorator(new SmsDecorator(new EmailNotifier()));\n```\n**vs inheritance:** decorators compose at runtime and in any combination, avoiding a subclass per combination. Java I/O streams (`BufferedInputStream(new FileInputStream(...))`) are the textbook example.\n\n**vs Proxy:** structurally similar (wrapper with the same interface), but intent differs: a **proxy controls access** to the object (lazy loading, security, remote, transactions — Spring AOP `@Transactional`), usually managing the real object's lifecycle; a **decorator adds features** and is typically stacked explicitly by the client.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "decorator",
+    "proxy"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "oop-019",
+   "q": "What is the Proxy pattern? Why does @Transactional not work when a method calls another method in the same class?",
+   "a": "**Proxy** provides a surrogate object with the **same interface** as the real object to **control access** to it — adding lazy loading, access checks, caching, remote calls, logging or transactions around the real call.\n\nSpring AOP creates a proxy (JDK dynamic proxy for interfaces, CGLIB subclass otherwise) around beans with `@Transactional`, `@Cacheable`, `@Async`, `@PreAuthorize`. Callers get the proxy; the proxy opens the transaction, then delegates to the real bean.\n\n```java\n@Service\npublic class OrderService {\n    public void placeAll(List<Order> orders) {\n        orders.forEach(this::place);      // 'this' = the real object, NOT the proxy\n    }\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    public void place(Order o) { ... }    // transaction annotation ignored here\n}\n```\n**Self-invocation** goes through `this`, bypassing the proxy, so no transaction starts. Fixes: move `place()` to another bean, inject the bean into itself (`@Lazy` self-reference), use `TransactionTemplate`, or AspectJ weaving. Also: proxies only intercept `public` methods (by default) and `final` methods can't be proxied by CGLIB.\n\nOther proxies: Hibernate lazy-loading entity proxies, Java RMI stubs.",
+   "level": "Advanced",
+   "tags": [
+    "design-patterns",
+    "proxy",
+    "spring"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-020",
+   "q": "What is the Adapter pattern? Give a real use case.",
+   "a": "**Adapter** converts the interface of an existing class into another interface clients expect, letting incompatible classes work together — like a travel plug adapter.\n\nUse case: your app defines `SmsSender.send(String phone, String text)`, but a newly chosen vendor SDK exposes `VendorClient.dispatch(MessageRequest req)`.\n```java\npublic class VendorSmsAdapter implements SmsSender {\n    private final VendorClient client;\n    public VendorSmsAdapter(VendorClient client) { this.client = client; }\n    @Override public void send(String phone, String text) {\n        client.dispatch(new MessageRequest(\"+91\" + phone, text, Priority.HIGH));\n    }\n}\n```\nBusiness code keeps using `SmsSender`; switching vendors means writing another adapter (ties to OCP and DIP — also called an anti-corruption layer when wrapping legacy systems).\n\nJDK examples: `Arrays.asList()` (array → List), `InputStreamReader` (byte stream → character stream). Spring MVC's `HandlerAdapter` lets `DispatcherServlet` invoke different handler types uniformly.",
+   "level": "Basic",
+   "tags": [
+    "design-patterns",
+    "adapter"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "oop-021",
+   "q": "Which design patterns does the Spring Framework use?",
+   "a": "- **Singleton** – default bean scope (one instance per container).\n- **Factory** – `BeanFactory`/`ApplicationContext` create beans; `FactoryBean` for complex creation.\n- **Prototype** – prototype bean scope.\n- **Proxy** – Spring AOP proxies (JDK dynamic proxy/CGLIB) implement `@Transactional`, `@Cacheable`, `@Async`, `@PreAuthorize`. Explains why self-invocation skips them.\n- **Template Method** – `JdbcTemplate`, `RestTemplate`, `TransactionTemplate`, `JmsTemplate` handle boilerplate and call your callbacks.\n- **Observer** – `ApplicationEvent`, `ApplicationListener`, `@EventListener`.\n- **Front Controller** – `DispatcherServlet` routes every request.\n- **Strategy** – `PasswordEncoder`, `HandlerMapping`, `ViewResolver` implementations.\n- **Chain of Responsibility** – Spring Security filter chain, `HandlerInterceptor`s.\n- **Adapter** – `HandlerAdapter`.\n- **Dependency Injection / IoC** – the core of the container.\n- **MVC** – Spring Web MVC architecture.\n\nShowing this mapping proves you understand patterns beyond textbook definitions.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "spring"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-022",
+   "q": "What is the Chain of Responsibility pattern?",
+   "a": "**Chain of Responsibility** passes a request along a chain of handlers; each handler either processes it, passes it on, or both. The sender doesn't know which handler will handle it, decoupling sender and receivers.\n\n```java\nabstract class Approver {\n    protected Approver next;\n    Approver linkWith(Approver next) { this.next = next; return next; }\n    abstract void approve(Expense e);\n}\nclass Manager extends Approver {\n    void approve(Expense e) { if (e.amount() <= 10_000) System.out.println(\"Manager approved\"); else next.approve(e); }\n}\nclass Director extends Approver { void approve(Expense e) { if (e.amount() <= 1_00_000) ... else next.approve(e); } }\nclass Cfo extends Approver { void approve(Expense e) { ... } }\n\nApprover chain = new Manager(); chain.linkWith(new Director()).linkWith(new Cfo());\nchain.approve(new Expense(50_000));   // Director approved\n```\nReal uses: **Servlet filters / Spring Security filter chain** (authentication, CORS, CSRF filters), Spring `HandlerInterceptor`s, **Angular HTTP interceptors**, logging levels, middleware in Express. Benefits: add/reorder handlers without changing the sender (OCP).",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "chain-of-responsibility"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "oop-023",
+   "q": "What is the State pattern? How would you model an order lifecycle?",
+   "a": "**State** lets an object change its behaviour when its internal state changes, by delegating to a state object. It replaces large `switch(status)` blocks scattered across methods.\n\n```java\ninterface OrderState {\n    default OrderState pay(Order o)    { throw new IllegalStateException(\"Cannot pay in \" + name()); }\n    default OrderState ship(Order o)   { throw new IllegalStateException(\"Cannot ship in \" + name()); }\n    default OrderState cancel(Order o) { throw new IllegalStateException(\"Cannot cancel in \" + name()); }\n    String name();\n}\nclass Created implements OrderState {\n    public OrderState pay(Order o) { return new Paid(); }\n    public OrderState cancel(Order o) { return new Cancelled(); }\n    public String name() { return \"CREATED\"; }\n}\nclass Paid implements OrderState {\n    public OrderState ship(Order o) { return new Shipped(); }\n    public OrderState cancel(Order o) { o.refund(); return new Cancelled(); }\n    public String name() { return \"PAID\"; }\n}\nclass Order { private OrderState state = new Created(); void pay() { state = state.pay(this); } ... }\n```\nEach state allows only valid transitions; adding a state (e.g. `RETURNED`) is a new class. Common in LLD rounds (vending machine, ATM, elevator). In practice, a simpler alternative is an enum with an allowed-transitions map, or Spring Statemachine.",
+   "level": "Advanced",
+   "tags": [
+    "design-patterns",
+    "state",
+    "lld"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "oop-024",
+   "q": "What are coupling and cohesion? Why do we want low coupling and high cohesion?",
+   "a": "- **Cohesion** – how closely related the responsibilities **within** a module/class are. High cohesion: an `InvoiceCalculator` does only invoice math. Low cohesion: a `Utils` class with date formatting, email sending and tax rules.\n- **Coupling** – how much a module **depends on other modules'** internals. Tight coupling: `OrderService` instantiates `MySqlOrderRepository` and reads its fields. Loose coupling: depends on an `OrderRepository` interface injected via constructor, or communicates via events.\n\nWhy **high cohesion + low coupling**:\n- Changes stay **localised** (one reason to change → SRP).\n- Modules are **reusable** and **testable** in isolation (mock interfaces).\n- Teams can work in parallel; easier to split into microservices later.\n- Fewer ripple effects and regressions.\n\nTechniques: interfaces + DI, SRP, Law of Demeter, events/message queues, clear module boundaries (packages by feature, not by layer).",
+   "level": "Basic",
+   "tags": [
+    "design-principles"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "oop-025",
+   "q": "What is the Template Method pattern? Give an example from a framework.",
+   "a": "**Template Method** defines the **skeleton of an algorithm** in a base-class method, deferring some steps to subclasses (or callbacks). The overall sequence stays fixed; specific steps vary.\n\n```java\npublic abstract class ReportGenerator {\n    public final byte[] generate(ReportRequest req) {   // template method (final: order can't change)\n        var data = fetchData(req);\n        var rows = transform(data);\n        return render(rows);                            // e.g. CSV vs PDF\n    }\n    protected abstract List<Record> fetchData(ReportRequest req);\n    protected List<Row> transform(List<Record> d) { return d.stream().map(Row::from).toList(); } // hook (optional override)\n    protected abstract byte[] render(List<Row> rows);\n}\nclass SalesCsvReport extends ReportGenerator { ... }\n```\nFramework examples: Spring's **`JdbcTemplate`** (handles connection, statement, exceptions, closing; you supply SQL and a `RowMapper` callback), `RestTemplate`, `AbstractRoutingDataSource`, Servlet `HttpServlet.service()` dispatching to `doGet`/`doPost`, JUnit's setup → test → teardown.\n\nDifference from Strategy: Template Method uses **inheritance** to vary steps; Strategy uses **composition** to swap the whole algorithm.",
+   "level": "Intermediate",
+   "tags": [
+    "design-patterns",
+    "template-method"
+   ],
+   "frequent": false
+  }
+ ],
+ "sources": [
+  {
+   "title": "Refactoring.Guru - Design Patterns catalogue",
+   "url": "https://refactoring.guru/design-patterns"
+  },
+  {
+   "title": "Refactoring.Guru - Code smells",
+   "url": "https://refactoring.guru/refactoring/smells"
+  },
+  {
+   "title": "Effective Java, 3rd Ed. (Joshua Bloch) - Item 18: Favor composition over inheritance",
+   "url": "https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/"
+  },
+  {
+   "title": "Robert C. Martin - The Principles of OOD",
+   "url": "http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod"
+  },
+  {
+   "title": "Spring Framework Reference - Core Technologies (IoC, AOP)",
+   "url": "https://docs.spring.io/spring-framework/reference/core.html"
+  },
+  {
+   "title": "GeeksforGeeks - SOLID Principles",
+   "url": "https://www.geeksforgeeks.org/solid-principle-in-programming-understand-with-real-life-examples/"
+  },
+  {
+   "title": "InterviewBit - OOPs Interview Questions",
+   "url": "https://www.interviewbit.com/oops-interview-questions/"
+  }
+ ]
+}

@@ -1,0 +1,472 @@
+{
+ "id": "production-debugging",
+ "name": "Production Debugging & Incidents",
+ "order": 12,
+ "icon": "🚨",
+ "description": "A repeatable method for debugging live systems: golden signals, observability, SLOs, JVM forensics, common incident playbooks and blameless postmortems.",
+ "notes": [
+  {
+   "id": "dbg-n01",
+   "title": "The Debugging Method: From Page to Guardrail",
+   "content": "## Why this round exists\nMany 2026 loops have an **execution / operations round**. You get a page, something like *\"Checkout p99 went from 200 ms to 2 s at 14:05\"*, and the interviewer plays your dashboards. Nobody expects you to guess the cause. They are grading whether you have a **method** that is fast, keeps customers safe and follows evidence. A junior jumps to a theory (\"must be the DB\"). A senior narrows the search with data, stops the bleeding early and leaves the system harder to break.\n\n## The seven-step loop\n```text\n 1. CONFIRM SYMPTOM   what exactly? since when? who is affected? how bad?\n        |\n 2. GOLDEN SIGNALS    latency / traffic / errors / saturation, per service and per dependency\n        |\n 3. RECENT CHANGES    deploys, flags, config, migrations, infra, traffic mix, cron, certs\n        |\n 4. ISOLATE           split healthy vs unhealthy: host, AZ, version, endpoint, tenant, shard\n        |\n 5. MITIGATE          rollback, flag off, shed load, scale out, fail over (stop the bleeding)\n        |\n 6. VERIFY            same signal back to baseline? business metric OK? no new errors?\n        |\n 7. GUARDRAIL         root cause, test, alert, limit, runbook, postmortem\n```\n\n**1. Confirm the symptom.** Is it real or a monitoring glitch? All endpoints or one? All users or one region or app version? Pin the start time. A **sharp step** at 14:05 points to a change. A **slow ramp** points to a leak, data growth or a queue building up.\n\n**2. Read the golden signals** (from the Google SRE book): latency (successes and failures tracked separately, because a fast 500 can hide a slow one), traffic, errors and saturation. For resources (CPU, pools, disks, locks) use Brendan Gregg's **USE** method: Utilization, Saturation, Errors. Always compare against the same time yesterday or last week.\n\n**3. Ask \"what changed?\"** This is the most useful single question, because most incidents follow a change. Check the deploy history, the feature-flag audit log, config pushes, DB migrations, deploys of your dependencies, certificate rotations and marketing campaigns.\n\n**4. Isolate.** Divide and conquer on dimensions. Only pods on v2.31 slow? Regression. Only one AZ? Infrastructure. Only one tenant? Data shape, such as a customer with 2 million orders. Every instance degrading at the same moment? A shared dependency. Traces show which span grew.\n\n**5. Mitigate.** Customer impact matters more than root cause. Prefer **reversible** actions: rollback, flag off, scale out, shed non-critical traffic, fail over. If a change lines up with the start time, *roll back first and debug later*.\n\n**6. Verify.** Watch the signal that paged you **and** a business metric (orders per minute). Recovered latency with zero orders is not a recovery.\n\n**7. Guardrail.** Once the bleeding stops, find the root cause and ask *why we didn't catch it earlier*. The answer becomes a test, a canary metric, an alert, a limit (timeout, pool size, queue bound) or a runbook.\n\n## A worked timeline\n| Time | Evidence / action |\n|---|---|\n| 14:05 | v2.31 rolled out |\n| 14:09 | Alert: checkout p99 2.1 s (baseline 200 ms), errors 0.4% -> 3% (timeouts) |\n| 14:10 | Traffic flat, DB CPU normal, **hikaricp_connections_pending 0 -> 150** |\n| 14:11 | Split by version: only v2.31 pods affected |\n| 14:12 | Decision: rollback (3 min) instead of debugging forward |\n| 14:17 | p99 back to 210 ms, orders/min back to baseline |\n| Later | Root cause: new fraud-check HTTP call inside `@Transactional` held DB connections ~800 ms each |\n| Guardrails | Move remote call out of the transaction, alert on pending connections, automated canary analysis on p99 |\n\n## What makes you sound senior\n- State **hypotheses with tests**: \"If it's the pool, pending connections will be above zero and thread dumps will show threads parked in `HikariPool.getConnection`.\"\n- Keep **mitigation** separate from **fix**.\n- Ask about **blast radius** before risky actions. Restarting the DB primary at peak can make things worse.\n- **Preserve evidence**: grab a thread or heap dump from one pod before restarting the rest.\n- Change **one thing at a time**, and **communicate** with short, timestamped status updates.\n\n## Anti-patterns interviewers notice\nRestarting everything at once and losing evidence. Spending an hour debugging forward when a rollback takes three minutes. Saying \"I'd add more logs\" as the first step. Increasing the pool size or heap without knowing why. Declaring victory without checking."
+  },
+  {
+   "id": "dbg-n02",
+   "title": "Observability: Logs, Metrics, Traces and Correlation IDs",
+   "content": "## Three signals, three questions\n| Signal | Answers | Cost | Typical tools |\n|---|---|---|---|\n| **Metrics** | Is something wrong, and how much? | Cheap: numbers aggregated over time | Micrometer, Prometheus, Grafana |\n| **Logs** | What exactly happened to *this* request? | Expensive at volume | Logback JSON, ELK / Loki |\n| **Traces** | Where did the time go across services? | Sampled | OpenTelemetry, Jaeger, Tempo, Zipkin |\n\nThe flow during an incident: a **metric** alerts you, a **trace** shows which hop is slow, and **logs** for that trace ID tell you why.\n\n## Structured logging\n```java\n// Bad: string concatenation, unsearchable, built even when the level is off\nlog.info(\"Order \" + orderId + \" failed for user \" + userId + \": \" + e);\n// Good: parameterised, with the exception as the last argument so the stack trace is kept\nlog.warn(\"order payment failed orderId={} provider={} attempt={}\", orderId, provider, attempt, e);\n```\nEmit **JSON** so the log platform can index fields. Spring Boot 3.4+ supports this natively: `logging.structured.format.console=ecs` (or `logstash`, `gelf`). One line looks like:\n```text\n{\"@timestamp\":\"2026-10-09T14:05:31.120Z\",\"log.level\":\"WARN\",\"service.name\":\"order-service\",\n \"trace.id\":\"4bf92f3577b34da6a3ce929d0e0e4736\",\"message\":\"order payment failed\",\"orderId\":\"O-981\",...}\n```\nRules: log at **boundaries** (request in/out, external calls, state transitions, retries). Log **IDs, not PII** (no card numbers, OTPs or tokens). Levels need clear meanings: ERROR means someone should look, WARN means degraded but handled. Don't log inside tight loops.\n\n## Correlation IDs with MDC\n```java\nimport jakarta.servlet.FilterChain;\nimport jakarta.servlet.ServletException;\nimport jakarta.servlet.http.HttpServletRequest;\nimport jakarta.servlet.http.HttpServletResponse;\nimport java.io.IOException;\nimport java.util.UUID;\nimport org.slf4j.MDC;\nimport org.springframework.core.Ordered;\nimport org.springframework.core.annotation.Order;\nimport org.springframework.stereotype.Component;\nimport org.springframework.web.filter.OncePerRequestFilter;\n\n@Component\n@Order(Ordered.HIGHEST_PRECEDENCE)\npublic class CorrelationIdFilter extends OncePerRequestFilter {\n    static final String HEADER = \"X-Correlation-Id\";\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)\n            throws ServletException, IOException {\n        String id = req.getHeader(HEADER);\n        if (id == null || id.isBlank() || id.length() > 64) {   // never trust unbounded input\n            id = UUID.randomUUID().toString();\n        }\n        MDC.put(\"correlationId\", id);\n        res.setHeader(HEADER, id);\n        try {\n            chain.doFilter(req, res);\n        } finally {\n            MDC.remove(\"correlationId\");   // pooled threads: always clean up\n        }\n    }\n}\n```\nPitfalls: MDC is a `ThreadLocal`, so the value is **lost on `@Async`, `CompletableFuture` and executor hops** unless you propagate it (a `TaskDecorator`, or Micrometer's context-propagation library). Forward the header on outgoing HTTP and Kafka calls. With **Micrometer Tracing** on the classpath, `traceId` and `spanId` go into the MDC automatically, so the trace ID usually *is* the correlation ID.\n\n## Metrics: Micrometer -> Prometheus -> Grafana\nActuator plus `micrometer-registry-prometheus` exposes `/actuator/prometheus`. You get useful metrics for free: `http_server_requests_seconds` (by uri, method, status), `jvm_memory_used_bytes`, `jvm_gc_pause_seconds`, `hikaricp_connections_active` and `_pending`, `tomcat_threads_busy_threads`, `executor_queued_tasks`.\n```java\nTimer.builder(\"payment.gateway.call\")\n     .tag(\"provider\", provider)            // low-cardinality values only\n     .publishPercentileHistogram()\n     .register(registry)\n     .record(() -> gateway.charge(request));\n```\np99 per endpoint in PromQL:\n```text\nhistogram_quantile(0.99, sum by (le, uri) (rate(http_server_requests_seconds_bucket[5m])))\n```\n**Cardinality trap:** never tag with `userId`, `orderId` or a raw URL. Each unique value creates a new time series and can take down Prometheus. Use templated URIs (`/orders/{id}`).\n\n## Distributed tracing with OpenTelemetry\nA trace is a tree of **spans**. Context travels in the W3C `traceparent` header (`00-<traceId>-<spanId>-<flags>`). In Spring Boot 3 you either use Micrometer Tracing with the OTel bridge and an OTLP exporter, or attach the OTel Java agent for zero-code instrumentation.\n```text\ntraceId 4bf9...\n[api-gateway ] |=================================| 1900 ms\n  [order-svc ]  |===============================|  1850 ms\n    [SELECT  ]   |=|                                  40 ms\n    [fraud-svc]     |==========================|     1700 ms   <-- the culprit\n```\nSampling: **head-based** (keep 1-10%, decided at the start) is cheap. **Tail-based** (decided after the trace completes) keeps all errors and slow traces. **Exemplars** attach trace IDs to histogram buckets, so you can click from a latency spike to a real slow trace.\n\n## Day-one checklist for a new service\nRED metrics (rate, errors, duration) per endpoint. Client metrics per downstream dependency. Saturation gauges for pools and queues. JSON logs with trace IDs. Liveness and readiness probes. Dashboards plus SLO alerts. A `build_info{version=...}` metric so you can split everything by version."
+  },
+  {
+   "id": "dbg-n03",
+   "title": "SLIs, SLOs, Error Budgets and Alerting",
+   "content": "## Vocabulary\n- **SLI (indicator):** a measured ratio, *good events / valid events*. Example: the share of `POST /checkout` requests that return non-5xx **in under 500 ms**, measured at the load balancer.\n- **SLO (objective):** a target for that SLI over a window. Example: **99.9% over a rolling 28 days**.\n- **SLA (agreement):** a contractual promise with penalties, deliberately looser than the SLO.\n- **Error budget:** `1 - SLO`. At 99.9% on 10M requests a month you may fail **10,000** requests. In time, it is about **43 minutes** per 30 days.\n\n| SLO | Allowed bad time per 30 days |\n|---|---|\n| 99% | 7.2 hours |\n| 99.9% | 43.2 minutes |\n| 99.95% | 21.6 minutes |\n| 99.99% | 4.3 minutes |\n\n## Choosing good SLIs\n- **Measure close to the user**: gateway or load balancer, not inside the JVM, which misses requests that never reached it.\n- Use **request-based** ratios: availability (non-5xx / all) and latency as a threshold (\"% under 300 ms\"), not an average.\n- Pipelines: **freshness** (\"99% of events processed within 5 minutes\"). Payments: **correctness** (reconciliation mismatches).\n- Not every endpoint needs its own SLO. Cover the critical user journeys: login, search, add to cart, pay.\n\nA compact SLO spec:\n```text\nService: order-api            Owner: checkout-team         Window: 28 days rolling\nSLI availability: count(status != 5xx) / count(all) at the gateway, POST /orders     SLO 99.9%\nSLI latency:      count(duration < 400ms) / count(all), POST /orders                 SLO 99%\nExclusions: synthetic traffic, 4xx (client errors), planned maintenance with notice\n```\n\n## Error budget policy: the real point\nThe budget turns the \"reliability vs features\" argument into data. **Budget left?** Ship features and run experiments. **Budget exhausted?** Freeze risky launches and put the team on reliability work until it recovers. Without an agreed policy an SLO is only a dashboard.\n\nDependencies compound: if checkout synchronously needs three services at 99.9% each, the best you can expect is about 0.999^3, roughly **99.7%**. That's why you add timeouts, fallbacks and async paths.\n\n## Alerting on SLOs with burn rates\n**Burn rate** is how fast you spend the budget relative to spending it evenly. A burn rate of 1 uses exactly the whole budget by the end of the window. A burn rate of 14.4 sustained for one hour uses **2%** of a 30-day budget.\n\nThe Google SRE Workbook recommends **multiwindow, multi-burn-rate** alerts:\n| Severity | Long window | Short window | Burn rate | Budget used |\n|---|---|---|---|---|\n| Page | 1 h | 5 min | 14.4 | 2% |\n| Page | 6 h | 30 min | 6 | 5% |\n| Ticket | 3 days | 6 h | 1 | 10% |\n\nBoth windows must be over the threshold. The long window shows the burn is significant. The short window shows it's *still happening*, so the alert clears quickly after recovery.\n```text\n# 99.9% SLO -> budget 0.001; fast-burn page condition\n(\n  sum(rate(http_server_requests_seconds_count{uri=\"/orders\",status=~\"5..\"}[1h]))\n  / sum(rate(http_server_requests_seconds_count{uri=\"/orders\"}[1h]))\n) > 14.4 * 0.001\nand\n(\n  sum(rate(http_server_requests_seconds_count{uri=\"/orders\",status=~\"5..\"}[5m]))\n  / sum(rate(http_server_requests_seconds_count{uri=\"/orders\"}[5m]))\n) > 14.4 * 0.001\n```\nWhy not simply \"error rate > 1% for 5 minutes\"? It pages on short blips that barely touch the budget, and it never fires on a slow 0.5% burn that quietly uses the whole month's budget.\n\n## Page on symptoms, not causes\n**Page** when users are hurting (SLO burn, checkout failing). **Ticket or dashboard** for causes such as CPU at 85%, one pod restarting or disk at 70%. The exception is a cause that will *certainly* become an outage soon: disk at 95% and filling, a certificate expiring in 7 days, or replication lag growing without bound.\n\n## Alert hygiene\nEvery page must be **actionable**, **owned** and **linked to a runbook**. Review pages every week: delete or downgrade any alert that fired without needing action. Alert fatigue is how real incidents get missed.\n\n## How to answer \"Define SLOs for a payments API\"\nStart with the user journey (authorize a payment). Pick an availability SLI at the gateway, a latency threshold SLI and a correctness check through daily reconciliation. Set a tighter target for `authorize` than for `payment-history`. Mention dependency math, the error budget policy and burn-rate alerts. That covers what interviewers listen for."
+  },
+  {
+   "id": "dbg-n04",
+   "title": "JVM Forensics: Thread Dumps, Heap Dumps, JFR and async-profiler",
+   "content": "## The toolbox (memorise these)\nInside a container: `kubectl exec -it <pod> -- jcmd` lists JVMs (the PID is often 1).\n```text\njcmd <pid> Thread.print -l > threads.txt          # thread dump, with lock info\njcmd <pid> GC.heap_info                           # heap regions and usage\njcmd <pid> GC.class_histogram | head -30          # quick \"what is filling the heap\"\njcmd <pid> GC.heap_dump /tmp/heap.hprof           # full heap dump (pauses the JVM!)\njcmd <pid> JFR.start name=inc duration=120s settings=profile filename=/tmp/inc.jfr\njcmd <pid> VM.native_memory summary               # needs -XX:NativeMemoryTracking=summary\njstack <pid>  |  kill -3 <pid>                    # older ways to get a thread dump\n```\nProduction JVM flags that pay for themselves:\n```text\n-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dumps\n-Xlog:gc*:file=/logs/gc.log:time,uptime:filecount=5,filesize=20M\n-XX:StartFlightRecording=maxage=1h,disk=true      # continuous JFR, dump it when needed\n```\n\n## Reading a thread dump\n```text\n\"http-nio-8080-exec-37\" #112 daemon prio=5 tid=0x00007f... nid=0x7a waiting on condition\n   java.lang.Thread.State: TIMED_WAITING (parking)\n        at jdk.internal.misc.Unsafe.park(Native Method)\n        at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)\n        at com.zaxxer.hikari.util.ConcurrentBag.borrow(ConcurrentBag.java:151)\n        at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:181)\n        ...\n        at com.shop.order.OrderService.placeOrder(OrderService.java:58)\n```\n**States:** `RUNNABLE` means on CPU *or* blocked in native I/O, so a thread stuck in a socket read still shows RUNNABLE. `BLOCKED` means waiting to enter a `synchronized` monitor. `WAITING` and `TIMED_WAITING` mean parked, sleeping or in `Object.wait`.\n\n| Pattern in the dump | Likely meaning |\n|---|---|\n| 180 of 200 Tomcat threads in `HikariPool.getConnection` | Pool exhaustion: connections held too long or leaked |\n| Many threads `BLOCKED` \"waiting to lock <0x..>\", all on one owner | Lock contention (synchronized hot path, sync log appender) |\n| Many `RUNNABLE` in `SocketInputStream.read` / `NioSocketImpl.read` | Slow downstream with no read timeout |\n| \"Found one Java-level deadlock\" at the bottom | Two threads taking locks in opposite order |\n| Same `RUNNABLE` frames (regex, JSON, HashMap) in every dump | CPU hotspot or infinite loop |\n| Thread count keeps growing (`pool-731-thread-1`) | An executor created per request: thread leak |\n\n**Technique:** take **three dumps 5-10 s apart**. Frames that persist across dumps tell the story. Group identical stacks (`grep -A3 'State' threads.txt | sort | uniq -c | sort -rn`, or a viewer like fastThread). To map a CPU-hungry thread: `top -H -p <pid>` gives the thread ID; convert it to hex and match `nid=0x...` in the dump.\n\n## Heap dumps and leak hunting\nOpen the `.hprof` in **Eclipse MAT**: run the *Leak Suspects* report, then the **Dominator Tree** sorted by **retained heap** (memory freed if that object were collected), then *Path to GC Roots* (excluding weak references) to see *who keeps it alive*.\n\nClassic leaks:\n- A `static Map` used as a cache with no size limit or eviction.\n- A `ThreadLocal` never `remove()`d on pooled threads.\n- Listeners or callbacks registered but never unregistered.\n- An unbounded `LinkedBlockingQueue` behind an executor that can't keep up.\n- A batch job keeping 2 million entities in one Hibernate persistence context (no `flush()`/`clear()`).\n\n**Caution:** a heap dump pauses the JVM for seconds and the file is about the size of the used heap. Take it from a pod already **removed from the load balancer**, and treat it as sensitive data (it holds PII and secrets).\n\n## JFR: the always-on flight recorder\nBuilt into the JDK and free since 11. Overhead is roughly 1-2% with the default settings. It records CPU samples, allocation hotspots, GC pauses, lock contention (`jdk.JavaMonitorEnter`), socket and file I/O, thrown exceptions and virtual-thread pinning. Analyse in **JDK Mission Control**, or on the command line:\n```text\njfr summary inc.jfr\njfr print --events jdk.GCPhasePause inc.jfr | head\njcmd <pid> JFR.dump filename=/tmp/last-hour.jfr             # from a continuous recording\n```\n\n## async-profiler and flame graphs\n```text\nasprof -e cpu   -d 30 -f cpu.html   <pid>     # where CPU is burned\nasprof -e alloc -d 30 -f alloc.html <pid>     # who allocates (GC pressure)\nasprof -e wall  -d 30 -f wall.html  <pid>     # wall clock: includes waiting threads\nasprof -e lock  -d 30 -f lock.html  <pid>     # contended locks\n```\nReading a flame graph: the **x-axis is the share of samples, not time order**. The y-axis is stack depth. Look for **wide plateaus near the top**: those frames are on-CPU themselves. async-profiler avoids the *safepoint bias* of older JVMTI samplers, so it reports where time is really spent. Use **wall mode** for \"slow but the CPU is idle\". It shows threads waiting on locks, pools and sockets.\n\n## Which tool when\n| Symptom | First tool |\n|---|---|\n| Hung / slow, CPU low | Thread dumps (x3), wall-clock profile |\n| CPU high | `top -H` + thread dump, CPU flame graph |\n| Memory climbing / OOM | GC log, class histogram, heap dump in MAT |\n| GC pauses | GC log, JFR GC events, allocation profile |\n| Intermittent latency spikes | Continuous JFR, dumped after the spike |"
+  },
+  {
+   "id": "dbg-n05",
+   "title": "Incident Playbook I: Deploy Regressions, Leaks, Pools and Thread Pools",
+   "content": "Each scenario follows **signature -> confirm -> mitigate -> fix -> guardrail**. Learn the signatures. They let you recognise a problem in the first two minutes.\n\n## 1. Regression after a deploy\n**Signature:** a step change lined up with the deploy time, affecting only new-version pods during a canary or rolling deploy.\n**Confirm:** split latency and errors by the `version` label, and compare traces before and after.\n**Mitigate:** roll back or turn the flag off. Don't debug forward while customers are hurting.\n**Usual root causes:** a new N+1 query; a new query with no index; a remote call added to a hot path; DEBUG logging left on; a cache key format change that drops the hit ratio to 0%; a changed timeout or pool setting; a heavier serializer config.\n**Guardrails:** canary with automated analysis (compare canary p99 and error rate with the baseline), performance tests for the hottest endpoints, migration review.\n\n## 2. Memory leak and OutOfMemoryError\n| Error | Meaning |\n|---|---|\n| `OutOfMemoryError: Java heap space` | Live data exceeds `-Xmx` (a leak, or a working set that is really too big) |\n| `GC overhead limit exceeded` | Parallel GC spending >98% of time collecting and recovering <2% |\n| `Metaspace` | Class-loader leak (dynamic proxies, script engines, hot redeploys) |\n| `unable to create native thread` | Thread leak, or ulimit / container PID limit reached |\n| Pod `OOMKilled`, exit code 137, **no** Java OOM | Total process memory > container limit: heap + metaspace + thread stacks + direct buffers + code cache |\n\n```text\nold gen used after each GC\n  healthy:  ___/\\___/\\___/\\___/\\___/\\___      (flat floor)\n  leak:     __/\\__/\\_/\\_/\\/\\/\\/\\/\\/\\/|  OOM   (floor rises, GCs get closer together)\n```\n**Signature of a heap leak:** the *after-GC* floor keeps rising, GC frequency rises, latency rises, then OOM, often hours or days after a deploy.\n**Mitigate:** a rolling restart buys time and is a valid mitigation. **Capture a heap dump first** from one instance.\n**Fix:** MAT dominator tree, then path to GC roots (see the JVM forensics chapter).\n**Container OOMKilled:** use `-XX:MaxRAMPercentage=70-75` rather than a hard-coded `-Xmx` equal to the limit, leave headroom for non-heap memory, and use Native Memory Tracking to find off-heap growth.\n\n## 3. HikariCP connection pool exhaustion\n**Signature:**\n```text\nHikariPool-1 - Connection is not available, request timed out after 30000ms\n  (total=10, active=10, idle=0, waiting=87)\n```\nIn metrics: `hikaricp_connections_pending > 0` and `active == max`. In thread dumps: request threads parked in `HikariPool.getConnection`.\n\n**Causes, most common first:**\n1. **Connections held across slow work**: a remote call inside `@Transactional`.\n2. **Slow queries**: a DB problem, so every connection stays busy longer.\n3. **Open Session in View** (`spring.jpa.open-in-view=true`, the default) holds the connection for the whole request.\n4. A **real leak**: manual JDBC without try-with-resources.\n5. A genuine traffic spike.\n\n```java\n@Transactional\npublic void placeOrder(OrderRequest r) {\n    Order o = orderRepo.save(Order.pending(r));\n    PaymentResult p = paymentClient.charge(r);   // 800 ms HTTP call while holding a DB connection\n    o.markPaid(p.id());\n}\n```\n**Fix:** keep transactions short. Save the order as PENDING (tx 1), call the payment provider **outside** any transaction with an idempotency key, then mark it PAID (tx 2), or use an outbox/saga. Set `open-in-view=false`. Turn on `leakDetectionThreshold` (for example 20000 ms) temporarily to log the stack trace of whoever holds a connection too long.\n\n**Don't just raise the pool size.** 30 pods x 50 connections = 1,500 connections, far beyond what MySQL can serve well (and above its default `max_connections` of 151). A bigger pool moves the queue into the database, where it hurts everyone.\n\n## 4. Thread pool saturation\n**Signature:** latency rises while **CPU is low**. `tomcat_threads_busy_threads` sits at the max (200 by default) and requests queue in the accept backlog. Or an `@Async` executor's queue grows without bound.\n**Typical cause:** blocking calls to a slow dependency **with no timeout**. Every thread ends up waiting on the same sick service, so healthy endpoints starve too.\n```java\n// Resilience basics for an outbound client\nvar factory = new SimpleClientHttpRequestFactory();\nfactory.setConnectTimeout(Duration.ofMillis(500));\nfactory.setReadTimeout(Duration.ofSeconds(2));\nRestClient client = RestClient.builder().requestFactory(factory).baseUrl(fraudUrl).build();\n```\n**Mitigate:** shed load (return 503 fast), scale out, turn off the non-critical feature that calls the sick dependency.\n**Guardrails:** timeouts on every remote call; **bulkheads** (a separate, bounded pool or semaphore per dependency so one slow service can't take every thread); circuit breakers; **bounded queues with a rejection policy** instead of `Executors.newFixedThreadPool` and its unbounded queue; dashboards for `executor_queued_tasks` and `executor_active_threads`.\n\n## Signatures at a glance\n| You see | Think |\n|---|---|\n| Step change at deploy time | Regression: roll back |\n| After-GC floor rising | Heap leak |\n| Pending connections > 0 | Pool exhaustion: who holds connections? |\n| Busy threads = max, CPU idle | Blocking on a dependency: timeouts, bulkheads |"
+  },
+  {
+   "id": "dbg-n06",
+   "title": "Incident Playbook II: Caches, Databases, Bad Hosts, Retry Storms, Disk and Certs",
+   "content": "## 5. Cache stampede and cold cache\n**Story:** Redis restarts, or a deploy changes the cache key format. The hit ratio drops from 95% to 0% and DB queries jump 20x. The DB saturates, requests time out, and **the cache can never refill because the DB is too slow to answer**. This self-sustaining state is a *metastable failure*: removing the trigger doesn't bring the system back.\n```text\ncache miss storm -> DB overloaded -> slow responses -> client retries -> more DB load\n        ^                                                                    |\n        +---------------------- cache stays empty <--------------------------+\n```\n**Mitigate:** shed or rate-limit traffic at the edge so the DB can breathe; warm the top N keys; serve stale values if you have them; add read replicas.\n**Prevent:** single-flight per key (only one loader per key, others wait), **TTL jitter** so keys don't expire together, soft TTL with background refresh, warm-up before a node takes traffic, and **load tests with an empty cache**.\n\n## 6. DB lock contention and slow queries\n**Signature:** DB `Threads_running` high, app errors `Lock wait timeout exceeded; try restarting transaction` (`innodb_lock_wait_timeout` defaults to 50 s), deadlock errors, or a migration stuck on `Waiting for table metadata lock`.\n```sql\nSHOW FULL PROCESSLIST;                                   -- long runners, lock waits\nSELECT trx_id, trx_started, trx_mysql_thread_id, trx_query\nFROM information_schema.innodb_trx ORDER BY trx_started; -- oldest open transactions\nSELECT * FROM sys.innodb_lock_waits\\G                    -- who blocks whom (MySQL 8)\nSHOW ENGINE INNODB STATUS\\G                              -- LATEST DETECTED DEADLOCK section\n```\n**Usual causes:** a long-open transaction (often an app that called an external API mid-transaction); a batch `UPDATE` with no usable index that locks huge ranges; a **hot row** such as a shared counter; an `ALTER TABLE` queued behind a long transaction, which then blocks every new query on that table.\n**Mitigate:** `KILL <thread_id>` the blocker, pause the batch job, revert the migration.\n**Fix:** index the predicate, chunk batch updates (1,000 rows per transaction), shorten transactions, and run schema changes with online tools during low traffic.\n\n## 7. One bad host or shard\n**Signature:** the aggregate error rate is 5%, but split by instance one pod is at 100% errors (or one shard is at 100% CPU).\n**Causes:** a bad node (disk, noisy neighbour), stale config or DNS, a pod that never warmed up, clock skew, a **hot shard** (a celebrity tenant or a sale on one seller).\n**Mitigate:** take the host out of the load balancer, cordon the node, restart. For a hot shard, throttle that tenant or move it.\n**Lesson:** always break metrics down by **host, AZ, version, endpoint and shard**. Averages hide outliers.\n\n## 8. Retry storm\nA downstream service slows down. Each layer retries 3 times. With 5 layers the bottom service sees up to **3^5 = 243x** load and can't recover.\n```text\nclient x3 -> gateway x3 -> order x3 -> payment x3 -> bank-adapter x3   => 243 attempts per user click\n```\n**Mitigate:** disable retries through config or a flag, open circuit breakers, shed load.\n**Prevent:** retry at **one layer** only; exponential backoff **with jitter**; a **retry budget** (a token bucket that caps retries at about 10% of requests); circuit breakers; retry only idempotent operations or ones carrying idempotency keys; honour `Retry-After`.\n\n## 9. Disk full\n**Signature:** `No space left on device`; MySQL stops accepting writes; logging blocks and the app hangs.\n**Culprits:** logs with no rotation, forgotten heap dumps, temp files, MySQL binlogs, Kafka retention.\n```text\ndf -h                                   # which filesystem\ndu -xh /var --max-depth=2 | sort -h | tail\nlsof +L1                                # deleted files still held open (space not freed!)\n```\n**Prevent:** log rotation and retention, purge binlogs by policy, alerts at 80% and 90%, plus a \"fills within 4 hours\" alert using `predict_linear` on the disk metric.\n\n## 10. Certificate expiry\n**Signature:** at an exact time, 100% of calls to one dependency fail with `PKIX path building failed`, `certificate_expired` or a handshake failure.\n**Mitigate:** renew or rotate the certificate, or roll the truststore. **Never** \"fix\" it by turning off TLS verification.\n**Prevent:** automated renewal (ACME / cert-manager), expiry alerts at 30/14/7 days, an inventory of every certificate and Java truststore, including client mTLS certificates and partner CAs.\n\n## The pattern behind all ten\n```text\nsymptom  ->  saturated resource  ->  why is it saturated?  ->  what changed?\n            (DB, pool, threads,      (more work, slower work,   (deploy, data,\n             cache, disk, CPU)        held longer, lost cache)   traffic, time)\n```"
+  },
+  {
+   "id": "dbg-n07",
+   "title": "Incident Response and Blameless Postmortems",
+   "content": "## Roles during an incident\n| Role | Does | Does NOT |\n|---|---|---|\n| **Incident Commander (IC)** | Coordinates, assigns work, makes the call (rollback? failover?), sets the update cadence | Debug with their own hands |\n| **Ops / SME leads** | Investigate and run the mitigations they're assigned | Run untracked changes |\n| **Communications lead** | Status page, stakeholder and support updates | Speculate about the root cause publicly |\n| **Scribe** | Keeps a timestamped timeline of findings and actions | |\n\nIn a small team one person may hold several roles, but say explicitly who the IC is. The most common failure is five engineers changing things in parallel with nobody coordinating.\n\n## Severity levels (a typical scheme)\n- **SEV1:** major customer-facing outage, payments failing, data loss or a security breach. All hands, exec updates every 30 minutes.\n- **SEV2:** significant degradation for a subset (one region, one feature).\n- **SEV3:** minor or internal impact. Fix in working hours.\n\nDeclare early and downgrade later. Under-declaring costs more than over-declaring.\n\n## Flow and communication\n```text\ndetect -> triage (declare, severity, IC) -> mitigate -> resolve -> postmortem -> action items\n```\nA good status update is short and complete:\n```text\n[14:30] SEV2 - Checkout errors\nImpact: ~12% of checkout attempts failing (South region) since 14:05.\nCurrent: rolled back order-service v2.31 at 14:14; error rate falling (3% -> 0.6%).\nNext: confirming recovery, checking payment reconciliation. Next update 15:00.\n```\n\n## The postmortem document\nWrite one when the agreed triggers fire. The Google SRE book's examples: user-visible impact above a threshold, *any* data loss, on-call intervention (rollback, rerouting), resolution time above a threshold, or a monitoring failure (a human found the problem before the alerts did).\n\nTemplate:\n1. **Summary**: two or three sentences.\n2. **Impact**: users affected, duration, failed orders or revenue, SLO budget used.\n3. **Timeline** (UTC): trigger, detection, key decisions, mitigation, resolution.\n4. **Root cause and contributing factors**: usually several.\n5. **What went well / what went poorly / where we got lucky.**\n6. **Action items**: each with an **owner, due date and priority**, grouped into *prevent*, *detect* and *mitigate*.\n\n## Blameless means systems, not people\nAssume everyone acted reasonably with the information they had. Write \"the pipeline allowed a migration to run without review\", not \"Ravi ran a bad migration\". As the SRE book says, you can't fix people, but you can fix systems and processes. Blame teaches people to hide problems, which makes the next incident worse.\n\n**5 Whys, used carefully:**\n```text\nWhy did checkout fail?          DB CPU hit 100%.\nWhy?                            Cache hit ratio fell to 0% and every read went to the DB.\nWhy?                            Redis restarted during maintenance and came back empty.\nWhy did that overload the DB?   No request coalescing and no warm-up; all keys missed together.\nWhy wasn't it caught?           We never load-tested with a cold cache.\n```\nReal incidents rarely have **one** root cause. List the contributing factors: maintenance timing, missing alert, no load shedding.\n\n## Good vs bad action items\n| Bad | Good |\n|---|---|\n| \"Be more careful with deploys\" | \"Add automated canary analysis on p99 and 5xx for order-service (owner Raj, due 20 Oct, P1)\" |\n| \"Improve monitoring\" | \"Alert when hikaricp_connections_pending > 0 for 2 min, with a runbook link (owner Priya, due 15 Oct)\" |\n| \"Fix the cache\" | \"Add single-flight loading for product cache + TTL jitter of +/-10%; load test with flushed cache\" |\n\nTrack action items to completion. An unfinished postmortem action item is a known future incident.\n\n## Telling your incident story in an interview\nBehavioural rounds almost always ask for one. Use **context -> detection -> your actions and decisions -> result in numbers -> what changed afterwards**. Coming from a service company, you can still tell strong stories: a production support ticket you drove to root cause, a slow report or batch job you fixed, a UAT outage, a bad release you rolled back. Show the decision points: why you rolled back instead of hot-fixing, how you communicated, what guardrail you added. Interviewers want to see the **guardrail**: it shows ownership beyond \"I fixed the bug\"."
+  },
+  {
+   "id": "dbg-n08",
+   "title": "Mock Round: Debugging Out Loud",
+   "content": "This is a condensed mock of a 2026-style execution round. Read it out loud once. The aim is to make the method a habit.\n\n**Interviewer:** You're on call for `order-service` (Spring Boot, MySQL, Redis, Kafka, 12 pods). At 19:10 alerts fire: 5xx at 8%, p99 at 4 s. Go.\n\n**Candidate:** First I'll confirm scope and impact. Is it every endpoint or just some? Did the business metric, orders per minute, drop? I'll also check whether the client-side or gateway metrics agree, so I know it isn't a monitoring artifact. Then I'll look at the golden signals for order-service and its dependencies, and ask what changed around 19:05.\n\n**Interviewer:** All write endpoints, reads look fine. Orders per minute down 30%. No deploy today.\n\n**Candidate:** Writes only narrows it: DB primary, Kafka producer, or the payment dependency. No deploy, so I'll check other changes: feature flags, config pushes, DB migrations, cron jobs starting at 19:00, a marketing push, and deploys by teams we depend on. Meanwhile I'll split the errors by exception type.\n\n**Interviewer:** Errors are mostly `CannotCreateTransactionException: Connection is not available, request timed out after 30000ms`.\n\n**Candidate:** That's HikariCP exhaustion. Either connections are held longer or queries got slower. I'll check `hikaricp_connections_active`, `_pending` and `_usage_seconds`, and on the DB: CPU, `Threads_running`, lock waits and the slow-query log.\n\n**Interviewer:** Pending 100+ on all pods. DB CPU 35%, normal. But `innodb_row_lock_time` is spiking.\n\n**Candidate:** Normal CPU with row lock waits points to **lock contention**, not load. Something holds row locks that our writes need. I'll run `SELECT * FROM sys.innodb_lock_waits` and look at `information_schema.innodb_trx` ordered by `trx_started` to find the oldest transaction and what it's blocking.\n\n**Interviewer:** There's a transaction open 9 minutes from host `reporting-batch-1`, running `UPDATE orders SET archived=1 WHERE created_at < ...`.\n\n**Candidate:** That matches: a batch job that started at 19:00 is updating a big range of `orders` in one transaction. If `created_at` isn't indexed it scans and locks far more rows. **Mitigation:** confirm with the owning team, or the IC if I can't reach them in a couple of minutes, then stop the job and `KILL` that connection. The rollback of a 9-minute transaction can itself take a while, so I'll watch it. I'll post an update in the incident channel before acting.\n\n**Interviewer:** You kill it. Rollback takes 3 minutes, then pending connections drop to 0 and errors stop.\n\n**Candidate:** I'll verify that p99, the 5xx rate *and* orders per minute are back to baseline. Then I'll check for side effects: were orders lost or stuck as PENDING during the window? Did clients retry and create duplicates? If idempotency keys are in place, they protect us there. I'll also check the Kafka lag for order events.\n\n**Interviewer:** What follow-ups would you file?\n\n**Candidate:**\n1. **Prevent:** rewrite the archiver to work in **chunks** (for example 1,000 rows by primary key per transaction, with a short sleep), make sure `created_at` is indexed, and schedule it off-peak. Move reporting reads to a **replica**.\n2. **Detect:** alert on the age of the oldest transaction (over 60 s) and on Hikari pending connections. Each would have paged us before customers noticed.\n3. **Mitigate faster:** set a per-session `innodb_lock_wait_timeout` of a few seconds for OLTP paths so requests fail fast instead of holding threads for 50 s. Add a runbook entry \"how to find and kill a blocking transaction\".\n4. **Process:** batch jobs that touch OLTP tables get a review checklist. Then a blameless postmortem.\n\n## Why this answer scores well\n| Rubric item | What the candidate did |\n|---|---|\n| Structured method | Scope -> signals -> changes -> isolate -> mitigate -> verify -> guardrail |\n| Hypothesis-driven | Each data request had a reason (\"writes only narrows it to...\") |\n| Correct signal reading | Normal CPU + lock waits = contention, not load |\n| Safe mitigation | Checked blast radius, communicated, knew rollback takes time |\n| Thorough verification | Business metric, data consistency, duplicates, lag |\n| Systemic follow-ups | Prevent / detect / mitigate, with specific numbers |\n\n## Common twists to rehearse\n- \"Rolling back didn't help.\" The change was elsewhere (data, traffic, a dependency) or the rollback didn't fully happen. Check that pods are really on the old version.\n- \"Only one pod.\" A bad host: drain it, keep it aside for forensics.\n- \"It recovers by itself every 20 minutes.\" A cache TTL, cron, GC cycle or autoscaler oscillation.\n- \"Errors are zero but customers complain.\" Look for implicit errors: a 200 with an empty body, a client-side failure, or a monitoring blind spot."
+  }
+ ],
+ "qa": [
+  {
+   "id": "dbg-001",
+   "q": "Your API p99 jumped from 200 ms to 2 s right after a deploy. Walk me through it.",
+   "a": "**1. Confirm and scope:** which endpoints, all users or a segment, when exactly it started, and whether errors rose too. A step that lines up with the deploy is strong evidence.\n\n**2. Mitigate first:** if the timing matches and a rollback is cheap, **roll back (or flag off) now** and debug from data afterwards. Customer impact beats curiosity.\n\n**3. Confirm the regression:** split latency by `version` label (canary vs old pods). Compare traces before and after to see which span grew.\n\n**4. Usual suspects in the diff:**\n- A new query with no index, or an N+1 (check query count per request, slow log).\n- A remote call added to a hot path or inside `@Transactional`, so pool waits show up (`hikaricp_connections_pending`).\n- A cache key change that dropped the hit ratio to zero.\n- Changed timeout, pool or serializer config; DEBUG logging left on.\n\n**5. Verify** p99, the error rate and a business metric after the rollback.\n\n**6. Guardrail:** a regression test or perf test for that endpoint, automated canary analysis comparing canary p99 against baseline, and an alert on the saturation metric that moved.",
+   "level": "Intermediate",
+   "tags": [
+    "method",
+    "deploy-regression",
+    "latency"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-002",
+   "q": "What are the four golden signals, and how do they relate to the RED and USE methods?",
+   "a": "**Golden signals** (Google SRE book), for any user-facing service:\n- **Latency**: time to serve requests. Track **successful and failed requests separately**, because fast errors can make average latency look better.\n- **Traffic**: demand, such as requests/sec or messages/sec.\n- **Errors**: rate of failures. These can be explicit (5xx), implicit (200 with wrong content) or by policy (slower than the SLO).\n- **Saturation**: how \"full\" the most constrained resource is (pool, threads, CPU, queue depth). Often it predicts trouble before errors appear.\n\n**RED** (Rate, Errors, Duration) is the golden signals minus saturation, applied **per endpoint or service**. It's the right default dashboard for request-driven microservices.\n\n**USE** (Brendan Gregg: Utilization, Saturation, Errors) is applied **per resource**: CPU, memory, disk, NIC, and software resources like connection pools, thread pools and locks. For a pool, utilization is busy connections, saturation is waiting threads, errors are acquisition timeouts.\n\nIn practice: RED and golden signals tell you **that** users are hurting and which service. USE tells you **which resource** is the bottleneck.",
+   "level": "Basic",
+   "tags": [
+    "observability",
+    "golden-signals"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-003",
+   "q": "Logs, metrics and traces: when would you reach for each during an incident?",
+   "a": "They answer different questions, and an investigation usually moves through them in order:\n\n| | Question | Strength | Weakness |\n|---|---|---|---|\n| **Metrics** | Is something wrong? How much? Since when? | Cheap, aggregated, great for alerts and trends | No per-request detail; high-cardinality tags are expensive |\n| **Traces** | Where did the time go across services? | Shows the slow hop and fan-out | Sampled; needs propagation everywhere |\n| **Logs** | What exactly happened to this request? | Full context, exceptions, business IDs | Expensive at volume; hard to aggregate |\n\n**Typical flow:** an SLO burn alert fires (metrics). The p99 dashboard by endpoint shows `/checkout` is slow (metrics). An exemplar or trace search for slow checkout traces shows a 1.7 s span in `fraud-service` (traces). Filtering logs by that `traceId` shows `ReadTimeoutException` and a retry loop (logs).\n\nMake this possible up front: **structured JSON logs that include trace IDs**, Micrometer metrics with exemplars, and OpenTelemetry context propagation over HTTP and Kafka.",
+   "level": "Basic",
+   "tags": [
+    "observability",
+    "logging",
+    "tracing"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-004",
+   "q": "How would you implement correlation IDs across microservices in Spring Boot?",
+   "a": "**Goal:** one ID that follows a request through every service, thread and log line.\n\n1. **Prefer tracing:** add Micrometer Tracing (OTel bridge) or the OpenTelemetry agent. Spring Boot then puts `traceId` and `spanId` in the **MDC** and propagates the W3C `traceparent` header through `RestClient`, `WebClient` and Kafka templates that are built from Spring's auto-configured builders.\n2. **Custom header if needed:** a `OncePerRequestFilter` reads `X-Correlation-Id` (generating a UUID if it's missing or invalid), puts it in the MDC, echoes it in the response and **removes it in `finally`**, since pooled threads reuse ThreadLocals.\n3. **Outgoing calls:** an interceptor copies the ID into HTTP headers and Kafka record headers. Consumers read it back into the MDC.\n4. **Async hops:** MDC is a ThreadLocal, so it is lost on `@Async`, executors and `CompletableFuture`. Use a `TaskDecorator` or Micrometer **context-propagation** to copy it.\n5. **Logging:** JSON logs include the field, so a search on one ID shows the whole journey.\n\nPitfalls: building clients with `new RestTemplate()` (skips the instrumented builder), unbounded or untrusted header values, and forgetting Kafka.",
+   "level": "Intermediate",
+   "tags": [
+    "observability",
+    "spring",
+    "correlation-id"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-005",
+   "q": "Define SLI, SLO, SLA and error budget with a concrete example.",
+   "a": "Take an **Order API** for checkout:\n\n- **SLI**: a measured ratio of good events to valid events. *\"Share of `POST /orders` requests, measured at the gateway, that return non-5xx within 400 ms.\"*\n- **SLO**: an internal target for the SLI over a window. *\"99.9% over a rolling 28 days.\"*\n- **SLA**: an external, contractual promise with consequences (credits). It's looser than the SLO, say 99.5%, so you get warning before you breach it.\n- **Error budget**: `1 - SLO`. At 99.9% and 20M requests per 28 days, you may fail **20,000** requests. In time, that's about **40 minutes** of full outage.\n\n**Why it matters:** the budget is a decision tool. While budget remains, the team ships features and takes calculated risks. When it's spent, the **error budget policy** applies: freeze risky releases and prioritise reliability work. Alerts fire on **burn rate** (how fast the budget is being spent), not on raw thresholds.\n\nCommon mistakes: SLOs at 100% (impossible and paralysing), averages instead of thresholds for latency, and measuring inside the app, which misses requests that never arrived.",
+   "level": "Basic",
+   "tags": [
+    "slo",
+    "sre"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-006",
+   "q": "Why alert on SLO burn rate instead of 'error rate > 1% for 5 minutes'?",
+   "a": "A fixed threshold fails in both directions:\n- **Too sensitive**: a 2-minute blip at 2% pages someone at 3 a.m. but uses a tiny slice of the monthly budget.\n- **Too blind**: a steady 0.5% error rate never trips it, yet over a week it can spend the entire budget.\n\n**Burn rate** = how fast you spend budget relative to spending it evenly. A burn rate of 1 exhausts the budget exactly at the end of the window. The SRE Workbook's **multiwindow, multi-burn-rate** setup for a 99.9% SLO:\n\n| Severity | Windows | Burn rate | Budget used |\n|---|---|---|---|\n| Page | 1 h **and** 5 min | 14.4 | 2% |\n| Page | 6 h **and** 30 min | 6 | 5% |\n| Ticket | 3 d **and** 6 h | 1 | 10% |\n\nThe long window proves the burn is significant. The short window proves it's **still happening**, so the alert resets quickly after recovery. The result: pages map to real user impact, slow burns still get caught as tickets, and severity scales with how fast you're losing reliability.",
+   "level": "Advanced",
+   "tags": [
+    "slo",
+    "alerting"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-007",
+   "q": "Your service logs 'HikariPool-1 - Connection is not available, request timed out after 30000ms'. Diagnose it.",
+   "a": "That's **connection pool exhaustion**: every connection is busy and callers waited the full `connectionTimeout`.\n\n**Confirm:** `hikaricp_connections_active == max`, `pending > 0`. Thread dumps show request threads parked in `HikariPool.getConnection`. The question is **why connections are held so long**:\n\n1. **Slow work inside transactions**, the most common cause: an HTTP call, file upload or Kafka send inside `@Transactional`. Thread dumps show the holders in socket reads *within* a transactional method.\n2. **Slow queries**: check the slow-query log, lock waits and DB CPU. The pool is just where the DB problem shows up.\n3. **Open Session in View** keeps the connection for the whole request.\n4. **A real leak**: manual JDBC without try-with-resources. `leakDetectionThreshold=20000` logs the holder's stack.\n5. **A traffic spike** beyond capacity.\n\n**Mitigate:** roll back if it's new; shed load; restart only after taking a thread dump.\n**Fix:** move remote calls out of transactions, fix the query or index, set `spring.jpa.open-in-view=false`.\n\n**Don't** just raise `maximumPoolSize`. Pods x pool size can exceed what the DB handles, which moves the queue into MySQL and slows everyone down.",
+   "level": "Intermediate",
+   "tags": [
+    "hikaricp",
+    "incident",
+    "database"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-008",
+   "q": "Pods are being OOMKilled every few hours since a release. Walk me through it.",
+   "a": "**First, which \"OOM\"?** Exit code **137 / OOMKilled** with no Java `OutOfMemoryError` means the **container** limit was hit by total process memory. A Java OOM in the logs means the heap (or metaspace) filled. The debugging paths differ.\n\n**Mitigate:** roll back if the release correlates. Otherwise raise the memory limit or schedule rolling restarts to buy time. **Capture evidence first** from one pod: heap dump, `GC.class_histogram`, GC log.\n\n**If it's a Java heap leak:** the GC log shows the *after-GC* floor rising. Open the heap dump in Eclipse MAT, look at the Dominator Tree by retained size, then follow *path to GC roots*. Typical culprits: an unbounded static map cache, ThreadLocals never removed, an unbounded executor queue, or a huge persistence context in a batch job. Diff the release for any of these.\n\n**If it's container-only (heap looks fine):** non-heap memory grew: thread stacks (thread leak?), direct buffers (Netty), metaspace (class-loader leak), code cache. Enable `-XX:NativeMemoryTracking=summary` and compare `VM.native_memory` over time. Make sure the heap is sized with `-XX:MaxRAMPercentage=70-75`, not `-Xmx` equal to the limit.\n\n**Guardrails:** memory alerts on the after-GC old gen, `HeapDumpOnOutOfMemoryError`, bounded caches and queues, and a soak test in CI before release.",
+   "level": "Advanced",
+   "tags": [
+    "memory-leak",
+    "oom",
+    "kubernetes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-009",
+   "q": "How do you take and read a thread dump? What patterns do you look for?",
+   "a": "**Take it:** `jcmd <pid> Thread.print -l > dump.txt` (or `jstack`, or `kill -3`). Take **three, 5-10 seconds apart**. What persists across dumps is the story; one dump is a single snapshot.\n\n**Read it:** for each thread, check its **state** and **top frames**:\n- `RUNNABLE`: on CPU *or* blocked in native I/O (socket reads show as RUNNABLE).\n- `BLOCKED`: waiting for a `synchronized` monitor (\"waiting to lock <0x...>\").\n- `WAITING`/`TIMED_WAITING`: parked (locks, pools, queues) or sleeping.\n\n**Patterns:**\n| Seen | Meaning |\n|---|---|\n| Most request threads in `HikariPool.getConnection` | Pool exhaustion |\n| Many BLOCKED on one lock owner | Contention on a synchronized hot path |\n| Many RUNNABLE in socket read to one host | Slow downstream, missing read timeout |\n| \"Found one Java-level deadlock\" | Lock ordering bug |\n| Same RUNNABLE frames every time | CPU hotspot or infinite loop |\n| Thread count growing | Thread or executor leak |\n\n**Tips:** group identical stacks (`uniq -c` or a viewer). For high CPU, use `top -H -p <pid>`, convert the thread ID to hex and match `nid=0x...`. Look at *your* package frames to find the business code involved.",
+   "level": "Intermediate",
+   "tags": [
+    "jvm",
+    "thread-dump",
+    "tools"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-010",
+   "q": "How do you find a memory leak from a heap dump?",
+   "a": "1. **Capture safely:** `jcmd <pid> GC.heap_dump /tmp/h.hprof`, or automatically with `-XX:+HeapDumpOnOutOfMemoryError`. It pauses the JVM and the file is about the size of the used heap, so take it from an instance **out of the load balancer**, and treat it as sensitive (it holds PII and secrets).\n2. **Quick look first:** `jcmd <pid> GC.class_histogram`, taken twice an hour apart, shows which classes are *growing*.\n3. **Eclipse MAT:**\n   - **Leak Suspects** report for a first hypothesis.\n   - **Dominator Tree** sorted by **retained heap** (what would be freed if this object died). Look for one collection retaining most of the heap, like a `HashMap` holding 3 GB.\n   - **Path to GC Roots** (excluding weak/soft references) shows **who keeps it alive**: a static field, a ThreadLocal on a pool thread, a listener list.\n4. **Map it to code** and confirm with a second dump that the suspect is growing.\n\n**Usual causes:** a static map cache with no eviction (use Caffeine with `maximumSize` and a TTL), ThreadLocals not removed, listeners not unregistered, unbounded queues, a Hibernate session accumulating entities (`flush()`/`clear()` every N rows), and a cache key that includes a timestamp, so it never hits.",
+   "level": "Intermediate",
+   "tags": [
+    "memory-leak",
+    "heap-dump",
+    "jvm"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-011",
+   "q": "One service is at 100% CPU but traffic hasn't increased. How do you find the hot code?",
+   "a": "**Rule out the JVM first:** check the GC log and `jvm_gc_pause_seconds`. A heap close to full makes GC run constantly and burn CPU. If it's GC, it's a memory problem, not a code problem.\n\n**Find the hot threads:**\n1. `top -H -p <pid>` lists the busiest native threads. Convert the TID to hex.\n2. `jcmd <pid> Thread.print` and match `nid=0x...`. Repeat 3 times. A thread stuck in the same frames is the hotspot.\n\n**Profile properly:** `asprof -e cpu -d 30 -f cpu.html <pid>` (async-profiler) or a JFR recording with the `profile` settings. Look for **wide plateaus near the top** of the flame graph.\n\n**Common culprits:**\n- Catastrophic regex backtracking on certain inputs.\n- An infinite loop on unexpected data.\n- `Pattern.compile`, or `new ObjectMapper()`, on every request.\n- Exceptions used for control flow (stack trace capture is expensive).\n- Huge JSON (de)serialization; string concatenation in logging.\n- A busy-spin retry loop with no backoff.\n\n**Then ask \"what changed?\":** a new data shape (one tenant sending 50 MB payloads), a config change or a dependency upgrade. Mitigate by rolling back or blocking the bad input, and add input size limits and a regression test.",
+   "level": "Intermediate",
+   "tags": [
+    "cpu",
+    "profiling",
+    "jvm"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-012",
+   "q": "Only 1 of 20 pods shows a high error rate. What do you do?",
+   "a": "**Mitigate first:** take that pod **out of rotation** (fail its readiness, or cordon/drain the node). Users stop seeing errors immediately. Keep the pod alive if possible for forensics rather than deleting it.\n\n**Investigate what makes it different:**\n- **Version/config:** is it on a different image, a stale ConfigMap, a different feature-flag state? A half-finished rollout?\n- **Node:** noisy neighbour, disk errors, network packet loss, CPU throttling. Check node metrics and `kubectl describe node`.\n- **Startup:** did it fail to warm a cache, miss a secret, or fail to connect to one Redis or DB replica? Check its startup logs.\n- **Dependencies:** is it pinned to a bad DB replica or a DNS entry that changed? Compare connection targets.\n- **JVM state:** heap close to full or a thread stuck. Take a thread dump and a GC log.\n- **Clock skew:** JWT validation or signature failures.\n\n**Lesson to state:** this is why dashboards must be **breakable by instance, AZ, version and shard**, and why readiness probes should check real dependencies. The fleet-wide average showed only 5% errors and hid a pod at 100%. Guardrails: outlier detection in the load balancer or service mesh (automatic ejection), and per-instance error alerts.",
+   "level": "Intermediate",
+   "tags": [
+    "incident",
+    "isolation",
+    "kubernetes"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-013",
+   "q": "After a Redis restart, DB CPU hit 100% and the site went down, even after Redis came back. Explain and prevent it.",
+   "a": "**What happened:** a **cold cache stampede** that became a **metastable failure**. With an empty cache, every read missed and went to MySQL, often many requests for the same hot key at once. The DB saturated, responses slowed and clients retried. The loaders that should have refilled the cache kept timing out, so the cache stayed empty even though Redis was healthy.\n\n**Mitigate:**\n- **Shed or rate-limit** traffic at the gateway so the DB can recover and the cache can fill.\n- **Warm** the top N hot keys with a script.\n- Temporarily turn off expensive non-critical features. Add read replicas.\n\n**Prevent:**\n- **Single-flight / request coalescing:** one DB load per key, other callers wait for that result (Caffeine's `get(key, loader)` locally, a short Redis lock per key in a distributed setup).\n- **TTL jitter** so keys don't expire together; **soft TTL** with background refresh; serve stale on errors.\n- **Two-level cache:** a small in-process Caffeine cache in front of Redis takes the hottest keys.\n- **Warm before traffic:** readiness waits for warm-up after deploys or Redis failover.\n- **Load test with a flushed cache**, and alert on hit ratio. The system has to survive without its cache, perhaps degraded but not dead.",
+   "level": "Advanced",
+   "tags": [
+    "cache",
+    "stampede",
+    "incident"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-014",
+   "q": "A downstream service slowed down and now your service is down too. Why, and how do you prevent cascading failure?",
+   "a": "**Why:** your request threads block on the slow dependency. With a 30 s (or infinite) read timeout, every Tomcat thread ends up waiting on it. New requests queue, **even endpoints that never call that service** starve, health checks time out and pods get restarted. Your callers then see you as slow, and the failure climbs up the chain. Retries at each layer multiply the load on the sick service.\n\n**Prevent:**\n1. **Timeouts on every remote call** (connect ~0.5 s; read set from the dependency's p99.9 plus margin), plus an overall request deadline.\n2. **Bulkheads:** a bounded pool or semaphore per dependency, so a slow fraud service can only use, say, 20 threads.\n3. **Circuit breaker** (Resilience4j): after a failure or slow-call threshold, fail fast for a cool-down period, then probe.\n4. **Fallbacks:** cached or default response, degrade the feature (\"recommendations unavailable\"), or accept async (\"payment confirmation will follow\").\n5. **Retries done right:** one layer, backoff with jitter, a retry budget.\n6. **Load shedding:** reject early with 503 when saturated instead of queueing until everything times out.\n7. **Health checks:** liveness must not depend on downstreams, or Kubernetes will restart healthy pods.",
+   "level": "Advanced",
+   "tags": [
+    "resilience",
+    "cascading-failure",
+    "timeouts"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-015",
+   "q": "What is a retry storm? How do you stop one in progress and prevent the next one?",
+   "a": "**What:** a dependency slows down or errors, every client retries, and the extra load keeps it down. Retries **multiply across layers**: 3 attempts at each of 5 layers means up to **3^5 = 243 calls** per user action reaching the bottom service. Synchronised retries (no jitter) arrive in waves.\n\n**Stop it now:**\n- Turn retries off or down through config or a feature flag. This is why retry settings should be dynamic.\n- Let circuit breakers open, or force them open.\n- Shed load at the edge (rate limits, 503 with `Retry-After`).\n- Scale the struggling dependency only if it is *capacity*-bound. Scaling doesn't help a lock problem.\n\n**Prevent:**\n- **Retry at one layer only**, usually the one closest to the failing call or the client.\n- **Exponential backoff with full jitter**, a capped max delay and a small max attempt count.\n- A **retry budget**: a token bucket limiting retries to ~10% of normal traffic.\n- Retry only **idempotent** operations, or ones with **idempotency keys**.\n- Don't retry errors that can't succeed (4xx, validation).\n- Honour `Retry-After` and 429s, and use circuit breakers.",
+   "level": "Advanced",
+   "tags": [
+    "retries",
+    "resilience",
+    "incident"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-016",
+   "q": "A query that was fast last week now takes 8 seconds. How do you investigate?",
+   "a": "**1. Confirm and find it:** the slow-query log, or `performance_schema.events_statements_summary_by_digest` ranked by total latency. Is it every execution or only some parameter values?\n\n**2. EXPLAIN (and EXPLAIN ANALYZE)** with real parameters. Compare against what you expect: `type=ALL` (full scan), the wrong `key`, `rows` far bigger than before, `Using filesort` or `Using temporary`.\n\n**3. What changed?**\n- **Data growth or skew:** the table grew from 1M to 50M rows, or one tenant now has 5M rows and the plan that worked for small tenants doesn't.\n- **Plan change:** stale statistics. Run `ANALYZE TABLE`, then compare.\n- **Code change:** a new predicate, a function on an indexed column (`DATE(created_at) = ?`), an implicit type conversion (comparing a VARCHAR column to a number), `OR` across columns, or a leading-wildcard `LIKE`.\n- **Schema change:** an index dropped or altered by a migration.\n- **Contention, not the plan:** the query waits on locks, so check lock waits and long transactions.\n\n**4. Fix:** add or adjust a composite index (equality columns first, then range or sort), rewrite the predicate, use keyset pagination, and as a last resort an index hint.\n\n**5. Guardrail:** slow-query alerting, EXPLAIN review of new queries in PRs, and tests on production-sized data.",
+   "level": "Intermediate",
+   "tags": [
+    "mysql",
+    "slow-query",
+    "explain"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-017",
+   "q": "Users report intermittent 'Lock wait timeout exceeded' errors on checkout. How do you approach it?",
+   "a": "`Lock wait timeout exceeded; try restarting transaction` means a transaction waited longer than `innodb_lock_wait_timeout` (default **50 s**) for a row lock held by another transaction. Note: that's not a deadlock. InnoDB detects deadlocks immediately and rolls one victim back.\n\n**Find the blocker** while it's happening:\n```sql\nSELECT * FROM sys.innodb_lock_waits\\G      -- waiting query, blocking trx, blocking thread\nSELECT * FROM information_schema.innodb_trx ORDER BY trx_started;\n```\nUsually the blocker is a **long transaction**: an app that holds a transaction open across an HTTP call, a batch job updating many rows in one transaction, or a session left idle in a transaction.\n\n**Look for hot rows:** checkout updating one shared row (a global inventory or counter row) serialises every buyer behind it.\n\n**Fixes:**\n- Keep transactions short, with no remote calls inside them.\n- Chunk batch updates; give their predicates proper indexes (unindexed `UPDATE`s lock far more rows, plus gaps under REPEATABLE READ).\n- Use conditional single-statement updates (`UPDATE stock SET qty = qty - 1 WHERE sku = ? AND qty > 0`) instead of read-then-write with `FOR UPDATE`.\n- Shard hot counters.\n- Set a short per-session lock wait timeout on OLTP paths so requests fail fast.\n- Retry the transaction once with backoff, safely, using idempotency.",
+   "level": "Advanced",
+   "tags": [
+    "mysql",
+    "locking",
+    "incident"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-018",
+   "q": "A production host's disk is full. What do you do now, and how do you prevent it?",
+   "a": "**Now:**\n1. **Impact:** what's on that disk? A full DB volume stops writes. A full log volume can block the app's logging threads and hang requests. Take the host out of rotation if it's serving errors.\n2. **Find the space:** `df -h` for the filesystem, `du -xh /var --max-depth=2 | sort -h | tail` for the culprit directory. Usual suspects: application logs without rotation, old heap dumps, temp or upload files, MySQL binlogs, Docker images and layers.\n3. **Free it safely:** compress or move old logs, delete old dumps, `PURGE BINARY LOGS BEFORE ...` only once replicas no longer need them.\n4. **Gotcha:** deleting a file that a process still holds open doesn't free the space. `lsof +L1` shows deleted-but-open files; truncate them (`: > file`) or restart that process.\n\n**Prevent:**\n- Log rotation with size and age limits (logback `SizeAndTimeBasedRollingPolicy`); ship logs off-host.\n- Retention policies for binlogs, Kafka and temp directories.\n- Alerts at 80% and 90%, plus a **\"disk will fill within 4 hours\"** alert (`predict_linear`), because the fill rate matters more than the level.\n- Keep heap dumps on a separate volume with cleanup.",
+   "level": "Basic",
+   "tags": [
+    "incident",
+    "disk",
+    "operations"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-019",
+   "q": "At midnight every call to a partner API starts failing with SSL handshake errors. What's your hypothesis and response?",
+   "a": "**Hypothesis:** an exact-time, 100%-failure pattern against one dependency is almost always a **certificate problem**: their server certificate expired, our **client mTLS certificate** expired, or they rotated to a certificate chain whose CA isn't in our Java truststore. Errors look like `PKIX path building failed`, `certificate_expired` or `bad_certificate`.\n\n**Confirm:** `openssl s_client -connect partner:443 -servername partner -showcerts` shows the expiry and the chain. Check our client certificate's `notAfter`. Compare against the JVM truststore (`keytool -list`).\n\n**Respond:**\n- Our client certificate expired: renew and redeploy the keystore/secret.\n- Their certificate expired: escalate to the partner.\n- New CA: add the CA to our truststore and roll it out.\n- Meanwhile, queue outbound requests for retry if the business flow allows (payouts, webhooks) instead of losing them.\n- **Never** turn off certificate validation as a \"fix\".\n\n**Prevent:** automated renewal (ACME / cert-manager); an inventory of every certificate *and* truststore, client certificates included; expiry alerts at 30/14/7 days; synthetic checks against critical partners so you find out before customers do.",
+   "level": "Basic",
+   "tags": [
+    "tls",
+    "certificates",
+    "incident"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-020",
+   "q": "When do you roll back versus debug forward with a hotfix?",
+   "a": "**Default to rolling back** when the impact lines up with a change and the rollback is known-safe. It's usually the fastest way to stop customer harm, and it restores a known-good state. Debugging continues on a staging copy or from the evidence you captured.\n\n**Debug forward or hotfix** only when:\n- **The rollback isn't safe:** the release included an irreversible or non-backward-compatible **DB migration**, or data has already been written in a new format the old code can't read. This is why migrations should follow expand -> migrate -> contract and stay backward compatible for one release.\n- **The change isn't the cause:** the evidence points elsewhere (dependency, data, traffic), so rolling back won't help.\n- **The fix is trivial and low-risk**, for example flipping a feature flag, which is effectively a rollback.\n- **Rolling back reintroduces a worse problem**, like a security vulnerability the release fixed.\n\n**State the decision criteria out loud:** blast radius, time to roll back vs time to fix, confidence in the hypothesis, and data safety. Mention that you'd **capture evidence first** (thread dump, logs, traces from a canary pod) so the rollback doesn't destroy what you need for the root cause.",
+   "level": "Intermediate",
+   "tags": [
+    "incident",
+    "rollback",
+    "deployment"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-021",
+   "q": "What is a blameless postmortem, and what goes into one?",
+   "a": "A **postmortem** is a written review after a significant incident. It records what happened, its impact and the root causes, and drives **action items that make recurrence less likely**. **Blameless** means it assumes people acted reasonably with the information they had, and looks for the **systemic** gaps that allowed the failure: \"the pipeline let an unreviewed migration run\", not \"Amit broke prod\". Blame teaches people to hide mistakes, which makes the next incident worse.\n\n**When:** user-visible impact above a threshold, any data loss, on-call intervention such as a rollback, a long resolution time, or a monitoring miss.\n\n**Contents:**\n1. Summary and **impact** (users, duration, revenue, SLO budget used).\n2. **Timeline** in UTC: trigger, detection, decisions, mitigation, resolution.\n3. **Root cause and contributing factors.** There's rarely just one.\n4. What went well, what went poorly, where we got lucky.\n5. **Action items** with owner, due date and priority, grouped as prevent / detect / mitigate.\n\n**Make it count:** review it in a meeting, share it widely, store it where it's searchable, and **track the action items to completion**. A postmortem with vague items like \"be more careful\" is a warning sign.",
+   "level": "Basic",
+   "tags": [
+    "postmortem",
+    "incident-response",
+    "culture"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-022",
+   "q": "Tell me about a production incident you handled.",
+   "a": "Interviewers grade **structure, ownership, decisions and the guardrail**, not how dramatic the incident was. A skeleton:\n\n1. **Context (1-2 lines):** system, scale, your role. *\"Order-processing service for a retail client, Spring Boot and MySQL, about 40k orders a day. I was the on-call developer.\"*\n2. **Detection:** how you found out. *\"Support escalated failed payments; our dashboards showed 6% 5xx on /payments.\"*\n3. **Investigation (your actions):** signals you checked, hypotheses you rejected. *\"Pool metrics showed pending connections; thread dumps showed threads in a bank API call inside @Transactional.\"*\n4. **Decision and mitigation:** *\"I proposed rolling back the morning release instead of hot-fixing, because the rollback was 5 minutes and safe; errors cleared in 8 minutes.\"*\n5. **Result with numbers:** duration, orders affected, recovery (reprocessed 312 orders).\n6. **Guardrails you drove:** *\"Moved external calls out of transactions, added a pending-connection alert, added a checklist item for remote calls in PR review. No recurrence in 6 months.\"*\n\nFrom a service company, good sources include production support tickets, batch failures, slow reports and UAT outages. Be honest about your role, and use **I** for your actions and **we** for the team.",
+   "level": "Intermediate",
+   "tags": [
+    "behavioral",
+    "incident",
+    "storytelling"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "dbg-023",
+   "q": "Your error-rate dashboard is flat, but customers are complaining. What could be going on?",
+   "a": "Your monitoring may not be measuring what users experience. Possibilities:\n\n- **Implicit errors:** HTTP 200 with wrong or empty content (an empty search result because a fallback returned `[]`, a stale price from a cache). Error metrics only count 5xx.\n- **Errors before your service:** CDN, WAF, gateway, DNS or TLS failures, or requests rejected by a load balancer. The app never sees them. Check edge and gateway metrics and synthetic probes.\n- **Client-side failures:** a mobile app version with a bug, JavaScript errors, a timeout on the client that's shorter than your latency. Check RUM and crash reporting.\n- **Segment-specific:** one region, one tenant, one payment method, one app version. A 100% failure for 1% of users looks like 1% in the aggregate.\n- **4xx that are really your fault:** an auth change returning 401/403, validation rejecting legitimate input. Many dashboards exclude 4xx.\n- **Latency, not errors:** p50 is fine but p99 is 10 s, or a background flow (emails, refunds) is delayed. Check queue lag.\n- **Correctness:** duplicate charges, missing notifications.\n\n**Action:** reproduce with a real affected user's ID and trace it. Long term, add SLIs measured at the edge or client, business-level metrics (orders/min, payment success rate by method) and synthetic journeys.",
+   "level": "Intermediate",
+   "tags": [
+    "observability",
+    "slo",
+    "incident"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-024",
+   "q": "Latency spikes every day around 2 PM and then recovers by itself. How do you investigate?",
+   "a": "A **periodic** pattern means something periodic: look for what happens at 2 PM.\n\n**Candidates:**\n- **Scheduled jobs:** a cron/batch job, a report export, a cache rebuild or data sync competing for DB, CPU or locks. Check job schedules (yours *and* other teams' on shared DBs).\n- **Traffic peak:** lunch-hour traffic or a daily marketing push. Compare traffic curves. If latency tracks traffic, it's a capacity problem: find the saturated resource with USE.\n- **Synchronised cache expiry:** keys loaded at a fixed time with a 24h TTL all expire together. Fix with jitter.\n- **GC:** the heap fills on a cycle, then a long old-gen or full GC. Check GC logs at 2 PM.\n- **Infrastructure:** backups, snapshots, log rotation and compression, DB statistics jobs, autoscaler reacting late (a scale-up lag of several minutes).\n- **Dependencies:** a downstream with its own daily job.\n\n**Method:** overlay the latency graph with traffic, DB metrics, GC pauses and the list of scheduled jobs. Pull traces from the spike window to see which span grows. A continuous JFR recording dumped right after the spike shows lock and GC behaviour.\n\n**Fix** depends on the cause: move or throttle the job, use a replica, add jitter, scale ahead of the predictable peak.",
+   "level": "Intermediate",
+   "tags": [
+    "latency",
+    "investigation",
+    "method"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-025",
+   "q": "How do you debug an issue you can't reproduce locally?",
+   "a": "Narrow the gap between production and your laptop with **evidence**, not guesses.\n\n1. **Characterise it precisely:** which users, endpoints, data, regions, times, versions? What do failing requests share? (Search traces and logs by attributes.) Intermittent often means concurrency, specific data, a specific instance, or timing.\n2. **Use production telemetry:** pull a full trace and its logs for a failing request using the trace ID. Compare it with a successful one.\n3. **Increase visibility temporarily:** raise the log level for one package at runtime through `POST /actuator/loggers/{name}`, or targeted logging behind a feature flag for one tenant. Take JFR recordings or thread dumps when it happens.\n4. **Recreate conditions:** production-like data volume (anonymised dump), the same config and flags, the same dependency versions, Testcontainers with the real MySQL version, concurrency (run the flow 100x in parallel), the same timezone and locale.\n5. **Form hypotheses and test them one at a time:** \"fails only when the cart has more than 50 items\" -> write a test that does that.\n6. **Once found:** write a failing test first, then fix.\n\nCommon culprits for \"works on my machine\": race conditions, timezone or DST handling, data that only exists in production, caching layers, different config, and memory or volume limits.",
+   "level": "Intermediate",
+   "tags": [
+    "debugging",
+    "method"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-026",
+   "q": "You're launching a new service next month. What would you add on day one to make it debuggable in production?",
+   "a": "**Metrics:** RED per endpoint (Micrometer `http.server.requests` comes free), client metrics per downstream (latency, errors, timeouts), saturation gauges (Hikari pending, executor queue, Tomcat busy threads), JVM and GC metrics, Kafka consumer lag, a `build_info` metric with version, and **business metrics** (orders created, payments failed by reason).\n\n**Logs:** structured JSON with `traceId`, service, version and key business IDs; no PII; meaningful levels; logging at boundaries and state transitions.\n\n**Traces:** OpenTelemetry / Micrometer Tracing with propagation over HTTP and Kafka; tail sampling that keeps errors and slow traces.\n\n**Health:** separate liveness (process OK) and readiness (can serve; dependencies reachable) probes.\n\n**SLOs and alerts:** an SLO per critical journey, burn-rate alerts, every alert linked to a **runbook**.\n\n**JVM safety nets:** `HeapDumpOnOutOfMemoryError`, GC logging, continuous JFR.\n\n**Operability:** runtime log-level changes (actuator loggers), feature flags or kill switches for risky paths, timeouts and circuit breakers configured from properties, and dashboards **split by version, instance and AZ**.\n\nThis list doubles as a strong answer to \"how is your service production ready?\".",
+   "level": "Basic",
+   "tags": [
+    "observability",
+    "production-readiness"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-027",
+   "q": "Requests are timing out, but CPU is only 20% and the DB looks healthy. Where is the time going?",
+   "a": "Low CPU with high latency means requests are **waiting**, not working. Find what they wait on:\n\n1. **Thread dumps (x3):** where are request threads parked?\n   - `HikariPool.getConnection` -> pool exhaustion (connections held across slow work).\n   - Socket read to one host -> a slow downstream with long or no timeouts.\n   - `BLOCKED` on one monitor -> lock contention (synchronized cache, sync logger).\n   - `LinkedBlockingQueue.take` or futures `get()` -> waiting on an executor that's saturated.\n2. **Saturation metrics:** Tomcat busy threads at max, executor queue size, Hikari pending, HTTP client pool pending (Apache HttpClient's per-route default is small).\n3. **Wall-clock profile:** `asprof -e wall` shows waiting time, which a CPU profile can't.\n4. **Traces:** the gap between spans may be queueing inside your own service.\n5. **Other hidden waits:** DNS resolution, TLS handshakes per request (no connection reuse), GC safepoint pauses, CPU **throttling** by container limits (CPU looks low on average but gets throttled in bursts; check `container_cpu_cfs_throttled_seconds_total`), and virtual threads pinned while blocking.\n\n**Fix** depends on the wait: timeouts and bulkheads, shorter transactions, a bigger client pool, removing the synchronized hot spot, or raising CPU limits.",
+   "level": "Advanced",
+   "tags": [
+    "latency",
+    "thread-pool",
+    "saturation"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-028",
+   "q": "Kafka consumer lag is growing steadily. How do you investigate?",
+   "a": "Lag grows when **produce rate > consume rate**. Find which side changed.\n\n**1. Producer side:** did inbound traffic spike (a campaign, a backfill, a replay)? Compare `records-in` per topic with the baseline.\n\n**2. Consumer throughput:**\n- **Processing got slower:** a slow DB write, a downstream HTTP call, a lock. Check processing-time metrics and traces per message. This is the most common cause.\n- **Rebalance loops:** consumers exceeding `max.poll.interval.ms` (slow batch processing) get kicked out, rebalance, reprocess, repeat. Check logs for rebalances and `CommitFailedException`.\n- **Stuck partition:** one partition's lag grows while the others are fine. Either a **poison message** retrying forever (send it to a dead-letter topic after N attempts), or a **hot key** sending all its traffic to one partition.\n- **Not enough parallelism:** consumers ≤ partitions; a consumer count above the partition count sits idle. Consider increasing partitions (it changes key-to-partition mapping), or parallel processing within a partition while keeping per-key order.\n- **Consumer instances down or crash-looping.**\n\n**Mitigate:** scale consumers up to the partition count, skip or park poison messages to a DLT, pause non-critical work, temporarily raise `max.poll.interval.ms` or lower `max.poll.records`.\n\n**Guardrails:** alert on lag in **time** (how old the oldest message is), not just count; a DLT strategy; idempotent consumers so reprocessing is safe.",
+   "level": "Intermediate",
+   "tags": [
+    "kafka",
+    "lag",
+    "incident"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-029",
+   "q": "Why are high-cardinality metric labels dangerous, and where should that data go instead?",
+   "a": "In Prometheus-style systems, **every unique combination of label values is a separate time series**, stored in memory and on disk. Tag `http_requests_total` with `userId` and 2M users becomes 2M series *per* method, status and URI combination. The result: memory explosion on Prometheus, slow queries, dropped scrapes, a big bill from managed vendors, and sometimes a monitoring outage *during* your incident.\n\n**Common offenders:** user/order/session IDs, raw URLs with path params (`/orders/98123` instead of `/orders/{id}`), full error messages, timestamps, pod names on high-churn workloads.\n\n**Rules:**\n- Labels must be **bounded and low-cardinality**: endpoint template, method, status class, region, dependency name, error *type*.\n- Micrometer's `http.server.requests` uses the URI **template** by default. Don't defeat it by building metric names or tags from raw paths.\n- Use Micrometer `MeterFilter`s to cap or deny risky tags.\n\n**Where per-entity detail belongs:**\n- **Traces:** span attributes can carry `orderId`, `tenantId`.\n- **Logs:** structured fields, searchable by ID.\n- **Exemplars:** link a histogram bucket to a sample trace ID.\n- **Analytics store** (ClickHouse, BigQuery) for per-tenant breakdowns.",
+   "level": "Advanced",
+   "tags": [
+    "metrics",
+    "observability",
+    "prometheus"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "dbg-030",
+   "q": "How can you safely gather more information from production without redeploying or causing harm?",
+   "a": "**Built into Spring Boot:**\n- **Runtime log levels:** `POST /actuator/loggers/com.shop.payment` with `{\"configuredLevel\":\"DEBUG\"}`. Revert afterwards, and be careful with volume and PII.\n- **Actuator endpoints** (secured, internal port): `/metrics`, `/threaddump`, `/heapdump` (heavy: take it from a drained pod), `/env` (masked), `/conditions`.\n\n**JVM tools with low overhead:**\n- `jcmd Thread.print`, `GC.class_histogram`, JFR (about 1-2% overhead), async-profiler for 30-60 s.\n- Continuous JFR so you can dump the last hour *after* a spike.\n\n**Targeted exposure:**\n- **Feature flags** to switch on extra logging or a new code path for a single tenant or test account.\n- **Canary pods** with extra instrumentation for a small slice of traffic.\n- **Traffic shadowing / replay** into a non-prod copy for risky experiments.\n\n**Safety rules:**\n- Treat heap dumps and debug logs as **sensitive data** (PII, secrets).\n- Prefer read-only investigation. Never run ad hoc `UPDATE`s on prod without review and a backup plan.\n- Run heavy diagnostics on one instance removed from the load balancer.\n- Time-box elevated logging, and announce what you're doing in the incident channel.",
+   "level": "Intermediate",
+   "tags": [
+    "debugging",
+    "actuator",
+    "operations"
+   ],
+   "frequent": false
+  }
+ ],
+ "sources": [
+  {
+   "title": "Google SRE Book - Monitoring Distributed Systems (four golden signals)",
+   "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+  },
+  {
+   "title": "Google SRE Book - Service Level Objectives",
+   "url": "https://sre.google/sre-book/service-level-objectives/"
+  },
+  {
+   "title": "Google SRE Workbook - Alerting on SLOs (burn rates)",
+   "url": "https://sre.google/workbook/alerting-on-slos/"
+  },
+  {
+   "title": "Google SRE Book - Postmortem Culture: Learning from Failure",
+   "url": "https://sre.google/sre-book/postmortem-culture/"
+  },
+  {
+   "title": "Google SRE Book - Managing Incidents",
+   "url": "https://sre.google/sre-book/managing-incidents/"
+  },
+  {
+   "title": "Brendan Gregg - The USE Method",
+   "url": "https://www.brendangregg.com/usemethod.html"
+  },
+  {
+   "title": "HikariCP - About Pool Sizing",
+   "url": "https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing"
+  },
+  {
+   "title": "AWS Builders' Library - Timeouts, retries and backoff with jitter",
+   "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+  },
+  {
+   "title": "AWS Builders' Library - Caching challenges and strategies",
+   "url": "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/"
+  },
+  {
+   "title": "Spring Boot Reference - Observability and Actuator",
+   "url": "https://docs.spring.io/spring-boot/reference/actuator/observability.html"
+  },
+  {
+   "title": "Spring Boot Reference - Structured logging",
+   "url": "https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.structured"
+  },
+  {
+   "title": "OpenTelemetry - Java instrumentation",
+   "url": "https://opentelemetry.io/docs/languages/java/"
+  },
+  {
+   "title": "Oracle - jcmd and JDK Flight Recorder troubleshooting guide",
+   "url": "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
+  },
+  {
+   "title": "async-profiler (GitHub)",
+   "url": "https://github.com/async-profiler/async-profiler"
+  },
+  {
+   "title": "Eclipse Memory Analyzer (MAT)",
+   "url": "https://eclipse.dev/mat/"
+  },
+  {
+   "title": "MySQL 8.4 Reference - InnoDB Locking and Transaction Model",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-transaction-model.html"
+  }
+ ]
+}

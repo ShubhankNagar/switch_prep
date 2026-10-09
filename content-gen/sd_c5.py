@@ -1,0 +1,737 @@
+from sd_common import *
+
+topics = []
+
+topics.append(T("url-shortener", "Design a URL Shortener (TinyURL / Bitly)", "Basic",
+"A read-heavy service that maps short codes to long URLs, covering ID generation, base62 encoding, caching redirects and analytics.",
+r'''
+## 1. Requirements
+
+### Functional
+- Given a long URL, generate a unique short URL (`https://sho.rt/aZ3kP9q`).
+- Visiting the short URL redirects to the original.
+- Optional custom alias (`sho.rt/raj-resume`) and expiry time.
+- Basic click analytics (count, by country/device) for the owner.
+
+### Non-functional
+- Very low redirect latency (p99 < 50 ms server side) and high availability (99.99%); redirects are the product.
+- Short codes must be unique and not easily enumerable (nice to have).
+- Read-heavy: about 100 redirects per URL created.
+- Durable: a created link must not disappear.
+
+Out of scope: user management details, link previews, spam detection deep dive (mention briefly).
+
+## 2. Capacity estimates
+
+- 100M new URLs/month → 100M / (30 × 10^5 s) ≈ **40 writes/s** (peak ~100/s).
+- Redirects 100x → **4,000 reads/s**, peak ~10-20k/s.
+- Storage per record ≈ 500 bytes (long URL up to 2 KB, average 100 B, plus metadata). Over 10 years: 100M × 12 × 10 = 12 billion records × 500 B ≈ **6 TB**.
+- Code length: base62 (a-z, A-Z, 0-9). 62^6 ≈ 57 billion, 62^7 ≈ 3.5 trillion. **7 characters** is plenty.
+- Cache: 20% of daily hot URLs. Daily redirects 400M; if ~20M distinct hot URLs × 500 B = **10 GB** in Redis.
+
+Conclusion: writes are trivial; the challenge is fast, highly available reads and unique code generation.
+
+## 3. API design
+
+```text
+POST /api/v1/urls
+  Headers: Authorization: Bearer <token> (optional for anonymous)
+  Body: {"longUrl":"https://...","customAlias":"raj-resume","expiresAt":"2027-01-01T00:00:00Z"}
+  201 -> {"shortUrl":"https://sho.rt/aZ3kP9q","code":"aZ3kP9q","expiresAt":...}
+  409 if alias taken, 400 if URL invalid
+
+GET /{code}
+  301 or 302, Location: <longUrl>   | 404 not found | 410 expired
+
+GET /api/v1/urls/{code}/stats?from=..&to=..
+DELETE /api/v1/urls/{code}
+```
+
+### 301 vs 302
+- **301 Permanent**: browsers cache the redirect; later clicks don't hit our servers. Lower load, but we lose analytics and can't change the target.
+- **302 Found (temporary)**: every click comes to us; enables analytics and edits. Bitly-style services use 301 or 302 depending on needs; for analytics choose **302**.
+
+## 4. Data model
+
+Access pattern: lookup by code (dominant), list by user (rare). A key-value lookup that could live in MySQL or a NoSQL store like DynamoDB/Cassandra. At 6 TB and 40 writes/s, **MySQL with sharding by code** or **DynamoDB** both work. I'll use MySQL (familiar, strong uniqueness) and note DynamoDB as an alternative.
+
+```sql
+CREATE TABLE urls (
+  code        VARCHAR(10) PRIMARY KEY,         -- base62 short code
+  long_url    VARCHAR(2048) NOT NULL,
+  user_id     BIGINT NULL,
+  created_at  DATETIME NOT NULL,
+  expires_at  DATETIME NULL,
+  INDEX idx_user (user_id, created_at)
+);
+
+-- analytics aggregated separately
+CREATE TABLE url_clicks_daily (
+  code VARCHAR(10), day DATE, country CHAR(2), clicks BIGINT,
+  PRIMARY KEY (code, day, country)
+);
+```
+
+## 5. High-level design
+
+```text
+                    +-------------------+
+ Client --HTTPS-->  |  CDN / Edge (opt) |
+                    +---------+---------+
+                              |
+                        [Load Balancer]
+                         /            \
+              [Write API svc]      [Redirect svc] x N (stateless)
+                    |                  |      \
+          [ID range allocator]     [Redis cache] \--> click event --> [Kafka]
+          (ZooKeeper / DB ticket)      | miss                            |
+                    |                  v                          [Analytics consumers]
+                    +--------> [MySQL shards (by code)] <--+             |
+                               primary + replicas              [ClickHouse / Cassandra]
+```
+
+Write path: validate URL → if custom alias, insert with alias (unique PK rejects duplicates) → else get next ID from local range → base62 encode → insert → return.
+
+Read path: Redirect service checks Redis `code → longUrl`; on miss reads MySQL replica, populates cache with TTL; returns 302; asynchronously publishes a click event to Kafka (non-blocking, fire-and-forget with a local buffer).
+
+## 6. Deep dives
+
+### Generating unique short codes
+
+**Option A: Hash the URL.** MD5/SHA-256(longUrl) → base62 → take first 7 chars. Same URL gives the same code (dedup for free). Collisions are possible with truncation: on insert, if the code exists with a different URL, append a salt/counter and retry. Extra DB check per write.
+
+**Option B: Counter + base62 (chosen).** A globally unique integer converted to base62:
+
+```java
+static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static String toBase62(long n) {
+    StringBuilder sb = new StringBuilder();
+    do { sb.append(ALPHABET.charAt((int)(n % 62))); n /= 62; } while (n > 0);
+    return sb.reverse().toString();
+}
+```
+
+To avoid a single counter bottleneck, use **range allocation**: each write server reserves 10,000 IDs at a time from ZooKeeper, etcd or a ticket table (`UPDATE id_alloc SET next = next + 10000`), and hands them out from memory. A crash wastes at most one range (fine). No collisions, no DB uniqueness check needed beyond the PK.
+
+Problem: sequential codes are guessable (`aZ3kP9q`, `aZ3kP9r`...), which lets people enumerate links. Fix: apply a reversible permutation (e.g., multiply by a large prime mod 62^7, or a Feistel cipher) before encoding, so consecutive IDs produce random-looking codes while staying unique.
+
+**Option C: Pre-generated key service.** Offline job generates random unique 7-char codes into a `keys_available` table; servers fetch batches and move them to used. Simple and random, extra storage.
+
+### Making redirects fast
+
+- Redis cache-aside, LRU eviction, TTL 24h (bounded by `expires_at`). Hit rate >90% because popularity is skewed.
+- Local in-process cache (Caffeine, 10k entries) for viral links to avoid Redis hot keys.
+- Redirect service is stateless; scale horizontally. Optionally serve redirects at the CDN edge (edge KV like Cloudflare Workers KV) for global low latency.
+- Negative caching for unknown codes (avoids DB hits from scanners); a Bloom filter of existing codes is another option.
+
+### Sharding
+
+6 TB over 10 years: shard by `hash(code)`, with logical shards (e.g., 256) mapped to 4-8 MySQL clusters. All lookups are by code, so every read is single-shard. User listing (`idx_user`) becomes scatter-gather; acceptable for a dashboard, or keep a separate `user_urls` table sharded by user_id.
+
+### Analytics
+
+Never update a counter row synchronously per click (hot rows, slow redirects). Publish click events (code, timestamp, IP-derived country, user agent) to Kafka; stream processors (Flink/Kafka Streams) aggregate per minute/day into ClickHouse or Cassandra. Dashboards read aggregates.
+
+### Expiry and cleanup
+
+Check `expires_at` on read (return 410). A background job deletes expired rows in batches and removes cache entries; codes can optionally be recycled after a grace period.
+
+### Abuse
+
+Rate-limit creation per user/IP (token bucket), check URLs against malware/phishing lists (Google Safe Browsing), and allow takedowns (delete + cache purge).
+
+## 7. Bottlenecks and trade-offs
+
+| Decision | Trade-off |
+|---|---|
+| 302 instead of 301 | More traffic to us, but accurate analytics and editable links |
+| Counter + base62 | No collisions, needs a range allocator; obfuscate to avoid enumeration |
+| Hashing | Stateless and dedups, but collision handling and extra reads |
+| MySQL vs DynamoDB | MySQL familiar with strong uniqueness; DynamoDB scales automatically with less ops |
+| Async analytics | Redirect stays fast; stats lag by seconds to minutes |
+
+Single points of failure: the range allocator (replicate it; servers hold a buffer of IDs, so a short outage doesn't block writes), Redis (cluster with replicas; DB can absorb brief misses at our scale), MySQL primary (replicas + automatic failover).
+
+## 8. Follow-up questions
+
+- How do you handle the same long URL submitted twice? (Optional dedup table keyed by URL hash per user.)
+- How would you support 100x more traffic? (Edge caching, more cache tiers, read replicas.)
+- How do you prevent people from guessing private links? (Longer random codes, permutation, auth-protected links.)
+- How do you support link editing with 301s cached by browsers? (You can't; use 302 for editable links.)
+- How to make it multi-region? (Replicate the read store globally; writes go to a home region or use region-prefixed ID ranges.)
+''',
+["Read-heavy (100:1); redirects must be fast and highly available",
+ "7 base62 chars = 3.5 trillion codes",
+ "Counter with range allocation + base62 gives collision-free codes; permute to avoid guessing",
+ "Hash-based codes need collision checks",
+ "302 keeps analytics and editability; 301 reduces load but browsers cache it",
+ "Redis cache-aside + local cache for viral links; negative caching for unknown codes",
+ "Shard by code; analytics via Kafka to an OLAP store, never synchronous counters"],
+[("How do you generate short codes without collisions?",
+ "Use a globally unique counter and base62-encode it. To avoid a central bottleneck, each server reserves a range of IDs (say 10,000) from ZooKeeper or a ticket table and allocates locally, so there are no collisions and no extra DB checks. To prevent enumeration, apply a reversible permutation to the number before encoding. Alternatively, hash the URL and handle collisions by retrying with a salt."),
+ ("301 or 302 redirect?",
+ "301 is permanent: browsers and proxies cache it, reducing load on our servers, but subsequent clicks bypass us, so we lose analytics and can't change the destination. 302 is temporary, so every click reaches our service, enabling click tracking, expiry and edits. For a product with analytics I'd use 302 and handle the load with caching."),
+ ("How would you scale redirects to 100k requests per second?",
+ "Keep redirect servers stateless and scale horizontally behind a load balancer. Put Redis in front of the database with high hit rates, plus a small in-process cache for the hottest codes. Push popular mappings to the CDN or edge key-value stores so many redirects never reach the origin. Make analytics asynchronous via Kafka so the redirect path is just a cache lookup."),
+ ("How would you implement click analytics?",
+ "The redirect service emits a click event (code, timestamp, country from IP, device from user agent, referrer) to Kafka asynchronously, never blocking the redirect. A stream processor aggregates counts per code per minute and per day and writes them to an analytics store like ClickHouse or Cassandra. Raw events go to cheap storage for reprocessing. The stats API reads aggregates."),
+ ("What database would you use and how would you shard it?",
+ "The access pattern is a key-value lookup by code, so either MySQL or a NoSQL store like DynamoDB works. With about 6 TB over ten years, I'd shard MySQL by hash of the code into logical shards mapped to a few physical clusters, with replicas for reads. Every redirect hits a single shard. The rare 'list my links' query can use a secondary table sharded by user_id.")],
+[("ByteByteGo - Design a URL shortener", "https://bytebytego.com/courses/system-design-interview/design-a-url-shortener"), ("System Design Primer - Pastebin/Bit.ly", "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md"), HI]))
+
+topics.append(T("rate-limiter-design", "Design a Distributed Rate Limiter", "Intermediate",
+"Building a rate limiting service that enforces per-user and per-API limits across many servers with low latency, using Redis and configurable rules.",
+r'''
+## 1. Requirements
+
+### Functional
+- Limit the number of requests a client can make in a time window, e.g., 100 requests/minute per user, 10 login attempts/hour per IP, 1,000/s per API key for paid tier.
+- Support different rules per endpoint, client tier, and identity type (user ID, API key, IP).
+- Return HTTP 429 with `Retry-After` and quota headers when exceeded.
+- Rules configurable without redeploying.
+
+### Non-functional
+- Low latency overhead: < 2 ms added p99.
+- Highly available: limiter failures must not take down the API (fail-open for most rules).
+- Accurate across a distributed fleet (limits are global, not per server); small overshoot acceptable.
+- Scale: 1M requests/second across all APIs, 50M distinct keys.
+
+## 2. Capacity estimates
+
+- 1M checks/s; each check is 1 Redis operation (Lua script) → need ~10-20 Redis shards at ~100k ops/s each (with headroom).
+- Memory: token bucket state ≈ key (~40 B) + 2 numbers + overhead ≈ 100 B. 50M active keys × 100 B = **5 GB**. With replicas ~10 GB. Small.
+- Sliding window log would store each request: 1M req/s × 60 s window = 60M entries × ~50 B = 3 GB at any moment, but per-key lists explode for heavy clients; prefer token bucket or sliding window counter.
+
+## 3. API design
+
+As middleware (filter in the gateway), not a public API. Internally:
+
+```text
+// internal check (library call or gRPC to a limiter service)
+CheckLimit(key="user:42", rule="api_default", cost=1)
+  -> {allowed: true, remaining: 57, resetAtMs: 1759900060000}
+
+// admin API for rules
+PUT /admin/v1/rate-limit-rules/{ruleId}
+{"match":{"path":"/v1/login","method":"POST"},"key":"ip+username",
+ "algorithm":"fixed_window","limit":10,"window":"1h","failMode":"closed"}
+```
+
+Response headers to clients:
+
+```text
+HTTP/1.1 429 Too Many Requests
+Retry-After: 17
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1759900060
+```
+
+## 4. Data model
+
+Rules (source of truth in MySQL or a config repo, cached in every gateway node):
+
+```sql
+CREATE TABLE rate_limit_rules (
+  id VARCHAR(64) PRIMARY KEY,
+  path_pattern VARCHAR(255), http_method VARCHAR(10),
+  key_type ENUM('USER','API_KEY','IP','IP_USER'),
+  tier VARCHAR(32),
+  algorithm ENUM('TOKEN_BUCKET','SLIDING_WINDOW','FIXED_WINDOW'),
+  capacity INT, refill_per_sec DOUBLE, window_sec INT,
+  fail_mode ENUM('OPEN','CLOSED'),
+  updated_at DATETIME
+);
+```
+
+Counters in Redis:
+
+```text
+Token bucket:   HASH  rl:{api_default:user:42}  -> tokens=57.3, ts=1759900003123   (TTL ~2x refill time)
+Fixed window:   STRING rl:{login:1.2.3.4:raj}:1759899600 -> 7                       (TTL = window)
+Sliding counter: two fixed-window counters (current and previous window)
+```
+
+The `{...}` hash tag keeps all keys of one identity in the same Redis Cluster slot.
+
+## 5. High-level design
+
+```text
+ Clients
+    |
+ [Edge / CDN / WAF]  -- coarse IP limits, DDoS protection
+    |
+ [API Gateway nodes x N] ---- rules cache (refreshed every 30s / pushed via pub-sub)
+    |   rate-limit filter: build key -> Lua script -> allow/deny
+    |            |
+    |       [Redis Cluster]  (sharded by key, replica per shard)
+    |
+ [Backend services]  -- optional service-level limits (Bucket4j/Resilience4j)
+
+ [Rules admin UI] -> [Rules DB] -> publish change -> gateways reload
+ [Metrics: allowed/denied per rule] -> Prometheus/Grafana
+```
+
+Where to place it: in the API gateway (Spring Cloud Gateway, Envoy, Kong) so all services benefit, plus edge limits for abusive IPs and service-level limits for business rules (OTPs per phone number).
+
+## 6. Deep dives
+
+### Algorithm choice
+
+- **Token bucket** for general API limits: allows bursts (page load fires 10 calls at once) while enforcing an average rate. O(1) state.
+- **Fixed window** for coarse security limits (login attempts/hour): simplest, boundary burst acceptable.
+- **Sliding window counter** when smoother enforcement without bursts is needed (two counters, weighted).
+- **Leaky bucket/queue** when protecting a downstream with fixed throughput (SMS vendor 100/s).
+
+### Atomicity across servers
+
+Two gateway nodes reading and writing a counter concurrently can both allow the 100th request. Use a **Lua script** in Redis: read state, refill, decide, write, all atomic because Redis executes scripts single-threaded. Script outline (token bucket):
+
+```text
+tokens = min(capacity, tokens + (now - ts) * rate)
+if tokens >= cost then tokens = tokens - cost; allowed = 1 else allowed = 0 end
+save tokens, ts=now; set expiry; return {allowed, floor(tokens), resetMs}
+```
+
+Use Redis `TIME` inside the script (or pass the gateway time carefully) so clock skew between gateway nodes doesn't matter.
+
+### Latency optimisation
+
+- Redis in the same AZ as gateways (~0.3-0.5 ms round trip), persistent connection pools, pipelining.
+- **Local pre-check**: for very high-volume keys, each gateway keeps a local token bucket with a share of the global limit (limit / number of nodes) and periodically syncs with Redis. Fewer Redis calls, small inaccuracy. Good hybrid for 1M+ req/s.
+- Skip the check for health checks and internal traffic.
+
+### Failure handling
+
+- Redis down or slow (timeout 5 ms): **fail-open** for general rules (log, metric, allow), **fail-closed** for security rules (login, OTP), or fall back to a conservative local in-memory limiter.
+- Redis Cluster with replicas; losing a shard briefly resets counters for those keys, which is an acceptable overshoot.
+- Circuit breaker around Redis calls so a slow Redis doesn't add latency to every request.
+
+### Rule management
+
+Rules are loaded into gateway memory and matched per request (path + method + tier). Changes published via Redis pub/sub or a config service (Spring Cloud Config, Consul) so updates apply within seconds. Version rules and audit changes.
+
+### Multi-region
+
+Options: independent per-region limits (simple; a client spreading across regions gets more), or asynchronously replicated counters with periodic reconciliation (approximate global limit). Exact global limits across continents would add 100+ ms latency per request, so not worth it.
+
+### Identifying clients
+
+- Authenticated: user ID or API key from the validated JWT.
+- Anonymous: IP, but beware NAT (many Jio users can share one public IP via carrier-grade NAT) → use generous IP limits and combine with device fingerprint or IP+username for login.
+
+### Soft vs hard limits and client experience
+
+Return headers so clients can back off; SDKs implement exponential backoff with jitter. Optionally throttle (delay) instead of reject for internal batch clients. Expose usage dashboards to paying customers.
+
+## 7. Bottlenecks and trade-offs
+
+| Choice | Trade-off |
+|---|---|
+| Centralised Redis counters | Accurate global limits vs extra network hop and Redis dependency |
+| Local + periodic sync | Lower latency and Redis load vs temporary overshoot |
+| Token bucket | Burst-friendly vs allows short spikes downstream |
+| Fail-open | Availability vs possible overload during limiter outage |
+| Per-region limits | Low latency vs not strictly global |
+
+Hot keys: one huge API key making 50k req/s hammers one Redis shard → use local pre-check for that key or split the bucket into N sub-buckets with limit/N each.
+
+## 8. Follow-up questions
+
+- How would you rate-limit by cost (expensive endpoints consume 10 tokens)? → `cost` parameter in the script.
+- How to support "burst of 20, then 5/s"? → token bucket capacity 20, refill 5/s.
+- How do you test the limiter? → load tests with known patterns, unit tests on the Lua script with a fake clock.
+- How do you protect against distributed attacks from many IPs? → edge WAF, bot detection, CAPTCHA, global adaptive limits per endpoint.
+- How would you implement a concurrency limit (max 10 in-flight per tenant)? → Redis counter INCR on start, DECR on finish with TTL safety, or semaphores.
+''',
+["Enforce in gateway (per user/API key), edge (IP), and service (business rules)",
+ "Token bucket for APIs (bursts allowed); fixed window for login limits",
+ "Redis Lua scripts make check-and-update atomic across gateway nodes",
+ "Use hash tags so one identity's keys share a Redis Cluster slot",
+ "Local pre-check with periodic sync for very high volume keys",
+ "Fail-open for general APIs, fail-closed for security-sensitive endpoints",
+ "Return 429 with Retry-After and X-RateLimit headers",
+ "Rules stored in DB, cached in gateways, updated via pub/sub"],
+[("Where would you place the rate limiter in the architecture?",
+ "In layers: coarse IP-based limits at the edge/WAF to stop floods early; per-user and per-API-key limits in the API gateway so every service benefits without duplicating logic; and business-specific limits (OTP per phone, coupons per user) inside the relevant service. Centralising most rules at the gateway keeps services simple while edge limits protect the gateway itself."),
+ ("How do you make the limiter accurate across 50 gateway instances?",
+ "Keep the counter state in a shared Redis Cluster rather than local memory, and perform the read-modify-write atomically with a Lua script, so concurrent requests on different instances can't both consume the last token. Use Redis server time to avoid clock skew. For extremely hot keys, trade a little accuracy for latency by giving each instance a local share synced periodically."),
+ ("What happens if Redis goes down?",
+ "The gateway calls Redis with a tight timeout and a circuit breaker. Rules have a configured fail mode: for general API limits we fail open, allowing requests while emitting metrics and alerts, since a full outage is worse; for login, OTP or SMS endpoints we fail closed or fall back to a conservative per-instance in-memory limiter. Redis Cluster with replicas makes this rare."),
+ ("How would you support different limits for free and premium users?",
+ "Rules include a tier dimension. The gateway extracts the user's tier from the JWT claims or a cached lookup by API key, picks the matching rule (e.g., free 100/min, premium 1,000/min), and uses a key that includes the rule ID and user ID. Rules live in a DB and are cached in the gateway, so changing tiers or limits doesn't require deployments."),
+ ("How do you rate-limit anonymous users fairly behind NAT?",
+ "IP-based limits are blunt because many mobile users share carrier-grade NAT IPs. I'd keep IP limits generous for general traffic and use stricter combined keys for sensitive actions: IP plus username for login, phone number for OTP, device ID or fingerprint for app traffic. Add CAPTCHA or challenge pages when suspicious patterns appear instead of hard blocking an entire IP.")],
+[("Stripe - Scaling your API with rate limiters", "https://stripe.com/blog/rate-limiters"), ("Cloudflare - Counting things, a lot of different things", "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/"), ("ByteByteGo - Design a rate limiter", "https://bytebytego.com/courses/system-design-interview/design-a-rate-limiter"), ("Spring Cloud Gateway - RequestRateLimiter", "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/gatewayfilter-factories/requestratelimiter-factory.html")]))
+
+topics.append(T("chat-whatsapp", "Design a Chat System (WhatsApp)", "Advanced",
+"A real-time messaging system with 1:1 and group chats, delivery/read receipts, offline delivery and presence, built on WebSockets, Kafka and Cassandra.",
+r'''
+## 1. Requirements
+
+### Functional
+- 1:1 messaging and group chats (up to 256-1,024 members).
+- Delivery status: sent (single tick), delivered (double tick), read (blue ticks).
+- Offline users receive messages when they reconnect; push notification when app is closed.
+- Online/last-seen presence.
+- Message history synced across a user's devices (simplify to one phone + linked devices).
+- Media (images/videos) sharing.
+
+### Non-functional
+- Low latency: message delivered in < 500 ms p99 when both online.
+- **No message loss**; per-conversation **ordering**.
+- High availability; 99.99%.
+- Scale: 500M DAU, each sends 40 messages/day.
+- Security: end-to-end encryption (server can't read content; mention Signal protocol).
+
+## 2. Capacity estimates
+
+- Messages/day: 500M × 40 = **20 billion/day** → 20B / 10^5 ≈ **200k messages/s**, peak ~600k/s.
+- Storage: 100 bytes avg (encrypted text + metadata) → 2 TB/day → ~730 TB/year (×3 replication ≈ 2 PB). If messages are deleted from server after delivery (WhatsApp style), storage is far smaller; we'll assume server keeps history for multi-device sync.
+- Concurrent connections: assume 30% of DAU online at peak = 150M WebSocket connections. At ~100k connections per gateway server → **~1,500 chat gateway servers**.
+- Media: 5% of messages with 200 KB average → 1B × 200 KB = 200 TB/day → object storage + CDN.
+
+## 3. API design
+
+Connection: `wss://chat.example.com/ws` with auth token; persistent WebSocket per device.
+
+```text
+Client -> Server frames
+  {"type":"send","clientMsgId":"c-7f3a","to":"user:77" | "group:9",
+   "body":"<ciphertext>","sentAt":1759900000123}
+  {"type":"ack","msgId":"m-123"}                 // delivered to device
+  {"type":"read","convId":"c:42:77","upToMsgId":"m-130"}
+  {"type":"typing","convId":"..."}
+
+Server -> Client frames
+  {"type":"sent","clientMsgId":"c-7f3a","msgId":"m-123","ts":...}   // single tick
+  {"type":"message","msgId":"m-124","convId":"...","from":"user:77","body":"..."}
+  {"type":"status","msgId":"m-123","status":"DELIVERED"|"READ"}
+
+REST
+  GET  /v1/conversations?cursor=..                    // chat list
+  GET  /v1/conversations/{id}/messages?before=m-100&limit=50
+  POST /v1/media/upload-url  -> pre-signed S3 URL
+  POST /v1/groups  {name, members[]}
+```
+
+`clientMsgId` makes sends **idempotent**: if the client retries after a dropped connection, the server deduplicates.
+
+## 4. Data model
+
+Messages: massive write volume, read by conversation in time order → **Cassandra** (or ScyllaDB/HBase).
+
+```sql
+-- Cassandra
+CREATE TABLE messages (
+  conv_id     text,          -- "1to1:42:77" (sorted ids) or "group:9"
+  bucket      int,           -- e.g. month number, bounds partition size
+  msg_id      bigint,        -- Snowflake: time-ordered
+  sender_id   bigint,
+  body        blob,          -- ciphertext
+  media_url   text,
+  PRIMARY KEY ((conv_id, bucket), msg_id)
+) WITH CLUSTERING ORDER BY (msg_id DESC);
+
+CREATE TABLE user_inbox (            -- undelivered messages per user (for offline delivery)
+  user_id bigint, msg_id bigint, conv_id text,
+  PRIMARY KEY ((user_id), msg_id)
+);
+```
+
+Relational data (users, groups, membership, contacts) in **MySQL**:
+
+```sql
+CREATE TABLE groups (id BIGINT PRIMARY KEY, name VARCHAR(100), created_by BIGINT, created_at DATETIME);
+CREATE TABLE group_members (group_id BIGINT, user_id BIGINT, role ENUM('ADMIN','MEMBER'),
+  joined_at DATETIME, PRIMARY KEY (group_id, user_id), INDEX (user_id));
+```
+
+Ephemeral state in **Redis**:
+- `session:{userId}` → set of `{deviceId: gatewayServerId}` (which server holds the connection), TTL refreshed by heartbeat.
+- `presence:{userId}` → online / last_seen timestamp.
+
+## 5. High-level design
+
+```text
+  [Mobile A]                                             [Mobile B]
+      | WebSocket                                            | WebSocket
+ [L4 LB, least-conn]                                    [L4 LB]
+      |                                                      |
+ [Chat Gateway 17] --publish--> [Kafka: messages, key=conv_id] --> [Chat Gateway 52]
+      |   ^                              |                               ^
+      |   |                     [Message Service]                        |
+      |   |                       - assign msg_id                        |
+      |   |                       - persist to Cassandra                 |
+      |   |                       - lookup recipients' gateways (Redis) -+
+      |   |                       - if offline: user_inbox + Push svc --> FCM/APNs
+      |   |
+ [Session/Presence svc] <--> [Redis]      [Group svc + MySQL]     [Media: S3 + CDN]
+```
+
+### Send flow (A → B, both online)
+1. A sends frame over WebSocket to Gateway 17 with `clientMsgId`.
+2. Gateway forwards to Message Service (or publishes to Kafka partitioned by `conv_id` for ordering).
+3. Message Service assigns a Snowflake `msg_id`, writes to Cassandra (quorum), dedups on `clientMsgId`, and acks A → **single tick**.
+4. Looks up B's session in Redis: B is connected to Gateway 52. Routes the message to Gateway 52 (via direct RPC or a per-gateway Kafka topic/Redis pub/sub channel).
+5. Gateway 52 pushes to B's WebSocket. B's app acks → status DELIVERED is sent back to A → **double tick**.
+6. When B opens the chat, B sends `read` up to msg_id → A gets **blue ticks**.
+
+### Offline flow
+If B has no active session: store in `user_inbox`, send push notification via FCM/APNs (content hidden or encrypted preview). When B reconnects, the gateway fetches pending inbox messages (ordered by msg_id), delivers them, and deletes entries after ack.
+
+## 6. Deep dives
+
+### WebSocket gateway at scale
+- Each gateway holds ~100k connections (tuned Netty/Spring WebFlux, epoll, file descriptor limits, ~10-20 KB memory per connection).
+- Heartbeats every 30 s detect dead connections (mobile networks drop silently).
+- L4 load balancer with least-connections; reconnection with jittered backoff to avoid a thundering herd when a gateway restarts.
+- Gateways are stateful only in holding sockets; the source of truth (Redis session map, Cassandra) is external, so a crashed gateway's clients just reconnect elsewhere.
+
+### Ordering and exactly-once display
+- Ordering per conversation: partition Kafka by `conv_id` so one consumer processes a conversation's messages in sequence; Snowflake `msg_id` gives a sortable order; clients sort by msg_id.
+- Dedup: server stores `clientMsgId` per sender (short TTL in Redis or unique column); retries return the same `msg_id`. Clients also dedup by `msg_id`.
+- At-least-once delivery to devices with acks; the client acks after persisting locally.
+
+### Group messaging
+- Small groups (≤ 1,024): **fan-out on write** at the service: one stored copy in Cassandra (by group conv_id), then deliver to each online member's gateway and add to inbox for offline members. 1 message × 500 members = 500 deliveries; batched per gateway.
+- Per-member read status: store per (group, member) the last read msg_id instead of per-message rows.
+- Very large broadcast channels: fan-out on read (members pull) instead.
+
+### Presence
+- On connect: set `presence:{user}=online` with TTL 60 s, refreshed by heartbeats; on disconnect or TTL expiry → last_seen.
+- Don't broadcast every change to all contacts (expensive for users with thousands of contacts). Publish presence only to users currently viewing that chat (subscribe on chat open), and batch/debounce flaps.
+
+### Multi-device sync
+Each device has its own session and inbox cursor. Messages are fanned out to all devices of a recipient (and to the sender's other devices). With E2E encryption, the sender encrypts per device key (Signal protocol's sender keys for groups).
+
+### Media
+Client gets a pre-signed URL, uploads encrypted media to S3, sends a message containing the media URL and decryption key. Recipients download via CDN. Thumbnails are generated client-side (server can't see encrypted content).
+
+### Storage strategy
+Partition by `(conv_id, bucket)` to keep Cassandra partitions under ~100 MB even for very active groups. TTL or archival policies for old messages; WhatsApp actually deletes from servers after delivery and backs up to the user's cloud.
+
+## 7. Bottlenecks and trade-offs
+
+| Area | Decision | Trade-off |
+|---|---|---|
+| Transport | WebSocket | Low latency bidirectional; stateful servers need session registry |
+| Store | Cassandra | Massive write throughput, per-conversation reads; no joins, eventual consistency tuned with QUORUM |
+| Delivery | At-least-once + client dedup | Simpler than exactly-once; requires idempotent clients |
+| Groups | Fan-out on write | Fast reads; heavy for huge groups (cap group size) |
+| Presence | Lazy, subscription-based | Saves massive fan-out; presence may lag a few seconds |
+
+Failure scenarios: gateway crash (clients reconnect, undelivered messages remain in inbox), Kafka partition leader failover (replication factor 3, acks=all), Redis session loss (clients re-register on reconnect/heartbeat), region outage (multi-region with users homed to a region).
+
+## 8. Follow-up questions
+
+- How do you show "typing..."? (Ephemeral frames routed like messages but never stored, dropped if offline.)
+- How do you handle a user with 5 devices? (Session set per user; fan-out to each device.)
+- How would you implement message deletion "for everyone"? (Tombstone message event propagated to all recipients.)
+- How do you search chat history with E2E encryption? (On-device search only.)
+- How do you scale to 1B connections? (More gateways, regional clusters, connection-efficient frameworks.)
+''',
+["WebSocket gateways hold persistent connections (~100k each); session map in Redis says which gateway holds a user",
+ "Messages in Cassandra partitioned by (conv_id, bucket), clustered by Snowflake msg_id",
+ "clientMsgId makes sends idempotent; clients dedup by msg_id",
+ "Kafka keyed by conv_id preserves per-conversation order",
+ "Ticks: sent = persisted, delivered = device ack, read = read receipt up to msg_id",
+ "Offline: store in inbox + push notification via FCM/APNs; drain on reconnect",
+ "Groups: fan-out on write for small groups, per-member last-read pointer",
+ "Presence via heartbeats + TTL, published only to interested viewers"],
+[("How does a message get from user A to user B in real time?",
+ "A sends over its WebSocket to a chat gateway, which forwards to the message service. The service assigns a time-ordered ID, persists the message to Cassandra, acks A (single tick), then looks up B's active session in Redis to find which gateway holds B's connection and routes the message there, often via pub/sub or a per-gateway queue. That gateway pushes it to B; B's ack produces the delivered status back to A."),
+ ("How do you ensure messages are not lost or duplicated?",
+ "Messages are persisted before acknowledging the sender, with Cassandra writes at QUORUM and Kafka with acks=all. Delivery to devices is at-least-once: the server keeps messages in the recipient's inbox until the device acks. Duplicates are handled with idempotency: the client attaches a clientMsgId so retried sends map to the same server msg_id, and receiving clients dedup by msg_id."),
+ ("How do you handle users who are offline?",
+ "If the session lookup finds no active connection, the message stays in the user's inbox table and a push notification is sent via FCM or APNs. When the user reconnects, the gateway fetches pending messages in msg_id order, delivers them, and removes them from the inbox once acked. Delivered receipts are then sent to the senders."),
+ ("Why Cassandra for messages instead of MySQL?",
+ "The workload is about 200k writes per second with reads of recent messages per conversation. Cassandra's LSM storage handles high write throughput, scales linearly by adding nodes, and partitioning by conversation with clustering by message ID makes 'latest 50 messages' a single-partition sequential read. We don't need joins or multi-row transactions for messages; MySQL still stores users and group membership."),
+ ("How would you implement online presence efficiently?",
+ "Clients send heartbeats; the gateway sets a presence key in Redis with a short TTL, so missing heartbeats automatically mark the user offline and record last seen. Rather than broadcasting every status change to all contacts, which is expensive, clients subscribe to presence only for chats currently open, and changes are debounced to avoid flapping on unstable mobile networks."),
+ ("How do group messages work?",
+ "The message is stored once under the group's conversation ID. The service fetches the member list (cached from MySQL) and fans out delivery: online members get it via their gateways, batched per gateway, offline members get inbox entries and push notifications. Read status is tracked per member as the last read msg_id. Very large groups or channels would switch to fan-out on read.")],
+[("ByteByteGo - Design a chat system", "https://bytebytego.com/courses/system-design-interview/design-a-chat-system"), ("Discord - How Discord stores trillions of messages", "https://discord.com/blog/how-discord-stores-trillions-of-messages"), ("Signal Protocol documentation", "https://signal.org/docs/"), ("Hello Interview - WhatsApp", "https://www.hellointerview.com/learn/system-design/problem-breakdowns/whatsapp")]))
+
+topics.append(T("news-feed", "Design a News Feed (Twitter / Instagram Feed)", "Advanced",
+"Generating personalised timelines at scale using fan-out on write, fan-out on read, and a hybrid approach for celebrities, with caching and ranking.",
+r'''
+## 1. Requirements
+
+### Functional
+- Users create posts (text, images).
+- Users follow other users.
+- Home feed shows posts from followed accounts, newest first (or ranked), with infinite scroll.
+- Like and comment counts shown on posts.
+
+### Non-functional
+- Feed load latency p99 < 300 ms.
+- High availability; eventual consistency is fine (a post may appear in followers' feeds after a few seconds).
+- Read-heavy: feed reads massively outnumber posts.
+- Scale: 300M DAU, average 200 follows, some celebrities with 100M followers.
+
+## 2. Capacity estimates
+
+- Posts: 300M × 0.5/day = 150M/day ≈ **1,700 posts/s** (peak ~5k/s).
+- Feed reads: 300M × 10 opens/day = 3B/day ≈ **35k feed requests/s** (peak ~100k/s).
+- Fan-out writes (push model): 1,700 posts/s × 200 followers avg = **340k feed inserts/s**. A celebrity post to 100M followers alone would be 100M writes. This is the central problem.
+- Post storage: 1 KB metadata × 150M = 150 GB/day (~55 TB/year). Media 30% × 300 KB = 13 TB/day → S3 + CDN.
+- Feed cache: store the latest 500 post IDs per active user: 8 bytes × 500 × 300M ≈ **1.2 TB** of Redis (spread across a cluster), feasible.
+
+## 3. API design
+
+```text
+POST /v1/posts                {text, mediaIds[]}  -> {postId}
+POST /v1/users/{id}/follow    / DELETE to unfollow
+GET  /v1/feed?cursor=<opaque>&limit=20
+  -> {items:[{postId, author{id,name,avatar}, text, mediaUrls, likeCount, commentCount,
+             likedByMe, createdAt}], nextCursor}
+POST /v1/posts/{id}/like
+```
+
+Cursor-based pagination (cursor encodes last post ID / score) because the feed changes constantly.
+
+## 4. Data model
+
+```sql
+-- MySQL (sharded by user_id) or a wide-column store
+CREATE TABLE posts (
+  post_id   BIGINT PRIMARY KEY,      -- Snowflake (time-sortable)
+  author_id BIGINT NOT NULL,
+  text      VARCHAR(2000),
+  media     JSON,
+  created_at DATETIME,
+  INDEX idx_author_time (author_id, post_id DESC)
+);
+
+CREATE TABLE follows (
+  follower_id BIGINT, followee_id BIGINT, created_at DATETIME,
+  PRIMARY KEY (follower_id, followee_id),
+  INDEX idx_followee (followee_id, follower_id)   -- "who follows X" for fan-out
+);
+
+CREATE TABLE post_counters (post_id BIGINT PRIMARY KEY, likes BIGINT, comments BIGINT);
+```
+
+The follow graph can also live in a graph store or a dedicated service (Twitter's FlockDB); at our level a sharded MySQL table with both directions works (store two copies: by follower and by followee).
+
+Feed cache in Redis:
+
+```text
+feed:{userId}  -> sorted set (score = post_id/timestamp, member = post_id), capped at 500-800 items
+post:{postId}  -> hash of post content (hydration cache)
+user:{userId}  -> hash of profile (name, avatar)
+```
+
+## 5. High-level design
+
+```text
+ [Client] -> [CDN (media)]
+    |
+ [LB / API Gateway]
+    |-------------------------------|----------------------------|
+ [Post Service]                [Feed Service]                [Social Graph Service]
+    | write post (MySQL)            | read feed:{user} (Redis)    | follows (MySQL)
+    | publish PostCreated           | merge celebrity posts       |
+    v                               | hydrate posts + users       |
+ [Kafka: post-events] ------------> | (post cache, user cache)    |
+    |                               | rank (optional)             |
+ [Fan-out Workers] -- get followers from Graph svc --> ZADD feed:{follower}
+    |
+    +--> [Notification svc], [Search indexer], [Analytics]
+
+ [Media upload: pre-signed S3] -> [S3] -> [CDN]
+```
+
+## 6. Deep dives
+
+### Fan-out on write (push)
+
+When a user posts, workers insert the post ID into each follower's precomputed feed in Redis.
+- Pros: feed reads are a single `ZREVRANGE feed:{user} 0 19` → very fast.
+- Cons: write amplification (a post × followers), wasted work for inactive followers, celebrity posts with 100M followers take a long time and swamp workers.
+
+### Fan-out on read (pull)
+
+When a user opens the feed, fetch recent posts from each followee (`SELECT ... WHERE author_id IN (...) ORDER BY post_id DESC LIMIT`), merge and sort.
+- Pros: no write amplification; always fresh; great for celebrities.
+- Cons: slow reads for users following hundreds of accounts (many queries + merge), heavy DB read load.
+
+### Hybrid (what Twitter/Instagram-style systems do)
+
+- **Normal users** (< ~10k followers): fan-out on write.
+- **Celebrities** (> threshold): don't fan out. At read time, the feed service fetches the user's precomputed feed from Redis **plus** recent posts of the few celebrities they follow (cached heavily, since everyone reads the same celebrity posts), merges by time/score.
+- Skip fan-out to **inactive users** (not logged in for 30 days); build their feed on demand (pull) when they return.
+
+```text
+feed = merge( ZREVRANGE feed:{me} 0 200,
+              for c in celebritiesIFollow: cached recent posts of c )
+       -> take top 20 after cursor -> hydrate -> return
+```
+
+### Hydration
+
+Feed entries are only IDs. Hydrate by multi-get: `post:{id}` hashes from Redis (fallback MySQL), author profiles from user cache, counters from counter cache, `likedByMe` from a per-user like set or a Bloom filter. Batch everything (one MGET/pipeline per type) to keep latency low.
+
+### Ranking
+
+Chronological is simplest. Ranked feeds score candidates (from the precomputed feed + celebrity posts + recommendations) with a model using features like affinity with author, post engagement velocity, recency, content type. Two-stage: candidate generation (~500) → lightweight ranking → top 20. Mention it, but don't go deep unless asked.
+
+### Counters (likes, comments)
+
+Likes are write-heavy and hot for viral posts. Write like events to Kafka; aggregate in batches (every second) into Redis counters (`INCRBY`) and periodically persist to MySQL. Store "who liked" in a separate table (`likes(post_id, user_id)` with PK to prevent double likes). Displayed counts are eventually consistent.
+
+### Handling deletes and unfollows
+
+- Delete post: mark deleted in the post store; hydration filters deleted posts (cheaper than removing from millions of feeds); async cleanup.
+- Unfollow: filter out at read time or lazily remove that author's posts from the feed set.
+
+### Media
+
+Uploaded directly to S3 using pre-signed URLs, processed into multiple resolutions asynchronously, served via CDN. Posts store media keys.
+
+### Pagination
+
+Cursor = last seen score (post_id). Next page: `ZREVRANGEBYSCORE feed:{me} (cursor -inf LIMIT 0 20`. Beyond the cached 800 items, fall back to pull-based generation from the DB.
+
+## 7. Bottlenecks and trade-offs
+
+| Decision | Benefit | Cost |
+|---|---|---|
+| Push for normal users | Fast reads | Write amplification, storage for feeds |
+| Pull for celebrities | Avoids 100M-write fan-outs | Extra merge work on read |
+| Redis feed cache capped at ~800 | Bounded memory | Deep scroll needs DB fallback |
+| Eventual consistency | High availability, cheap | Posts appear after seconds |
+| Batched counters | Handles viral likes | Counts lag briefly |
+
+Hot spots: a viral post's `post:{id}` key → local caches in feed service instances; celebrity timelines → replicated cache keys. Fan-out lag during peaks → autoscale workers on Kafka lag; prioritise fan-out to recently active users first.
+
+## 8. Follow-up questions
+
+- How would you add ads or recommended posts? (Inject candidates from other sources in the ranking stage.)
+- How do you handle a user following 5,000 accounts? (Push model handles it; pull would be too slow.)
+- How would you support "new posts available" banners? (Long poll/SSE or check the head of the feed set periodically.)
+- How do you make the feed multi-region? (Region-local caches; replicate post events cross-region via Kafka MirrorMaker.)
+- How would you rebuild a user's feed if Redis loses it? (Pull-based reconstruction from followees' recent posts.)
+''',
+["Read-heavy: precompute feeds so reads are a single Redis lookup",
+ "Fan-out on write: fast reads, write amplification",
+ "Fan-out on read: no amplification, slow reads",
+ "Hybrid: push for normal users, pull for celebrities, skip inactive users",
+ "Feed cache stores only post IDs (sorted set, capped); hydrate via batched multi-get",
+ "Counters via Kafka + batched Redis INCRBY; eventual consistency",
+ "Cursor pagination with post_id/score",
+ "Deletes filtered at hydration time instead of removing from every feed"],
+[("Fan-out on write vs fan-out on read?",
+ "Fan-out on write pushes each new post ID into every follower's precomputed feed when it's created, making feed reads extremely fast but causing huge write amplification for users with many followers. Fan-out on read assembles the feed at request time by fetching and merging posts from all followees, avoiding write amplification but making reads slow and DB-heavy. Most real systems use a hybrid."),
+ ("How do you handle celebrities with millions of followers?",
+ "Don't fan out their posts. Mark accounts above a follower threshold as celebrities; their posts are stored normally and cached. When a user loads their feed, the service reads the precomputed feed from Redis and merges in recent posts from the few celebrities that user follows, which are hot in cache because millions read them. This avoids writing one post into 100M feeds."),
+ ("What exactly do you store in the feed cache?",
+ "Only post IDs with a score (timestamp or Snowflake ID) in a Redis sorted set per user, capped at a few hundred entries. Storing IDs keeps memory small and avoids updating millions of copies when a post is edited. At read time, I hydrate IDs into full posts with batched multi-gets from the post cache, the user profile cache and the counters cache."),
+ ("How would you implement like counts for viral posts?",
+ "Record each like in a likes table with a primary key on (post_id, user_id) to prevent duplicates, but don't update the counter row synchronously because it becomes a hot row. Publish like events to Kafka, aggregate them in short batches and apply INCRBY to a Redis counter, persisting to MySQL periodically. Displayed counts are eventually consistent, which is acceptable."),
+ ("How does pagination work on a constantly changing feed?",
+ "Use cursor-based pagination where the cursor is the score (post ID or timestamp) of the last item returned. The next page queries the sorted set for items with a score strictly less than the cursor. New posts added at the top don't shift the following pages, so no duplicates or skips. When the user scrolls past the cached window, fall back to pull-based generation from the database.")],
+[("ByteByteGo - Design a news feed system", "https://bytebytego.com/courses/system-design-interview/design-a-news-feed-system"), ("Twitter - Timelines at Scale (InfoQ)", "https://www.infoq.com/presentations/Twitter-Timeline-Scalability/"), ("System Design Primer - Twitter timeline", "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/twitter/README.md"), ("Instagram Engineering - Feed ranking", "https://about.instagram.com/blog/engineering")]))
+
+dump("sd_part5.json", topics)

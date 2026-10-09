@@ -1,0 +1,3433 @@
+{
+ "intro": "**Learn less, master more.** This list is the short version of the whole site: what most product companies actually ask in 2026-27, picked from the research behind the Interview Rounds guide. Finish **Tier 1** before anything else; it covers most of what a typical loop tests. **Tier 2** adds range. Everything not listed here is optional depth. Ticks here are the same as ticks on each item's own page.",
+ "tiers": [
+  {
+   "id": "tier-1",
+   "title": "Tier 1 · Must master",
+   "description": "If you only have time for one thing each day, take it from here.",
+   "groups": [
+    {
+     "id": "t1-dsa",
+     "title": "Must-do coding problems",
+     "description": "The problems behind most coding rounds. Re-solve each until you can explain it out loud in under 25 minutes.",
+     "items": [
+      {
+       "key": "dsa:two-sum",
+       "title": "Two Sum (Easy)",
+       "link": "/dsa/arrays-hashing/two-sum",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:group-anagrams",
+       "title": "Group Anagrams (Medium)",
+       "link": "/dsa/arrays-hashing/group-anagrams",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:top-k-frequent-elements",
+       "title": "Top K Frequent Elements (Medium)",
+       "link": "/dsa/arrays-hashing/top-k-frequent-elements",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Facebook, Google, Microsoft"
+      },
+      {
+       "key": "dsa:product-of-array-except-self",
+       "title": "Product of Array Except Self (Medium)",
+       "link": "/dsa/arrays-hashing/product-of-array-except-self",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Microsoft, Apple, Uber"
+      },
+      {
+       "key": "dsa:longest-consecutive-sequence",
+       "title": "Longest Consecutive Sequence (Medium)",
+       "link": "/dsa/arrays-hashing/longest-consecutive-sequence",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Google, Amazon, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:subarray-sum-equals-k",
+       "title": "Subarray Sum Equals K (Medium)",
+       "link": "/dsa/arrays-hashing/subarray-sum-equals-k",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Facebook, Amazon, Google, Microsoft"
+      },
+      {
+       "key": "dsa:maximum-subarray",
+       "title": "Maximum Subarray (Kadane) (Medium)",
+       "link": "/dsa/arrays-hashing/maximum-subarray",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Microsoft, LinkedIn, Apple"
+      },
+      {
+       "key": "dsa:sort-colors",
+       "title": "Sort Colors (Dutch National Flag) (Medium)",
+       "link": "/dsa/arrays-hashing/sort-colors",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Microsoft, Amazon, Adobe, Flipkart"
+      },
+      {
+       "key": "dsa:next-permutation",
+       "title": "Next Permutation (Medium)",
+       "link": "/dsa/arrays-hashing/next-permutation",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Google, Amazon, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:best-time-to-buy-and-sell-stock",
+       "title": "Best Time to Buy and Sell Stock (Easy)",
+       "link": "/dsa/arrays-hashing/best-time-to-buy-and-sell-stock",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Microsoft, Facebook, Goldman Sachs"
+      },
+      {
+       "key": "dsa:3sum",
+       "title": "3Sum (Medium)",
+       "link": "/dsa/two-pointers/3sum",
+       "kind": "Two Pointers",
+       "why": "Asked at Facebook, Amazon, Microsoft, Google"
+      },
+      {
+       "key": "dsa:container-with-most-water",
+       "title": "Container With Most Water (Medium)",
+       "link": "/dsa/two-pointers/container-with-most-water",
+       "kind": "Two Pointers",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:trapping-rain-water",
+       "title": "Trapping Rain Water (Hard)",
+       "link": "/dsa/two-pointers/trapping-rain-water",
+       "kind": "Two Pointers",
+       "why": "Asked at Amazon, Google, Goldman Sachs, Microsoft"
+      },
+      {
+       "key": "dsa:longest-substring-without-repeating-characters",
+       "title": "Longest Substring Without Repeating Characters (Medium)",
+       "link": "/dsa/sliding-window/longest-substring-without-repeating-characters",
+       "kind": "Sliding Window",
+       "why": "Asked at Amazon, Google, Microsoft, Bloomberg"
+      },
+      {
+       "key": "dsa:longest-repeating-character-replacement",
+       "title": "Longest Repeating Character Replacement (Medium)",
+       "link": "/dsa/sliding-window/longest-repeating-character-replacement",
+       "kind": "Sliding Window",
+       "why": "Asked at Google, Amazon, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:minimum-window-substring",
+       "title": "Minimum Window Substring (Hard)",
+       "link": "/dsa/sliding-window/minimum-window-substring",
+       "kind": "Sliding Window",
+       "why": "Asked at Facebook, Amazon, Google, Microsoft"
+      },
+      {
+       "key": "dsa:sliding-window-maximum",
+       "title": "Sliding Window Maximum (Hard)",
+       "link": "/dsa/sliding-window/sliding-window-maximum",
+       "kind": "Sliding Window",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:valid-parentheses",
+       "title": "Valid Parentheses (Easy)",
+       "link": "/dsa/stack/valid-parentheses",
+       "kind": "Stack & Monotonic Stack",
+       "why": "Asked at Amazon, Google, Microsoft, Facebook"
+      },
+      {
+       "key": "dsa:min-stack",
+       "title": "Min Stack (Medium)",
+       "link": "/dsa/stack/min-stack",
+       "kind": "Stack & Monotonic Stack",
+       "why": "Asked at Amazon, Microsoft, Google, Bloomberg"
+      },
+      {
+       "key": "dsa:daily-temperatures",
+       "title": "Daily Temperatures (Medium)",
+       "link": "/dsa/stack/daily-temperatures",
+       "kind": "Stack & Monotonic Stack",
+       "why": "Asked at Amazon, Google, Facebook, Uber"
+      },
+      {
+       "key": "dsa:largest-rectangle-in-histogram",
+       "title": "Largest Rectangle in Histogram (Hard)",
+       "link": "/dsa/stack/largest-rectangle-in-histogram",
+       "kind": "Stack & Monotonic Stack",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:search-in-rotated-sorted-array",
+       "title": "Search in Rotated Sorted Array (Medium)",
+       "link": "/dsa/binary-search/search-in-rotated-sorted-array",
+       "kind": "Binary Search",
+       "why": "Asked at Amazon, Microsoft, Google, Facebook"
+      },
+      {
+       "key": "dsa:find-first-and-last-position-of-element-in-sorted-array",
+       "title": "Find First and Last Position of Element in Sorted Array (Medium)",
+       "link": "/dsa/binary-search/find-first-and-last-position-of-element-in-sorted-array",
+       "kind": "Binary Search",
+       "why": "Asked at Facebook, Amazon, Microsoft, Google"
+      },
+      {
+       "key": "dsa:koko-eating-bananas",
+       "title": "Koko Eating Bananas (Medium)",
+       "link": "/dsa/binary-search/koko-eating-bananas",
+       "kind": "Binary Search",
+       "why": "Asked at Google, Amazon, Facebook, Airbnb"
+      },
+      {
+       "key": "dsa:capacity-to-ship-packages-within-d-days",
+       "title": "Capacity To Ship Packages Within D Days (Medium)",
+       "link": "/dsa/binary-search/capacity-to-ship-packages-within-d-days",
+       "kind": "Binary Search",
+       "why": "Asked at Amazon, Google, Flipkart, Microsoft"
+      },
+      {
+       "key": "dsa:median-of-two-sorted-arrays",
+       "title": "Median of Two Sorted Arrays (Hard)",
+       "link": "/dsa/binary-search/median-of-two-sorted-arrays",
+       "kind": "Binary Search",
+       "why": "Asked at Google, Amazon, Microsoft, Goldman Sachs"
+      },
+      {
+       "key": "dsa:reverse-linked-list",
+       "title": "Reverse Linked List (Easy)",
+       "link": "/dsa/linked-list/reverse-linked-list",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Apple, Google"
+      },
+      {
+       "key": "dsa:merge-two-sorted-lists",
+       "title": "Merge Two Sorted Lists (Easy)",
+       "link": "/dsa/linked-list/merge-two-sorted-lists",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Apple, Google"
+      },
+      {
+       "key": "dsa:linked-list-cycle-ii",
+       "title": "Linked List Cycle II (Medium)",
+       "link": "/dsa/linked-list/linked-list-cycle-ii",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Google, Goldman Sachs"
+      },
+      {
+       "key": "dsa:copy-list-with-random-pointer",
+       "title": "Copy List with Random Pointer (Medium)",
+       "link": "/dsa/linked-list/copy-list-with-random-pointer",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Facebook, Bloomberg"
+      },
+      {
+       "key": "dsa:lru-cache",
+       "title": "LRU Cache (Medium)",
+       "link": "/dsa/linked-list/lru-cache",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Google, Facebook"
+      },
+      {
+       "key": "dsa:merge-k-sorted-lists",
+       "title": "Merge k Sorted Lists (Hard)",
+       "link": "/dsa/linked-list/merge-k-sorted-lists",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Google, Microsoft, Facebook"
+      },
+      {
+       "key": "dsa:reverse-nodes-in-k-group",
+       "title": "Reverse Nodes in k-Group (Hard)",
+       "link": "/dsa/linked-list/reverse-nodes-in-k-group",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Facebook, Google"
+      },
+      {
+       "key": "dsa:diameter-of-binary-tree",
+       "title": "Diameter of Binary Tree (Easy)",
+       "link": "/dsa/trees/diameter-of-binary-tree",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Facebook, Amazon, Google, Microsoft"
+      },
+      {
+       "key": "dsa:binary-tree-level-order-traversal",
+       "title": "Binary Tree Level Order Traversal (Medium)",
+       "link": "/dsa/trees/binary-tree-level-order-traversal",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Microsoft, Facebook, LinkedIn"
+      },
+      {
+       "key": "dsa:binary-tree-right-side-view",
+       "title": "Binary Tree Right Side View (Medium)",
+       "link": "/dsa/trees/binary-tree-right-side-view",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Facebook, Amazon, Microsoft, Bloomberg"
+      },
+      {
+       "key": "dsa:lowest-common-ancestor-of-a-binary-tree",
+       "title": "Lowest Common Ancestor of a Binary Tree (Medium)",
+       "link": "/dsa/trees/lowest-common-ancestor-of-a-binary-tree",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Facebook, Amazon, Microsoft, Google"
+      },
+      {
+       "key": "dsa:validate-binary-search-tree",
+       "title": "Validate Binary Search Tree (Medium)",
+       "link": "/dsa/trees/validate-binary-search-tree",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Microsoft, Facebook, Bloomberg"
+      },
+      {
+       "key": "dsa:construct-binary-tree-from-preorder-and-inorder-traversal",
+       "title": "Construct Binary Tree from Preorder and Inorder Traversal (Medium)",
+       "link": "/dsa/trees/construct-binary-tree-from-preorder-and-inorder-traversal",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Microsoft, Google, Facebook"
+      },
+      {
+       "key": "dsa:binary-tree-maximum-path-sum",
+       "title": "Binary Tree Maximum Path Sum (Hard)",
+       "link": "/dsa/trees/binary-tree-maximum-path-sum",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Facebook, Amazon, Google, Microsoft"
+      },
+      {
+       "key": "dsa:serialize-and-deserialize-binary-tree",
+       "title": "Serialize and Deserialize Binary Tree (Hard)",
+       "link": "/dsa/trees/serialize-and-deserialize-binary-tree",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Facebook, Microsoft, Google"
+      },
+      {
+       "key": "dsa:implement-trie-prefix-tree",
+       "title": "Implement Trie (Prefix Tree) (Medium)",
+       "link": "/dsa/tries/implement-trie-prefix-tree",
+       "kind": "Tries",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:word-search-ii",
+       "title": "Word Search II (Hard)",
+       "link": "/dsa/tries/word-search-ii",
+       "kind": "Tries",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:k-closest-points-to-origin",
+       "title": "K Closest Points to Origin (Medium)",
+       "link": "/dsa/heap/k-closest-points-to-origin",
+       "kind": "Heap / Priority Queue",
+       "why": "Asked at Amazon, Facebook, Google, Uber"
+      },
+      {
+       "key": "dsa:kth-largest-element-in-an-array",
+       "title": "Kth Largest Element in an Array (Medium)",
+       "link": "/dsa/heap/kth-largest-element-in-an-array",
+       "kind": "Heap / Priority Queue",
+       "why": "Asked at Facebook, Amazon, Microsoft, Google"
+      },
+      {
+       "key": "dsa:find-median-from-data-stream",
+       "title": "Find Median from Data Stream (Hard)",
+       "link": "/dsa/heap/find-median-from-data-stream",
+       "kind": "Heap / Priority Queue",
+       "why": "Asked at Amazon, Google, Microsoft, Facebook"
+      },
+      {
+       "key": "dsa:subsets",
+       "title": "Subsets (Medium)",
+       "link": "/dsa/backtracking/subsets",
+       "kind": "Backtracking",
+       "why": "Asked at Amazon, Microsoft, Google, Flipkart"
+      },
+      {
+       "key": "dsa:permutations",
+       "title": "Permutations (Medium)",
+       "link": "/dsa/backtracking/permutations",
+       "kind": "Backtracking",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:combination-sum",
+       "title": "Combination Sum (Medium)",
+       "link": "/dsa/backtracking/combination-sum",
+       "kind": "Backtracking",
+       "why": "Asked at Amazon, Microsoft, Uber, Adobe"
+      },
+      {
+       "key": "dsa:word-search",
+       "title": "Word Search (Medium)",
+       "link": "/dsa/backtracking/word-search",
+       "kind": "Backtracking",
+       "why": "Asked at Amazon, Microsoft, Uber, Atlassian"
+      },
+      {
+       "key": "dsa:number-of-islands",
+       "title": "Number of Islands (Medium)",
+       "link": "/dsa/graphs/number-of-islands",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Microsoft, Google, Flipkart"
+      },
+      {
+       "key": "dsa:rotting-oranges",
+       "title": "Rotting Oranges (Medium)",
+       "link": "/dsa/graphs/rotting-oranges",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Microsoft, Google, Flipkart"
+      },
+      {
+       "key": "dsa:course-schedule",
+       "title": "Course Schedule (Medium)",
+       "link": "/dsa/graphs/course-schedule",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:course-schedule-ii",
+       "title": "Course Schedule II (Medium)",
+       "link": "/dsa/graphs/course-schedule-ii",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:network-delay-time",
+       "title": "Network Delay Time (Medium)",
+       "link": "/dsa/advanced-graphs/network-delay-time",
+       "kind": "Advanced Graphs",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:number-of-provinces",
+       "title": "Number of Provinces (Medium)",
+       "link": "/dsa/advanced-graphs/number-of-provinces",
+       "kind": "Advanced Graphs",
+       "why": "Asked at Amazon, Google, Microsoft, Goldman Sachs"
+      },
+      {
+       "key": "dsa:accounts-merge",
+       "title": "Accounts Merge (Medium)",
+       "link": "/dsa/advanced-graphs/accounts-merge",
+       "kind": "Advanced Graphs",
+       "why": "Asked at Amazon, Google, Microsoft, Atlassian"
+      },
+      {
+       "key": "dsa:climbing-stairs",
+       "title": "Climbing Stairs (Easy)",
+       "link": "/dsa/dp-1d/climbing-stairs",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Adobe, Microsoft"
+      },
+      {
+       "key": "dsa:house-robber",
+       "title": "House Robber (Medium)",
+       "link": "/dsa/dp-1d/house-robber",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Flipkart"
+      },
+      {
+       "key": "dsa:coin-change",
+       "title": "Coin Change (Medium)",
+       "link": "/dsa/dp-1d/coin-change",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Flipkart"
+      },
+      {
+       "key": "dsa:longest-increasing-subsequence",
+       "title": "Longest Increasing Subsequence (Medium)",
+       "link": "/dsa/dp-1d/longest-increasing-subsequence",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Flipkart"
+      },
+      {
+       "key": "dsa:word-break",
+       "title": "Word Break (Medium)",
+       "link": "/dsa/dp-1d/word-break",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:longest-palindromic-substring",
+       "title": "Longest Palindromic Substring (Medium)",
+       "link": "/dsa/dp-1d/longest-palindromic-substring",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Microsoft, Google, Adobe"
+      },
+      {
+       "key": "dsa:unique-paths",
+       "title": "Unique Paths (Medium)",
+       "link": "/dsa/dp-2d/unique-paths",
+       "kind": "Dynamic Programming 2D",
+       "why": "Asked at Amazon, Google, Microsoft, Walmart"
+      },
+      {
+       "key": "dsa:longest-common-subsequence",
+       "title": "Longest Common Subsequence (Medium)",
+       "link": "/dsa/dp-2d/longest-common-subsequence",
+       "kind": "Dynamic Programming 2D",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:edit-distance",
+       "title": "Edit Distance (Medium)",
+       "link": "/dsa/dp-2d/edit-distance",
+       "kind": "Dynamic Programming 2D",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:jump-game",
+       "title": "Jump Game (Medium)",
+       "link": "/dsa/greedy/jump-game",
+       "kind": "Greedy",
+       "why": "Asked at Amazon, Microsoft, Google, Adobe"
+      },
+      {
+       "key": "dsa:gas-station",
+       "title": "Gas Station (Medium)",
+       "link": "/dsa/greedy/gas-station",
+       "kind": "Greedy",
+       "why": "Asked at Amazon, Microsoft, Google, Goldman Sachs"
+      },
+      {
+       "key": "dsa:task-scheduler",
+       "title": "Task Scheduler (Medium)",
+       "link": "/dsa/greedy/task-scheduler",
+       "kind": "Greedy",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:merge-intervals",
+       "title": "Merge Intervals (Medium)",
+       "link": "/dsa/intervals/merge-intervals",
+       "kind": "Intervals",
+       "why": "Asked at Amazon, Google, Microsoft, Flipkart"
+      },
+      {
+       "key": "dsa:insert-interval",
+       "title": "Insert Interval (Medium)",
+       "link": "/dsa/intervals/insert-interval",
+       "kind": "Intervals",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:meeting-rooms-ii",
+       "title": "Meeting Rooms II (Medium)",
+       "link": "/dsa/intervals/meeting-rooms-ii",
+       "kind": "Intervals",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:single-number",
+       "title": "Single Number (Easy)",
+       "link": "/dsa/math-bit/single-number",
+       "kind": "Math & Bit Manipulation",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:missing-number",
+       "title": "Missing Number (Easy)",
+       "link": "/dsa/math-bit/missing-number",
+       "kind": "Math & Bit Manipulation",
+       "why": "Asked at Amazon, Microsoft, Google, Oracle"
+      },
+      {
+       "key": "dsa:powx-n",
+       "title": "Pow(x, n) (Medium)",
+       "link": "/dsa/math-bit/powx-n",
+       "kind": "Math & Bit Manipulation",
+       "why": "Asked at Amazon, Google, Microsoft, Goldman Sachs"
+      }
+     ]
+    },
+    {
+     "id": "t1-stack",
+     "title": "Your stack, in depth (the resume deep-dive)",
+     "description": "Interviewers probe the stack on your resume for 45-60 minutes. These are the most-asked questions on Java, Spring Boot, SQL and microservices.",
+     "items": [
+      {
+       "key": "qa:java-001",
+       "title": "What are the four pillars of OOP? Explain each with a Java example.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-002",
+       "title": "What is the difference between an abstract class and an interface in Java 8+?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-003",
+       "title": "Method overloading vs overriding — what are the rules?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-005",
+       "title": "Why is String immutable in Java?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-006",
+       "title": "How many objects are created by `String s = new String(\"hello\")`? What's the String pool?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-007",
+       "title": "String vs StringBuilder vs StringBuffer?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-008",
+       "title": "What is the equals() and hashCode() contract? What happens if you override only equals()?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-009",
+       "title": "Explain the internal working of HashMap in Java 8.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-012",
+       "title": "HashMap vs Hashtable vs ConcurrentHashMap vs synchronizedMap?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-013",
+       "title": "How does ConcurrentHashMap work internally in Java 8? Why doesn't it allow null?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-014",
+       "title": "ArrayList vs LinkedList — when would you use each?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-016",
+       "title": "Fail-fast vs fail-safe iterators? How do you avoid ConcurrentModificationException?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-017",
+       "title": "HashSet vs LinkedHashSet vs TreeSet? How does HashSet ensure uniqueness?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-019",
+       "title": "How would you implement an LRU cache in Java?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-020",
+       "title": "Comparable vs Comparator?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:spring-boot-001",
+       "title": "What is Inversion of Control and Dependency Injection?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-002",
+       "title": "Constructor vs setter vs field injection — which is recommended and why?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-004",
+       "title": "@Component vs @Service vs @Repository vs @Controller vs @Bean?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-005",
+       "title": "What are the bean scopes in Spring? Is a singleton bean thread-safe?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-006",
+       "title": "What happens when you inject a prototype bean into a singleton bean? How do you fix it?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-007",
+       "title": "Explain the Spring bean lifecycle.",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-008",
+       "title": "How do you resolve 'NoUniqueBeanDefinitionException' when two beans implement the same interface?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-010",
+       "title": "What does @SpringBootApplication do?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-011",
+       "title": "How does Spring Boot auto-configuration work internally?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-013",
+       "title": "How do Spring profiles work? How do you manage configuration across dev, QA and prod?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-015",
+       "title": "@Controller vs @RestController? @RequestParam vs @PathVariable?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-016",
+       "title": "Explain the request flow in Spring MVC (DispatcherServlet).",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-017",
+       "title": "How do you implement global exception handling in Spring Boot?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-018",
+       "title": "How does validation work in Spring Boot? How do you write a custom validator?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-019",
+       "title": "PUT vs PATCH vs POST? What does idempotent mean?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:sql-001",
+       "title": "Write a query to find the second highest salary from the Employee table. Return NULL if it doesn't exist.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-002",
+       "title": "Write a query to find the Nth highest salary.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-003",
+       "title": "Find employees who earn more than their managers. Table: Employee(id, name, salary, manager_id).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-004",
+       "title": "Find duplicate emails in a Person(id, email) table, and then delete duplicates keeping the row with the smallest id.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-005",
+       "title": "Find customers who never placed an order. Tables: Customers(id, name), Orders(id, customer_id).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-006",
+       "title": "Find the top 3 highest-paid employees in each department. Tables: Employee(id, name, salary, dept_id), Department(id, name).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-007",
+       "title": "Find the highest-paid employee(s) in each department.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-008",
+       "title": "Find numbers that appear at least three times consecutively. Table: Logs(id, num), id is sequential.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-009",
+       "title": "Calculate a running total of sales by date, and a running total per customer. Table: Orders(id, customer_id, order_date, amount).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-010",
+       "title": "Pivot rows into columns: from Sales(product, quarter, amount) produce one row per product with Q1..Q4 columns.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-011",
+       "title": "Find departments with more than 5 employees, and departments whose average salary is above the company average.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-012",
+       "title": "Find employees earning more than the average salary of their own department.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-013",
+       "title": "Find the cumulative/month-over-month revenue growth percentage. Table: Orders(order_date, amount).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-014",
+       "title": "Find users who logged in on at least 3 consecutive days. Table: Logins(user_id, login_date).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-015",
+       "title": "Get the latest order for each customer. Table: Orders(id, customer_id, order_date, amount).",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:microservices-001",
+       "title": "What are microservices? What are their advantages and disadvantages compared to a monolith?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-002",
+       "title": "How would you decompose a monolith into microservices?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-003",
+       "title": "What is the database-per-service pattern? How do you handle queries that need data from multiple services?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-004",
+       "title": "What is service discovery? Client-side vs server-side discovery?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-005",
+       "title": "What is an API Gateway and why is it needed? What's the difference from a load balancer?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-006",
+       "title": "REST vs messaging (Kafka) for inter-service communication — how do you choose?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-007",
+       "title": "What is Feign client? How do you configure timeouts and error handling?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-008",
+       "title": "Explain Kafka architecture: topics, partitions, consumer groups and offsets.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-009",
+       "title": "How does Kafka guarantee message ordering? What happens if you need global ordering?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-010",
+       "title": "What delivery semantics does Kafka offer? How do you avoid duplicate processing?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-012",
+       "title": "Kafka vs RabbitMQ?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-013",
+       "title": "What is the circuit breaker pattern? Explain its states.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-014",
+       "title": "What are retry, bulkhead and rate limiter patterns? How do they work together?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-015",
+       "title": "How do you handle distributed transactions in microservices?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-016",
+       "title": "Explain the Saga pattern: choreography vs orchestration with an e-commerce example.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      }
+     ]
+    },
+    {
+     "id": "t1-senior",
+     "title": "Senior signals: concurrency and production debugging",
+     "description": "What separates a senior from a mid-level answer in 2026-27 loops: naming the exact race, and debugging a live incident calmly.",
+     "items": [
+      {
+       "key": "note:concurrency-practical:conc-n01",
+       "title": "The Concurrency Round: Format and How to Answer",
+       "link": "/core/concurrency-practical?chapter=1",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n02",
+       "title": "Race Conditions in Real Systems",
+       "link": "/core/concurrency-practical?chapter=2",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n03",
+       "title": "Database Guards: Constraints, Conditional Updates and Task Claiming",
+       "link": "/core/concurrency-practical?chapter=3",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n04",
+       "title": "Optimistic vs Pessimistic Locking in JPA",
+       "link": "/core/concurrency-practical?chapter=4",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n05",
+       "title": "Idempotency Keys and Exactly-Once Effects",
+       "link": "/core/concurrency-practical?chapter=5",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n06",
+       "title": "Distributed Locks: Redis, Leases and Fencing Tokens",
+       "link": "/core/concurrency-practical?chapter=6",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n07",
+       "title": "Java-Level Concurrency for Practical Rounds",
+       "link": "/core/concurrency-practical?chapter=7",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:concurrency-practical:conc-n08",
+       "title": "Testing Concurrency: Harnesses, Real Databases and jcstress",
+       "link": "/core/concurrency-practical?chapter=8",
+       "kind": "Practical Concurrency & Idempotency"
+      },
+      {
+       "key": "note:production-debugging:dbg-n01",
+       "title": "The Debugging Method: From Page to Guardrail",
+       "link": "/core/production-debugging?chapter=1",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n02",
+       "title": "Observability: Logs, Metrics, Traces and Correlation IDs",
+       "link": "/core/production-debugging?chapter=2",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n03",
+       "title": "SLIs, SLOs, Error Budgets and Alerting",
+       "link": "/core/production-debugging?chapter=3",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n04",
+       "title": "JVM Forensics: Thread Dumps, Heap Dumps, JFR and async-profiler",
+       "link": "/core/production-debugging?chapter=4",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n05",
+       "title": "Incident Playbook I: Deploy Regressions, Leaks, Pools and Thread Pools",
+       "link": "/core/production-debugging?chapter=5",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n06",
+       "title": "Incident Playbook II: Caches, Databases, Bad Hosts, Retry Storms, Disk and Certs",
+       "link": "/core/production-debugging?chapter=6",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n07",
+       "title": "Incident Response and Blameless Postmortems",
+       "link": "/core/production-debugging?chapter=7",
+       "kind": "Production Debugging & Incidents"
+      },
+      {
+       "key": "note:production-debugging:dbg-n08",
+       "title": "Mock Round: Debugging Out Loud",
+       "link": "/core/production-debugging?chapter=8",
+       "kind": "Production Debugging & Incidents"
+      }
+     ]
+    },
+    {
+     "id": "t1-design",
+     "title": "System design essentials",
+     "description": "The concepts that come up in almost every design round, the case studies asked most, and the production-flavoured topics seniors are judged on.",
+     "items": [
+      {
+       "key": "sd:back-of-envelope",
+       "title": "Back-of-the-Envelope Estimation",
+       "link": "/system-design/concepts/back-of-envelope",
+       "kind": "HLD concept",
+       "why": "Quick arithmetic to estimate QPS, storage, bandwidth and server counts so your design choices are grounded in numbers."
+      },
+      {
+       "key": "sd:caching",
+       "title": "Caching",
+       "link": "/system-design/concepts/caching",
+       "kind": "HLD concept",
+       "why": "Using fast in-memory stores like Redis to cut latency and database load: patterns, eviction, invalidation, and failure modes like stampedes."
+      },
+      {
+       "key": "sd:databases-sql-vs-nosql",
+       "title": "Databases: SQL vs NoSQL",
+       "link": "/system-design/concepts/databases-sql-vs-nosql",
+       "kind": "HLD concept",
+       "why": "How to choose between relational databases and NoSQL families (key-value, document, wide-column, graph) based on data shape, access patterns and…"
+      },
+      {
+       "key": "sd:indexing-internals",
+       "title": "Indexing Internals: B+ Trees, LSM Trees and InnoDB",
+       "link": "/system-design/concepts/indexing-internals",
+       "kind": "HLD concept",
+       "why": "How databases find data fast: B+ tree indexes in MySQL InnoDB, clustered vs secondary indexes, LSM trees in write-heavy stores, and how to design…"
+      },
+      {
+       "key": "sd:replication",
+       "title": "Database Replication",
+       "link": "/system-design/concepts/replication",
+       "kind": "HLD concept",
+       "why": "Keeping copies of data on multiple machines for availability and read scaling: leader-follower, multi-leader, leaderless, sync vs async, and…"
+      },
+      {
+       "key": "sd:sharding-partitioning",
+       "title": "Sharding and Partitioning",
+       "link": "/system-design/concepts/sharding-partitioning",
+       "kind": "HLD concept",
+       "why": "Splitting data across multiple machines when one database cannot hold or serve it: partitioning strategies, choosing shard keys, hot spots,…"
+      },
+      {
+       "key": "sd:consistent-hashing",
+       "title": "Consistent Hashing",
+       "link": "/system-design/concepts/consistent-hashing",
+       "kind": "HLD concept",
+       "why": "A hashing scheme that maps keys and servers onto a ring so that adding or removing a server moves only a small fraction of keys, used in caches,…"
+      },
+      {
+       "key": "sd:cap-pacelc-consistency",
+       "title": "CAP, PACELC and Consistency Models",
+       "link": "/system-design/concepts/cap-pacelc-consistency",
+       "kind": "HLD concept",
+       "why": "The fundamental trade-offs between consistency, availability and latency in distributed systems, and the spectrum of consistency models from…"
+      },
+      {
+       "key": "sd:message-queues",
+       "title": "Message Queues and Event Streaming (Kafka vs RabbitMQ)",
+       "link": "/system-design/concepts/message-queues",
+       "kind": "HLD concept",
+       "why": "How asynchronous messaging decouples services, absorbs spikes and enables retries; Kafka vs RabbitMQ, delivery semantics, ordering, and idempotent…"
+      },
+      {
+       "key": "sd:api-design",
+       "title": "API Design: REST, gRPC, GraphQL and Real-Time Protocols",
+       "link": "/system-design/concepts/api-design",
+       "kind": "HLD concept",
+       "why": "Designing clean, evolvable APIs: REST conventions, pagination, versioning, idempotency, and when to use gRPC, GraphQL, WebSockets, SSE or long…"
+      },
+      {
+       "key": "sd:rate-limiting",
+       "title": "Rate Limiting Algorithms",
+       "link": "/system-design/concepts/rate-limiting",
+       "kind": "HLD concept",
+       "why": "Controlling how many requests a client can make: token bucket, leaky bucket, fixed and sliding windows, and implementing distributed limits with…"
+      },
+      {
+       "key": "sd:microservices-patterns",
+       "title": "Microservices Patterns",
+       "link": "/system-design/concepts/microservices-patterns",
+       "kind": "HLD concept",
+       "why": "The core patterns for building microservice systems: API gateway, service discovery, circuit breakers, retries, outbox, CQRS, event sourcing, and…"
+      },
+      {
+       "key": "sd:url-shortener",
+       "title": "Design a URL Shortener (TinyURL / Bitly)",
+       "link": "/system-design/case-studies/url-shortener",
+       "kind": "Case study",
+       "why": "A read-heavy service that maps short codes to long URLs, covering ID generation, base62 encoding, caching redirects and analytics."
+      },
+      {
+       "key": "sd:rate-limiter-design",
+       "title": "Design a Distributed Rate Limiter",
+       "link": "/system-design/case-studies/rate-limiter-design",
+       "kind": "Case study",
+       "why": "Building a rate limiting service that enforces per-user and per-API limits across many servers with low latency, using Redis and configurable rules."
+      },
+      {
+       "key": "sd:notification-system",
+       "title": "Design a Notification System",
+       "link": "/system-design/case-studies/notification-system",
+       "kind": "Case study",
+       "why": "A multi-channel system (push, SMS, email, in-app) that delivers transactional and marketing notifications reliably, respecting user preferences and…"
+      },
+      {
+       "key": "sd:chat-whatsapp",
+       "title": "Design a Chat System (WhatsApp)",
+       "link": "/system-design/case-studies/chat-whatsapp",
+       "kind": "Case study",
+       "why": "A real-time messaging system with 1:1 and group chats, delivery/read receipts, offline delivery and presence, built on WebSockets, Kafka and…"
+      },
+      {
+       "key": "sd:ecommerce-flipkart-checkout",
+       "title": "Design E-commerce Checkout (Flipkart / Amazon)",
+       "link": "/system-design/case-studies/ecommerce-flipkart-checkout",
+       "kind": "Case study",
+       "why": "The cart-to-order path of an e-commerce platform: inventory reservation without overselling, order and payment saga, flash sale handling, and…"
+      },
+      {
+       "key": "sd:failure-handling-resilience",
+       "title": "Failure Handling & Resilience Patterns",
+       "link": "/system-design/senior/failure-handling-resilience",
+       "kind": "Senior design",
+       "why": "How production services survive slow and failing dependencies: timeouts with deadline budgets, retries with backoff and jitter, circuit breakers,…"
+      },
+      {
+       "key": "sd:idempotency-exactly-once",
+       "title": "Idempotency & Exactly-Once Processing",
+       "link": "/system-design/senior/idempotency-exactly-once",
+       "kind": "Senior design",
+       "why": "Why exactly-once delivery isn't possible, and how at-least-once delivery plus idempotency keys, dedup tables, conditional updates and the…"
+      },
+      {
+       "key": "sd:observability-slos-at-scale",
+       "title": "Observability, SLOs & \"How Do We Know It's Broken?\"",
+       "link": "/system-design/senior/observability-slos-at-scale",
+       "kind": "Senior design",
+       "why": "Turning dashboards into answers: SLIs, SLOs and error budgets, RED/USE signals, burn-rate alerting on symptoms, distributed tracing across REST and…"
+      },
+      {
+       "key": "sd:payment-processing-reliability",
+       "title": "Payment Processing Reliability (PSP Orchestration)",
+       "link": "/system-design/senior/payment-processing-reliability",
+       "kind": "Senior design",
+       "why": "A payment orchestrator in front of several PSPs that survives timeouts, unknown outcomes, PSP outages and duplicate callbacks, without…"
+      },
+      {
+       "key": "sd:parking-lot",
+       "title": "Design a Parking Lot",
+       "link": "/system-design/lld-problems/parking-lot",
+       "kind": "Machine coding",
+       "why": "The most frequently asked LLD problem: a multi-floor parking lot with typed slots, tickets, pluggable slot allocation and pricing, and thread-safe…"
+      },
+      {
+       "key": "sd:splitwise",
+       "title": "Design Splitwise (Expense Sharing)",
+       "link": "/system-design/lld-problems/splitwise",
+       "kind": "Machine coding",
+       "why": "A favourite Flipkart/PhonePe machine-coding problem: track shared expenses with equal, exact and percentage splits, maintain balances and simplify…"
+      },
+      {
+       "key": "sd:rate-limiter-lld",
+       "title": "Design a Rate Limiter (LLD)",
+       "link": "/system-design/lld-problems/rate-limiter-lld",
+       "kind": "Machine coding",
+       "why": "Implement per-client rate limiting with pluggable algorithms - fixed window, sliding window log and token bucket - in thread-safe Java."
+      }
+     ]
+    },
+    {
+     "id": "t1-traps",
+     "title": "Traps most people get wrong",
+     "description": "Short questions with a tempting wrong answer. Getting these right is what makes an interviewer write \"strong\".",
+     "items": [
+      {
+       "key": "trap:trap-java-integer-cache",
+       "title": "Integer cache and ==",
+       "link": "/traps/trap-java-integer-cache",
+       "kind": "java",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-string-pool",
+       "title": "String pool, intern() and ==",
+       "link": "/traps/trap-java-string-pool",
+       "kind": "java",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-equals-without-hashcode",
+       "title": "equals() without hashCode() in a HashSet",
+       "link": "/traps/trap-java-equals-without-hashcode",
+       "kind": "java",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-volatile-not-atomic",
+       "title": "volatile is not atomic (count++)",
+       "link": "/traps/trap-concurrency-volatile-not-atomic",
+       "kind": "concurrency",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-chm-check-then-act",
+       "title": "ConcurrentHashMap check-then-act race",
+       "link": "/traps/trap-concurrency-chm-check-then-act",
+       "kind": "concurrency",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-hashmap-shared",
+       "title": "Plain HashMap shared between threads",
+       "link": "/traps/trap-concurrency-hashmap-shared",
+       "kind": "concurrency",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-transactional-self-invocation",
+       "title": "@Transactional self-invocation (proxy bypass)",
+       "link": "/traps/trap-spring-transactional-self-invocation",
+       "kind": "spring",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-rollback-checked-exception",
+       "title": "No rollback on checked exceptions by default",
+       "link": "/traps/trap-spring-rollback-checked-exception",
+       "kind": "spring",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-async-self-invocation",
+       "title": "@Async self-invocation, void return and the default executor",
+       "link": "/traps/trap-spring-async-self-invocation",
+       "kind": "spring",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-n-plus-one",
+       "title": "The N+1 select problem",
+       "link": "/traps/trap-jpa-hibernate-n-plus-one",
+       "kind": "jpa-hibernate",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-lazy-initialization",
+       "title": "LazyInitializationException and the wrong fixes",
+       "link": "/traps/trap-jpa-hibernate-lazy-initialization",
+       "kind": "jpa-hibernate",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-dirty-checking",
+       "title": "Dirty checking: no save() needed (and accidental writes)",
+       "link": "/traps/trap-jpa-hibernate-dirty-checking",
+       "kind": "jpa-hibernate",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-null-comparison",
+       "title": "NULL = NULL and <> with NULLs",
+       "link": "/traps/trap-sql-null-comparison",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-not-in-with-null",
+       "title": "NOT IN with a NULL in the subquery",
+       "link": "/traps/trap-sql-not-in-with-null",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-left-join-where-filter",
+       "title": "WHERE on the right table turns LEFT JOIN into INNER",
+       "link": "/traps/trap-sql-left-join-where-filter",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-binary-search-bounds",
+       "title": "Binary search: infinite loop and wrong bounds",
+       "link": "/traps/trap-dsa-binary-search-bounds",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-bfs-visited-on-enqueue",
+       "title": "BFS: mark visited on enqueue, not dequeue",
+       "link": "/traps/trap-dsa-bfs-visited-on-enqueue",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-int-overflow",
+       "title": "Integer overflow in sums, products and comparators",
+       "link": "/traps/trap-dsa-int-overflow",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-jump-to-architecture",
+       "title": "Drawing boxes before requirements and numbers",
+       "link": "/traps/trap-system-design-jump-to-architecture",
+       "kind": "system-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-cache-aside-race",
+       "title": "Cache-aside write ordering and stale cache",
+       "link": "/traps/trap-system-design-cache-aside-race",
+       "kind": "system-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-shard-key",
+       "title": "Choosing a shard key that creates hotspots",
+       "link": "/traps/trap-system-design-shard-key",
+       "kind": "system-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-timeout-is-unknown",
+       "title": "A timeout is not a failure",
+       "link": "/traps/trap-distributed-systems-timeout-is-unknown",
+       "kind": "distributed-systems",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-exactly-once-myth",
+       "title": "\"Kafka gives exactly-once, so no dedupe needed\"",
+       "link": "/traps/trap-distributed-systems-exactly-once-myth",
+       "kind": "distributed-systems",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-dual-write",
+       "title": "Dual write: DB + Kafka in one method",
+       "link": "/traps/trap-distributed-systems-dual-write",
+       "kind": "distributed-systems",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-idempotency-keys",
+       "title": "Making POST retries safe with idempotency keys",
+       "link": "/traps/trap-api-design-idempotency-keys",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-offset-pagination",
+       "title": "Offset pagination drift and deep-page slowness",
+       "link": "/traps/trap-api-design-offset-pagination",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-status-codes",
+       "title": "Status codes: 200-with-error, 401 vs 403",
+       "link": "/traps/trap-api-design-status-codes",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-var-closure-loop",
+       "title": "Closures in loops: var vs let",
+       "link": "/traps/trap-angular-js-var-closure-loop",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-this-in-callbacks",
+       "title": "Losing `this` when passing a method as a callback",
+       "link": "/traps/trap-angular-js-this-in-callbacks",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-event-loop-order",
+       "title": "Event loop: microtasks vs macrotasks",
+       "link": "/traps/trap-angular-js-event-loop-order",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-process-vs-thread",
+       "title": "What threads share (and what they don't)",
+       "link": "/traps/trap-os-networking-process-vs-thread",
+       "kind": "os-networking",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-deadlock",
+       "title": "Deadlock: conditions and the practical fix",
+       "link": "/traps/trap-os-networking-deadlock",
+       "kind": "os-networking",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-tcp-vs-udp",
+       "title": "TCP vs UDP: what each really guarantees",
+       "link": "/traps/trap-os-networking-tcp-vs-udp",
+       "kind": "os-networking",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-we-instead-of-i",
+       "title": "Saying \"we\" so the interviewer can't see you",
+       "link": "/traps/trap-behavioral-we-instead-of-i",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-blaming-current-company",
+       "title": "\"Why are you leaving?\" turned into a complaint",
+       "link": "/traps/trap-behavioral-blaming-current-company",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-no-measurable-result",
+       "title": "Stories with no structure and no measurable result",
+       "link": "/traps/trap-behavioral-no-measurable-result",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      }
+     ]
+    },
+    {
+     "id": "t1-rounds",
+     "title": "Know how each core round is scored",
+     "description": "Read the rubric before you practise, so you practise what earns points.",
+     "items": [
+      {
+       "key": "round:dsa-live-coding",
+       "title": "🧠 DSA Live Coding (AI off, explain as you go)",
+       "link": "/rounds/dsa-live-coding",
+       "kind": "Round",
+       "why": "Almost every loop · ~15-25% of the SDE-2 decision; a clear fail usually vetoes the loop"
+      },
+      {
+       "key": "round:machine-coding-lld",
+       "title": "🧩 Machine Coding / LLD",
+       "link": "/rounds/machine-coding-lld",
+       "kind": "Round",
+       "why": "Most product companies · ~25% of the SDE-2 decision at Flipkart, PhonePe and Razorpay; usually an elimination round"
+      },
+      {
+       "key": "round:debugging-production-round",
+       "title": "🚨 Debugging & Production Incident Round",
+       "link": "/rounds/debugging-production-round",
+       "kind": "Round",
+       "why": "Some companies · ~10-20% where it's a round; incident questions also feed Ownership and Dive Deep signals in HM rounds"
+      },
+      {
+       "key": "round:system-design-senior",
+       "title": "🏗️ System Design (HLD) at SDE-2 / Senior",
+       "link": "/rounds/system-design-senior",
+       "kind": "Round",
+       "why": "Almost every loop · ~25-30% of a senior decision; the main driver of SDE-1 vs SDE-2 levelling"
+      },
+      {
+       "key": "round:resume-deep-dive",
+       "title": "📄 Resume Deep Dive (your own stack)",
+       "link": "/rounds/resume-deep-dive",
+       "kind": "Round",
+       "why": "Almost every loop · ~20-25% of the decision at Java-heavy companies; often the first technical round"
+      },
+      {
+       "key": "round:behavioral-leadership",
+       "title": "🤝 Behavioral & Leadership",
+       "link": "/rounds/behavioral-leadership",
+       "kind": "Round",
+       "why": "Almost every loop · ~15-20%; frequently decides level (Atlassian and Amazon both downlevel on it)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tier-2",
+   "title": "Tier 2 · Should know",
+   "description": "Once Tier 1 is mostly green, widen your range with these.",
+   "groups": [
+    {
+     "id": "t2-dsa",
+     "title": "More frequently asked problems",
+     "description": "The most-asked problems after the must-dos (one or two per pattern), for range once the must-dos are solid.",
+     "items": [
+      {
+       "key": "dsa:majority-element",
+       "title": "Majority Element (Easy)",
+       "link": "/dsa/arrays-hashing/majority-element",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:merge-sorted-array",
+       "title": "Merge Sorted Array (Easy)",
+       "link": "/dsa/arrays-hashing/merge-sorted-array",
+       "kind": "Arrays & Hashing",
+       "why": "Asked at Microsoft, Amazon, Facebook, Apple"
+      },
+      {
+       "key": "dsa:valid-palindrome",
+       "title": "Valid Palindrome (Easy)",
+       "link": "/dsa/two-pointers/valid-palindrome",
+       "kind": "Two Pointers",
+       "why": "Asked at Facebook, Microsoft, Amazon, Apple"
+      },
+      {
+       "key": "dsa:permutation-in-string",
+       "title": "Permutation in String (Medium)",
+       "link": "/dsa/sliding-window/permutation-in-string",
+       "kind": "Sliding Window",
+       "why": "Asked at Microsoft, Amazon, Facebook, Oracle"
+      },
+      {
+       "key": "dsa:asteroid-collision",
+       "title": "Asteroid Collision (Medium)",
+       "link": "/dsa/stack/asteroid-collision",
+       "kind": "Stack & Monotonic Stack",
+       "why": "Asked at Amazon, Uber, Lyft, Salesforce"
+      },
+      {
+       "key": "dsa:search-a-2d-matrix",
+       "title": "Search a 2D Matrix (Medium)",
+       "link": "/dsa/binary-search/search-a-2d-matrix",
+       "kind": "Binary Search",
+       "why": "Asked at Amazon, Microsoft, Facebook, Bloomberg"
+      },
+      {
+       "key": "dsa:split-array-largest-sum",
+       "title": "Split Array Largest Sum (Hard)",
+       "link": "/dsa/binary-search/split-array-largest-sum",
+       "kind": "Binary Search",
+       "why": "Asked at Google, Amazon, Facebook, Microsoft"
+      },
+      {
+       "key": "dsa:add-two-numbers",
+       "title": "Add Two Numbers (Medium)",
+       "link": "/dsa/linked-list/add-two-numbers",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Bloomberg, Adobe"
+      },
+      {
+       "key": "dsa:linked-list-cycle",
+       "title": "Linked List Cycle (Easy)",
+       "link": "/dsa/linked-list/linked-list-cycle",
+       "kind": "Linked List",
+       "why": "Asked at Amazon, Microsoft, Goldman Sachs, Oracle"
+      },
+      {
+       "key": "dsa:maximum-depth-of-binary-tree",
+       "title": "Maximum Depth of Binary Tree (Easy)",
+       "link": "/dsa/trees/maximum-depth-of-binary-tree",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Microsoft, LinkedIn, Apple"
+      },
+      {
+       "key": "dsa:binary-tree-zigzag-level-order-traversal",
+       "title": "Binary Tree Zigzag Level Order Traversal (Medium)",
+       "link": "/dsa/trees/binary-tree-zigzag-level-order-traversal",
+       "kind": "Binary Trees & BST",
+       "why": "Asked at Amazon, Microsoft, Facebook, Bloomberg"
+      },
+      {
+       "key": "dsa:design-add-and-search-words-data-structure",
+       "title": "Design Add and Search Words Data Structure (Medium)",
+       "link": "/dsa/tries/design-add-and-search-words-data-structure",
+       "kind": "Tries",
+       "why": "Asked at Facebook, Amazon, Google, Microsoft"
+      },
+      {
+       "key": "dsa:top-k-frequent-words",
+       "title": "Top K Frequent Words (Medium)",
+       "link": "/dsa/heap/top-k-frequent-words",
+       "kind": "Heap / Priority Queue",
+       "why": "Asked at Amazon, Bloomberg, Uber, Yelp"
+      },
+      {
+       "key": "dsa:letter-combinations-of-a-phone-number",
+       "title": "Letter Combinations of a Phone Number (Medium)",
+       "link": "/dsa/backtracking/letter-combinations-of-a-phone-number",
+       "kind": "Backtracking",
+       "why": "Asked at Amazon, Google, Uber, Microsoft"
+      },
+      {
+       "key": "dsa:clone-graph",
+       "title": "Clone Graph (Medium)",
+       "link": "/dsa/graphs/clone-graph",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:word-ladder",
+       "title": "Word Ladder (Hard)",
+       "link": "/dsa/graphs/word-ladder",
+       "kind": "Graphs (BFS/DFS)",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:cheapest-flights-within-k-stops",
+       "title": "Cheapest Flights Within K Stops (Medium)",
+       "link": "/dsa/advanced-graphs/cheapest-flights-within-k-stops",
+       "kind": "Advanced Graphs",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:decode-ways",
+       "title": "Decode Ways (Medium)",
+       "link": "/dsa/dp-1d/decode-ways",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Uber"
+      },
+      {
+       "key": "dsa:partition-equal-subset-sum",
+       "title": "Partition Equal Subset Sum (Medium)",
+       "link": "/dsa/dp-1d/partition-equal-subset-sum",
+       "kind": "Dynamic Programming 1D",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:target-sum",
+       "title": "Target Sum (Medium)",
+       "link": "/dsa/dp-2d/target-sum",
+       "kind": "Dynamic Programming 2D",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      },
+      {
+       "key": "dsa:coin-change-ii",
+       "title": "Coin Change II (Medium)",
+       "link": "/dsa/dp-2d/coin-change-ii",
+       "kind": "Dynamic Programming 2D",
+       "why": "Asked at Amazon, Google, Microsoft, Walmart"
+      },
+      {
+       "key": "dsa:jump-game-ii",
+       "title": "Jump Game II (Medium)",
+       "link": "/dsa/greedy/jump-game-ii",
+       "kind": "Greedy",
+       "why": "Asked at Amazon, Microsoft, Google, Uber"
+      },
+      {
+       "key": "dsa:non-overlapping-intervals",
+       "title": "Non-overlapping Intervals (Medium)",
+       "link": "/dsa/intervals/non-overlapping-intervals",
+       "kind": "Intervals",
+       "why": "Asked at Amazon, Google, Microsoft, Flipkart"
+      },
+      {
+       "key": "dsa:happy-number",
+       "title": "Happy Number (Easy)",
+       "link": "/dsa/math-bit/happy-number",
+       "kind": "Math & Bit Manipulation",
+       "why": "Asked at Amazon, Google, Microsoft, Adobe"
+      }
+     ]
+    },
+    {
+     "id": "t2-stack",
+     "title": "Your stack: the next layer of questions",
+     "description": "More frequently asked questions on your own stack.",
+     "items": [
+      {
+       "key": "qa:java-023",
+       "title": "Checked vs unchecked exceptions? When do you use each?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-024",
+       "title": "Does finally always execute? What happens with return in try and finally?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-026",
+       "title": "How do you create a custom exception, and how do you handle exceptions globally in a Spring Boot app?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-027",
+       "title": "What is a functional interface? Name the important ones in java.util.function.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-029",
+       "title": "What is Optional? What is the difference between orElse and orElseGet?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-030",
+       "title": "map() vs flatMap() in streams?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-031",
+       "title": "Intermediate vs terminal operations; what is lazy evaluation in streams?",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-032",
+       "title": "Using streams, group employees by department and count them; also find the average salary per department.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-033",
+       "title": "Find the second highest salary using Java streams.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-034",
+       "title": "Find duplicate elements in a list using streams.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-035",
+       "title": "Find the first non-repeating character in a string using streams.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:java-036",
+       "title": "Stream coding: highest-paid employee in each department, and names of employees grouped by department.",
+       "link": "/core/java?view=qa&filter=frequent",
+       "kind": "Core Java"
+      },
+      {
+       "key": "qa:spring-boot-020",
+       "title": "How do you implement pagination and sorting in Spring Data JPA?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-021",
+       "title": "What is the difference between JPA, Hibernate and Spring Data JPA?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-022",
+       "title": "What is the N+1 select problem and how do you fix it?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-023",
+       "title": "Lazy vs eager loading? What is LazyInitializationException and how do you fix it?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-024",
+       "title": "Explain entity states and the persistence context in Hibernate. What is dirty checking?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-027",
+       "title": "How does @Transactional work internally?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-028",
+       "title": "What are the common pitfalls of @Transactional?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-029",
+       "title": "Explain transaction propagation types with examples.",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-030",
+       "title": "What are the transaction isolation levels and which anomalies do they prevent?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-031",
+       "title": "Optimistic vs pessimistic locking in JPA — when to use which?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-032",
+       "title": "How does Spring Security work? Explain the filter chain.",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:spring-boot-033",
+       "title": "How do you implement JWT authentication in Spring Boot?",
+       "link": "/core/spring-boot?view=qa&filter=frequent",
+       "kind": "Spring & Spring Boot"
+      },
+      {
+       "key": "qa:sql-016",
+       "title": "Write a query to find the department-wise count of employees including departments with zero employees.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-022",
+       "title": "What is the logical order of execution of a SQL SELECT query?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-023",
+       "title": "Explain the different types of joins with examples.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-024",
+       "title": "WHERE vs HAVING?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-025",
+       "title": "DELETE vs TRUNCATE vs DROP?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-026",
+       "title": "UNION vs UNION ALL? IN vs EXISTS?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-027",
+       "title": "What is a CTE? How is it different from a subquery, a temporary table, and a view?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-028",
+       "title": "What are window functions? Explain ROW_NUMBER, RANK and DENSE_RANK.",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-029",
+       "title": "What is an index? How does a B+Tree index work in MySQL?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-030",
+       "title": "Clustered vs non-clustered (secondary) index in InnoDB?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-031",
+       "title": "What is a composite index and the leftmost prefix rule? How do you choose column order?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:sql-032",
+       "title": "What is a covering index?",
+       "link": "/core/sql?view=qa&filter=frequent",
+       "kind": "SQL & MySQL"
+      },
+      {
+       "key": "qa:microservices-017",
+       "title": "What is the Transactional Outbox pattern and why is it needed?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-018",
+       "title": "What is idempotency and how do you implement an idempotent payment API?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-020",
+       "title": "What is distributed tracing and how do you implement it in Spring Boot 3?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-021",
+       "title": "How do you implement centralised logging and monitoring for microservices?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-022",
+       "title": "What is the difference between Docker image and container? VM vs container?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-023",
+       "title": "How do you write an optimised Dockerfile for a Spring Boot application?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-024",
+       "title": "Explain core Kubernetes objects: Pod, Deployment, Service, Ingress, ConfigMap, Secret.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-025",
+       "title": "What are liveness, readiness and startup probes?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-027",
+       "title": "A pod is in CrashLoopBackOff. How do you debug it?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-028",
+       "title": "What is CI/CD? Describe a pipeline you would set up for a Spring Boot microservice.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-029",
+       "title": "Explain blue-green, canary and rolling deployments.",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      },
+      {
+       "key": "qa:microservices-031",
+       "title": "What is the CAP theorem?",
+       "link": "/core/microservices?view=qa&filter=frequent",
+       "kind": "Microservices & Distributed Systems"
+      }
+     ]
+    },
+    {
+     "id": "t2-senior",
+     "title": "Senior topics: performance, testing, security, cloud, AI, leadership",
+     "description": "The rest of the senior 2027 subjects. One chapter a day is plenty.",
+     "items": [
+      {
+       "key": "note:performance:perf-n01",
+       "title": "Performance Vocabulary: Latency, Throughput, Percentiles and Little's Law",
+       "link": "/core/performance?chapter=1",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n02",
+       "title": "JVM Memory and Garbage Collection",
+       "link": "/core/performance?chapter=2",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n03",
+       "title": "Profiling Java: Finding Where Time Goes",
+       "link": "/core/performance?chapter=3",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n04",
+       "title": "MySQL Query Performance: EXPLAIN and Index Design",
+       "link": "/core/performance?chapter=4",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n05",
+       "title": "Application-to-Database Performance: N+1, Batching, Pools and Replicas",
+       "link": "/core/performance?chapter=5",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n06",
+       "title": "Caching Strategy and Pitfalls",
+       "link": "/core/performance?chapter=6",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n07",
+       "title": "API and HTTP Performance",
+       "link": "/core/performance?chapter=7",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:performance:perf-n08",
+       "title": "Load Testing and Capacity Math",
+       "link": "/core/performance?chapter=8",
+       "kind": "Performance: JVM, Database & Caching"
+      },
+      {
+       "key": "note:testing-code-review:test-n01",
+       "title": "The Test Pyramid in a Spring Boot Service",
+       "link": "/core/testing-code-review?chapter=1",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n02",
+       "title": "Unit Testing with JUnit 5 and Mockito",
+       "link": "/core/testing-code-review?chapter=2",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n03",
+       "title": "Spring Test Slices, Testcontainers and WireMock",
+       "link": "/core/testing-code-review?chapter=3",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n04",
+       "title": "Contract Tests and Testing Time, Async and Flaky Tests",
+       "link": "/core/testing-code-review?chapter=4",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n05",
+       "title": "Tests in Practical Coding Rounds (and Honest TDD)",
+       "link": "/core/testing-code-review?chapter=5",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n06",
+       "title": "The Code Review Round: How to Review Out Loud",
+       "link": "/core/testing-code-review?chapter=6",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n07",
+       "title": "Review Exercises: Flawed Spring Code, Findings Ranked",
+       "link": "/core/testing-code-review?chapter=7",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:testing-code-review:test-n08",
+       "title": "Clean Code and Refactoring Signals Interviewers Look For",
+       "link": "/core/testing-code-review?chapter=8",
+       "kind": "Testing & Code Review"
+      },
+      {
+       "key": "note:security:sec-owasp-top10",
+       "title": "OWASP Top 10 (2021 and 2025) Through a Spring Boot Lens",
+       "link": "/core/security?chapter=1",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-api-top10",
+       "title": "OWASP API Security Top 10: BOLA, Mass Assignment, SSRF and Friends",
+       "link": "/core/security?chapter=2",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-injection-xss-csrf-cors",
+       "title": "Injection, XSS, CSRF and CORS: What Actually Protects You",
+       "link": "/core/security?chapter=3",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-authn-sessions-jwt",
+       "title": "Authentication, Sessions vs JWT and Token Pitfalls",
+       "link": "/core/security?chapter=4",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-oauth-oidc",
+       "title": "OAuth 2.0 and OIDC: Authorization Code + PKCE, Client Credentials",
+       "link": "/core/security?chapter=5",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-passwords-secrets-tls",
+       "title": "Passwords, Secrets and Encryption: Hashing, Vaults, TLS and mTLS",
+       "link": "/core/security?chapter=6",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-abuse-errors-logging",
+       "title": "Rate Limiting, Abuse Prevention, Error Handling and Security Logging",
+       "link": "/core/security?chapter=7",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:security:sec-review-checklist-privacy",
+       "title": "Secure Code Review Checklist, Supply Chain and PII Basics",
+       "link": "/core/security?chapter=8",
+       "kind": "Security for Backend Engineers"
+      },
+      {
+       "key": "note:cloud-devops:cloud-aws-service-map",
+       "title": "AWS for Backend Engineers: The Service Map and When to Use What",
+       "link": "/core/cloud-devops?chapter=1",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-iam-vpc",
+       "title": "IAM and VPC Basics: Identity, Least Privilege and Network Boundaries",
+       "link": "/core/cloud-devops?chapter=2",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-docker-spring",
+       "title": "Docker for Spring Boot: Images, Layers and Multi-stage Builds",
+       "link": "/core/cloud-devops?chapter=3",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-k8s-core",
+       "title": "Kubernetes Essentials: Pods, Deployments, Services, Ingress, Config",
+       "link": "/core/cloud-devops?chapter=4",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-k8s-production",
+       "title": "Kubernetes in Production: Probes, Resources, HPA and Why Pods Die",
+       "link": "/core/cloud-devops?chapter=5",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-cicd-releases",
+       "title": "CI/CD, Deployment Strategies, Feature Flags and Rollbacks",
+       "link": "/core/cloud-devops?chapter=6",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:cloud-devops:cloud-12factor-iac",
+       "title": "12-Factor Apps and Infrastructure as Code with Terraform",
+       "link": "/core/cloud-devops?chapter=7",
+       "kind": "Cloud, Docker, Kubernetes & CI/CD"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-interview-formats",
+       "title": "AI-Assisted Coding Interviews in 2025-26: Formats and Grading",
+       "link": "/core/ai-assisted-engineering?chapter=1",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-workflow",
+       "title": "The Interview Workflow: Clarify, Decompose, Prompt, Verify, Test, Iterate",
+       "link": "/core/ai-assisted-engineering?chapter=2",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-catching-mistakes",
+       "title": "Catching AI Mistakes: A Field Guide",
+       "link": "/core/ai-assisted-engineering?chapter=3",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-on-the-job",
+       "title": "Using AI Tools on the Job Responsibly (Copilot, Claude Code, Cursor)",
+       "link": "/core/ai-assisted-engineering?chapter=4",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-reviewing-ai-code",
+       "title": "Reviewing AI-Generated Code (Yours and Others')",
+       "link": "/core/ai-assisted-engineering?chapter=5",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-llm-basics",
+       "title": "LLM Basics Every Backend Developer Is Asked",
+       "link": "/core/ai-assisted-engineering?chapter=6",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-llm-in-spring",
+       "title": "Integrating an LLM into a Spring Boot Service Safely",
+       "link": "/core/ai-assisted-engineering?chapter=7",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:ai-assisted-engineering:aie-ai-system-design-lite",
+       "title": "AI System Design Lite: Interview Framework and Examples",
+       "link": "/core/ai-assisted-engineering?chapter=8",
+       "kind": "AI-Assisted Engineering & AI Literacy"
+      },
+      {
+       "key": "note:senior-leadership:lead-mid-to-senior",
+       "title": "What Changes from Mid-Level to Senior (SDE-2 and Beyond)",
+       "link": "/core/senior-leadership?chapter=1",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-design-docs",
+       "title": "Writing Design Docs and RFCs (Template + Worked Example)",
+       "link": "/core/senior-leadership?chapter=2",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-estimation-breakdown",
+       "title": "Estimating and Breaking Down Work",
+       "link": "/core/senior-leadership?chapter=3",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-tradeoffs-disagreement",
+       "title": "Making Trade-offs and Handling Disagreement",
+       "link": "/core/senior-leadership?chapter=4",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-mentoring-code-review",
+       "title": "Mentoring and Code Review Culture",
+       "link": "/core/senior-leadership?chapter=5",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-incidents-postmortems",
+       "title": "Driving Incidents and Blameless Postmortems",
+       "link": "/core/senior-leadership?chapter=6",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-stakeholder-communication",
+       "title": "Stakeholder Communication: Status, Risks and Saying No",
+       "link": "/core/senior-leadership?chapter=7",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      },
+      {
+       "key": "note:senior-leadership:lead-project-deep-dive",
+       "title": "The Project Deep-Dive Round and Stakes-Action-Outcome Stories",
+       "link": "/core/senior-leadership?chapter=8",
+       "kind": "Senior Engineer Skills: Ownership, Design Docs & Leadership"
+      }
+     ]
+    },
+    {
+     "id": "t2-breadth",
+     "title": "Breadth that still gets asked",
+     "description": "Frontend, CS fundamentals and behavioral: only the questions that keep showing up.",
+     "items": [
+      {
+       "key": "qa:ng-001",
+       "title": "What is Angular and how is it different from AngularJS and React?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-002",
+       "title": "Explain the difference between a component and a directive. What types of directives exist?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-003",
+       "title": "List the Angular lifecycle hooks in order and give a use for each important one.",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-004",
+       "title": "What is the difference between constructor and ngOnInit?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-005",
+       "title": "How do components communicate with each other in Angular?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-006",
+       "title": "Explain Angular change detection. How does OnPush improve performance?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-007",
+       "title": "What is Zone.js and what does zoneless Angular mean?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-009",
+       "title": "What are signals in Angular? Explain signal, computed and effect.",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-010",
+       "title": "Signals vs RxJS Observables — when would you use each?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:ng-012",
+       "title": "What are standalone components? What are their advantages over NgModules?",
+       "link": "/core/angular?view=qa&filter=frequent",
+       "kind": "Angular"
+      },
+      {
+       "key": "qa:js-001",
+       "title": "What is a closure? Give a practical example.",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-002",
+       "title": "Predict the output and explain how to fix it.\n\n```js\nfor (var i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i), 100);\n}\n```",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-003",
+       "title": "Explain hoisting with var, let, const and functions.",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-004",
+       "title": "Predict the output:\n\n```js\nconsole.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C')).then(() => console.log('D'));\nconsole.log('E');\n```",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-005",
+       "title": "Explain the event loop in JavaScript.",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-006",
+       "title": "Predict the output:\n\n```js\nasync function f() {\n  console.log(1);\n  await null;\n  console.log(2);\n}\nconsole.log(3);\nf();\nconsole.log(4);\n```",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-007",
+       "title": "What are the different ways `this` is bound? Predict the output.\n\n```js\nconst obj = {\n  name: 'Raj',\n  a() { return this.name; },\n  b: () => this?.name,\n  c() { return [1].map(function () { return this?.name; }); },\n  d() { return [1].map(() => this.name); }\n};\nconsole.log(obj.a(), obj.b(), obj.c(), obj.d());\n```",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:js-008",
+       "title": "What is the difference between call, apply and bind? Write a bind polyfill.",
+       "link": "/core/javascript-typescript?view=qa&filter=frequent",
+       "kind": "JavaScript & TypeScript"
+      },
+      {
+       "key": "qa:oop-001",
+       "title": "What are the four pillars of OOP? Explain each with an example.",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-002",
+       "title": "What is the difference between abstraction and encapsulation?",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-003",
+       "title": "What is the difference between an abstract class and an interface in Java?",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-004",
+       "title": "Explain method overloading vs method overriding.",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-005",
+       "title": "What are the SOLID principles? Explain each briefly with an example.",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-006",
+       "title": "Explain the Open/Closed Principle with a real example.",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-007",
+       "title": "What is the Liskov Substitution Principle? Give a violation example.",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:oop-008",
+       "title": "What is the difference between Dependency Inversion, Dependency Injection and Inversion of Control?",
+       "link": "/core/oop-design-patterns?view=qa&filter=frequent",
+       "kind": "OOP & Design Principles"
+      },
+      {
+       "key": "qa:cn-001",
+       "title": "Explain the OSI model and the function of each layer.",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-003",
+       "title": "What is the difference between TCP and UDP? When would you use each?",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-004",
+       "title": "Explain the TCP three-way handshake. Why is it three-way and not two-way?",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-005",
+       "title": "How does TCP guarantee reliable delivery? Explain flow control vs congestion control.",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-006",
+       "title": "What are the differences between HTTP/1.1, HTTP/2 and HTTP/3?",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-007",
+       "title": "What happens when you type a URL like https://www.google.com in the browser and press Enter?",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-008",
+       "title": "How does DNS work? Explain recursive vs iterative queries and common record types.",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:cn-009",
+       "title": "How does HTTPS work? Explain the TLS handshake.",
+       "link": "/core/cn?view=qa&filter=frequent",
+       "kind": "Computer Networks"
+      },
+      {
+       "key": "qa:os-001",
+       "title": "What is the difference between a process and a thread?",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:os-002",
+       "title": "Explain the process states and the Process Control Block (PCB).",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:os-003",
+       "title": "What is a context switch? Why is it considered overhead?",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:os-006",
+       "title": "Explain FCFS, SJF, Round Robin and Priority scheduling with pros and cons.",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:os-009",
+       "title": "What is a race condition and a critical section?",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:os-010",
+       "title": "What is the difference between a mutex and a semaphore?",
+       "link": "/core/os?view=qa&filter=frequent",
+       "kind": "Operating Systems"
+      },
+      {
+       "key": "qa:dbms-002",
+       "title": "Explain the different types of keys in DBMS.",
+       "link": "/core/dbms?view=qa&filter=frequent",
+       "kind": "DBMS Theory"
+      },
+      {
+       "key": "qa:dbms-003",
+       "title": "What is the difference between a primary key and a unique key?",
+       "link": "/core/dbms?view=qa&filter=frequent",
+       "kind": "DBMS Theory"
+      },
+      {
+       "key": "qa:dbms-004",
+       "title": "What is normalization? Explain 1NF, 2NF, 3NF and BCNF with examples.",
+       "link": "/core/dbms?view=qa&filter=frequent",
+       "kind": "DBMS Theory"
+      },
+      {
+       "key": "qa:dbms-008",
+       "title": "Explain ACID properties with an example.",
+       "link": "/core/dbms?view=qa&filter=frequent",
+       "kind": "DBMS Theory"
+      },
+      {
+       "key": "qa:dbms-009",
+       "title": "What are dirty reads, non-repeatable reads and phantom reads? Explain isolation levels.",
+       "link": "/core/dbms?view=qa&filter=frequent",
+       "kind": "DBMS Theory"
+      },
+      {
+       "key": "qa:hr-001",
+       "title": "Tell me about yourself.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-002",
+       "title": "Why do you want to leave your current company?",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-003",
+       "title": "Why do you want to join our company?",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-004",
+       "title": "Tell me about the most challenging technical problem you solved.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-005",
+       "title": "Tell me about a time you made a mistake or failed.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-006",
+       "title": "Tell me about a time you disagreed with your manager or a senior colleague.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-007",
+       "title": "Describe a conflict with a teammate and how you resolved it.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-008",
+       "title": "Tell me about a time you worked under a tight deadline.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-009",
+       "title": "Tell me about a time you took ownership of something outside your role.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      },
+      {
+       "key": "qa:hr-010",
+       "title": "Give an example of when you went above and beyond for a customer.",
+       "link": "/core/behavioral?view=qa&filter=frequent",
+       "kind": "Behavioral & HR"
+      }
+     ]
+    },
+    {
+     "id": "t2-design",
+     "title": "More design practice",
+     "description": "Case studies, senior topics and machine-coding problems for range.",
+     "items": [
+      {
+       "key": "sd:load-balancing",
+       "title": "Load Balancing",
+       "link": "/system-design/concepts/load-balancing",
+       "kind": "HLD concept",
+       "why": "How load balancers distribute traffic across servers, the L4 vs L7 difference, common algorithms, health checks and avoiding the LB itself as a…"
+      },
+      {
+       "key": "sd:transactions-isolation",
+       "title": "Transactions, Isolation Levels and Distributed Transactions",
+       "link": "/system-design/concepts/transactions-isolation",
+       "kind": "HLD concept",
+       "why": "ACID guarantees, the four isolation levels and their anomalies in MySQL, locking strategies, and how to keep data consistent across services with…"
+      },
+      {
+       "key": "sd:cdn-blob-storage",
+       "title": "CDN and Blob/Object Storage",
+       "link": "/system-design/concepts/cdn-blob-storage",
+       "kind": "HLD concept",
+       "why": "Storing large files in object stores like S3 and serving them fast worldwide through CDNs, with pre-signed uploads, caching headers and invalidation."
+      },
+      {
+       "key": "sd:observability",
+       "title": "Observability: Logs, Metrics, Tracing, SLOs",
+       "link": "/system-design/concepts/observability",
+       "kind": "HLD concept",
+       "why": "How to know what a distributed system is doing in production: structured logs, metrics, distributed tracing, alerting, and SLI/SLO/SLA definitions."
+      },
+      {
+       "key": "sd:security-auth",
+       "title": "Security and Authentication: Sessions, JWT, OAuth2, HTTPS, OWASP",
+       "link": "/system-design/concepts/security-auth",
+       "kind": "HLD concept",
+       "why": "How users and services prove who they are and what they may do: sessions vs JWT, OAuth2/OIDC flows, HTTPS/TLS, password storage and the OWASP basics…"
+      },
+      {
+       "key": "sd:unique-id-generation",
+       "title": "Unique ID Generation in Distributed Systems",
+       "link": "/system-design/concepts/unique-id-generation",
+       "kind": "HLD concept",
+       "why": "Generating globally unique, often sortable IDs without a single database bottleneck: auto-increment, UUIDs, ticket servers, Snowflake, ULID/UUIDv7."
+      },
+      {
+       "key": "sd:search-elasticsearch",
+       "title": "Search and Elasticsearch",
+       "link": "/system-design/concepts/search-elasticsearch",
+       "kind": "HLD concept",
+       "why": "How full-text search works: inverted indexes, analyzers, relevance scoring, Elasticsearch architecture (shards, replicas), and keeping it in sync…"
+      },
+      {
+       "key": "sd:news-feed",
+       "title": "Design a News Feed (Twitter / Instagram Feed)",
+       "link": "/system-design/case-studies/news-feed",
+       "kind": "Case study",
+       "why": "Generating personalised timelines at scale using fan-out on write, fan-out on read, and a hybrid approach for celebrities, with caching and ranking."
+      },
+      {
+       "key": "sd:ticket-booking-bookmyshow",
+       "title": "Design a Ticket Booking System (BookMyShow)",
+       "link": "/system-design/case-studies/ticket-booking-bookmyshow",
+       "kind": "Case study",
+       "why": "Selling seats for movies and events without double booking: seat maps, temporary seat holds with expiry, payment integration, and handling…"
+      },
+      {
+       "key": "sd:payment-system-upi",
+       "title": "Design a Payment System (UPI / Payment Gateway)",
+       "link": "/system-design/case-studies/payment-system-upi",
+       "kind": "Case study",
+       "why": "Moving money correctly: payment flows, idempotency, double-entry ledgers, integrating with UPI/PSPs, handling unknown states, reconciliation and…"
+      },
+      {
+       "key": "sd:ride-hailing-uber",
+       "title": "Design a Ride-Hailing System (Uber / Ola)",
+       "link": "/system-design/case-studies/ride-hailing-uber",
+       "kind": "Case study",
+       "why": "Matching riders with nearby drivers in real time: location ingestion, geospatial indexing with geohash/H3, dispatch, trip state machines and surge…"
+      },
+      {
+       "key": "sd:food-delivery-swiggy",
+       "title": "Design a Food Delivery Platform (Swiggy / Zomato)",
+       "link": "/system-design/case-studies/food-delivery-swiggy",
+       "kind": "Case study",
+       "why": "A three-sided marketplace connecting customers, restaurants and delivery partners: restaurant discovery, ordering, delivery assignment, live…"
+      },
+      {
+       "key": "sd:search-autocomplete",
+       "title": "Design Search Autocomplete (Typeahead)",
+       "link": "/system-design/case-studies/search-autocomplete",
+       "kind": "Case study",
+       "why": "Suggesting top query completions as the user types within ~100 ms, using tries with precomputed top-k, an offline aggregation pipeline and…"
+      },
+      {
+       "key": "sd:multi-region-disaster-recovery",
+       "title": "Multi-Region Architecture & Disaster Recovery",
+       "link": "/system-design/senior/multi-region-disaster-recovery",
+       "kind": "Senior design",
+       "why": "How to keep a system available when a whole region fails: RPO/RTO, the DR strategy ladder, active-passive vs active-active, replication lag,…"
+      },
+      {
+       "key": "sd:cost-and-capacity-planning",
+       "title": "Cost & Capacity Planning",
+       "link": "/system-design/senior/cost-and-capacity-planning",
+       "kind": "Senior design",
+       "why": "Estimating what a design costs and how much capacity it needs: unit economics, storage tiers, compute sizing with headroom, caching and CDN…"
+      },
+      {
+       "key": "sd:ai-system-design-rag",
+       "title": "AI System Design: Production RAG",
+       "link": "/system-design/senior/ai-system-design-rag",
+       "kind": "Senior design",
+       "why": "Designing an LLM feature for production: ingestion and chunking, permission-aware hybrid retrieval, prompt assembly, evals, guardrails against…"
+      },
+      {
+       "key": "sd:distributed-job-scheduler",
+       "title": "Distributed Job Scheduler",
+       "link": "/system-design/senior/distributed-job-scheduler",
+       "kind": "Senior design",
+       "why": "Cron at scale: durable one-off and recurring jobs that start within seconds of schedule, run 'exactly-once-ish' through leases, fencing and…"
+      },
+      {
+       "key": "sd:metrics-monitoring-system",
+       "title": "Metrics Monitoring & Alerting System",
+       "link": "/system-design/senior/metrics-monitoring-system",
+       "kind": "Senior design",
+       "why": "A Prometheus/Datadog-style platform: high-throughput ingestion, a compressed time-series store, downsampling and retention, fast PromQL-style…"
+      },
+      {
+       "key": "sd:leaderboard-top-k-trending",
+       "title": "Real-Time Leaderboard & Top-K Trending",
+       "link": "/system-design/senior/leaderboard-top-k-trending",
+       "kind": "Senior design",
+       "why": "Two ranking problems in one round: an exact real-time leaderboard on Redis sorted sets (rank, neighbours, hot keys, durability) and approximate…"
+      },
+      {
+       "key": "sd:flash-sale-inventory",
+       "title": "Flash Sale Inventory (Big Billion Days Style)",
+       "link": "/system-design/senior/flash-sale-inventory",
+       "kind": "Senior design",
+       "why": "Selling 10,000 units to 5 million people at 12:00 noon: an edge waiting room, atomic Redis decrements as the admission gate, MySQL as the source of…"
+      },
+      {
+       "key": "sd:webhook-delivery-system",
+       "title": "Reliable Webhook Delivery System",
+       "link": "/system-design/senior/webhook-delivery-system",
+       "kind": "Senior design",
+       "why": "Outbound webhooks done properly: at-least-once delivery with backoff over days, HMAC signing with replay protection, per-endpoint isolation so one…"
+      },
+      {
+       "key": "sd:collaborative-editor",
+       "title": "Collaborative Document Editor (Google Docs-like)",
+       "link": "/system-design/senior/collaborative-editor",
+       "kind": "Senior design",
+       "why": "Real-time co-editing at interview depth: operation-based sync with OT or CRDTs, one authoritative server per document over WebSockets,…"
+      },
+      {
+       "key": "sd:snake-and-ladder",
+       "title": "Design Snake and Ladder",
+       "link": "/system-design/lld-problems/snake-and-ladder",
+       "kind": "Machine coding",
+       "why": "A classic machine-coding warm-up: a configurable Snake and Ladder game with multiple players, pluggable dice and a clean game loop."
+      },
+      {
+       "key": "sd:bookmyshow-lld",
+       "title": "Design BookMyShow (Movie Ticket Booking)",
+       "link": "/system-design/lld-problems/bookmyshow-lld",
+       "kind": "Machine coding",
+       "why": "Design a movie ticket booking system with cities, theatres, shows and seats, focusing on preventing double booking with seat locks and timeouts."
+      },
+      {
+       "key": "sd:elevator-system",
+       "title": "Design an Elevator System",
+       "link": "/system-design/lld-problems/elevator-system",
+       "kind": "Machine coding",
+       "why": "Design a multi-elevator controller that dispatches hall requests using a pluggable scheduling strategy and moves cars with the SCAN (elevator)…"
+      },
+      {
+       "key": "sd:pub-sub-message-queue",
+       "title": "Design a Pub-Sub Message Queue",
+       "link": "/system-design/lld-problems/pub-sub-message-queue",
+       "kind": "Machine coding",
+       "why": "Build a Kafka-inspired in-memory message queue with topics, multiple subscribers, per-subscriber offsets, async consumer workers and replay."
+      },
+      {
+       "key": "sd:in-memory-key-value-store",
+       "title": "Design an In-Memory Key-Value Store",
+       "link": "/system-design/lld-problems/in-memory-key-value-store",
+       "kind": "Machine coding",
+       "why": "A Redis-like in-memory store with typed attribute values, TTL expiry, secondary-index search, transactions and thread safety - a popular…"
+      },
+      {
+       "key": "sd:cab-booking-lld",
+       "title": "Design a Cab Booking System (Uber/Ola LLD)",
+       "link": "/system-design/lld-problems/cab-booking-lld",
+       "kind": "Machine coding",
+       "why": "Design ride booking with riders, drivers, location-based driver matching, ride lifecycle, fare strategies and concurrency-safe driver assignment."
+      }
+     ]
+    },
+    {
+     "id": "t2-traps",
+     "title": "More traps",
+     "description": "The rest of the trap collection.",
+     "items": [
+      {
+       "key": "trap:trap-java-mutable-hashmap-key",
+       "title": "Mutating a HashMap key after put()",
+       "link": "/traps/trap-java-mutable-hashmap-key",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-cme-foreach-remove",
+       "title": "Removing inside for-each (and the second-to-last quirk)",
+       "link": "/traps/trap-java-cme-foreach-remove",
+       "kind": "java",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-aslist-listof-immutability",
+       "title": "Arrays.asList vs List.of vs unmodifiable views",
+       "link": "/traps/trap-java-aslist-listof-immutability",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-finally-return",
+       "title": "finally vs return",
+       "link": "/traps/trap-java-finally-return",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-overload-resolution",
+       "title": "Overloading with null, widening, boxing, varargs",
+       "link": "/traps/trap-java-overload-resolution",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-int-overflow-math-abs",
+       "title": "Integer overflow and Math.abs(Integer.MIN_VALUE)",
+       "link": "/traps/trap-java-int-overflow-math-abs",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-bigdecimal-equals",
+       "title": "BigDecimal equals vs compareTo, new BigDecimal(0.1)",
+       "link": "/traps/trap-java-bigdecimal-equals",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-stream-laziness",
+       "title": "Stream laziness, short-circuiting and reuse",
+       "link": "/traps/trap-java-stream-laziness",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-optional-orelse-eager",
+       "title": "Optional.orElse is eager",
+       "link": "/traps/trap-java-optional-orelse-eager",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-java-list-remove-index-vs-object",
+       "title": "List.remove(int) vs remove(Object)",
+       "link": "/traps/trap-java-list-remove-index-vs-object",
+       "kind": "java",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-synchronized-wrong-lock",
+       "title": "synchronized on the wrong monitor",
+       "link": "/traps/trap-concurrency-synchronized-wrong-lock",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-double-checked-locking",
+       "title": "Double-checked locking without volatile",
+       "link": "/traps/trap-concurrency-double-checked-locking",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-threadlocal-pool-leak",
+       "title": "ThreadLocal leaking across pooled requests",
+       "link": "/traps/trap-concurrency-threadlocal-pool-leak",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-deadlock-lock-ordering",
+       "title": "Deadlock from inconsistent lock order",
+       "link": "/traps/trap-concurrency-deadlock-lock-ordering",
+       "kind": "concurrency",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-parallel-stream-shared-state",
+       "title": "parallelStream with shared mutable state",
+       "link": "/traps/trap-concurrency-parallel-stream-shared-state",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-completablefuture-swallowed",
+       "title": "CompletableFuture swallows exceptions",
+       "link": "/traps/trap-concurrency-completablefuture-swallowed",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-wait-without-loop",
+       "title": "wait() in an if instead of a while",
+       "link": "/traps/trap-concurrency-wait-without-loop",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-executors-unbounded-queue",
+       "title": "Executors.newFixedThreadPool has an unbounded queue",
+       "link": "/traps/trap-concurrency-executors-unbounded-queue",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-concurrency-virtual-thread-pinning",
+       "title": "Virtual threads pinned by synchronized (Java 21)",
+       "link": "/traps/trap-concurrency-virtual-thread-pinning",
+       "kind": "concurrency",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-unexpected-rollback",
+       "title": "Caught exception, yet UnexpectedRollbackException",
+       "link": "/traps/trap-spring-unexpected-rollback",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-requires-new-pool-exhaustion",
+       "title": "REQUIRES_NEW: same-class calls and connection-pool deadlock",
+       "link": "/traps/trap-spring-requires-new-pool-exhaustion",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-prototype-in-singleton",
+       "title": "Prototype bean injected into a singleton",
+       "link": "/traps/trap-spring-prototype-in-singleton",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-circular-dependency",
+       "title": "Circular dependencies in Spring Boot 2.6+",
+       "link": "/traps/trap-spring-circular-dependency",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-field-vs-constructor-injection",
+       "title": "Field injection vs constructor injection",
+       "link": "/traps/trap-spring-field-vs-constructor-injection",
+       "kind": "spring",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-primary-vs-qualifier",
+       "title": "@Primary vs @Qualifier: which wins?",
+       "link": "/traps/trap-spring-primary-vs-qualifier",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-transactional-readonly",
+       "title": "@Transactional(readOnly = true) misconceptions",
+       "link": "/traps/trap-spring-transactional-readonly",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-open-in-view",
+       "title": "Open Session in View (spring.jpa.open-in-view)",
+       "link": "/traps/trap-spring-open-in-view",
+       "kind": "spring",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-spring-singleton-thread-safety",
+       "title": "Are Spring singleton beans thread-safe?",
+       "link": "/traps/trap-spring-singleton-thread-safety",
+       "kind": "spring",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-entity-equals-hashcode",
+       "title": "equals/hashCode on entities with generated ids",
+       "link": "/traps/trap-jpa-hibernate-entity-equals-hashcode",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-save-merge-detached",
+       "title": "save() on a detached entity returns a different object",
+       "link": "/traps/trap-jpa-hibernate-save-merge-detached",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-manytoone-eager-default",
+       "title": "@ManyToOne is EAGER by default",
+       "link": "/traps/trap-jpa-hibernate-manytoone-eager-default",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-orphan-removal-vs-cascade",
+       "title": "orphanRemoval vs CascadeType.REMOVE",
+       "link": "/traps/trap-jpa-hibernate-orphan-removal-vs-cascade",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-bidirectional-sync",
+       "title": "Bidirectional mapping: only the owning side writes the FK",
+       "link": "/traps/trap-jpa-hibernate-bidirectional-sync",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-pagination-join-fetch",
+       "title": "Pagination with JOIN FETCH happens in memory",
+       "link": "/traps/trap-jpa-hibernate-pagination-join-fetch",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-optimistic-locking",
+       "title": "Lost updates and @Version",
+       "link": "/traps/trap-jpa-hibernate-optimistic-locking",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-identity-disables-batching",
+       "title": "IDENTITY ids disable JDBC batch inserts",
+       "link": "/traps/trap-jpa-hibernate-identity-disables-batching",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-jpa-hibernate-flush-timing",
+       "title": "Constraint violation thrown at commit, not at save()",
+       "link": "/traps/trap-jpa-hibernate-flush-timing",
+       "kind": "jpa-hibernate",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-count-variants",
+       "title": "COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col)",
+       "link": "/traps/trap-sql-count-variants",
+       "kind": "sql",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-group-by-nonaggregated-column",
+       "title": "Non-aggregated column in GROUP BY (ONLY_FULL_GROUP_BY)",
+       "link": "/traps/trap-sql-group-by-nonaggregated-column",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-index-sargability",
+       "title": "Functions on indexed columns kill the index",
+       "link": "/traps/trap-sql-index-sargability",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-composite-index-leftmost-prefix",
+       "title": "Composite index and the leftmost-prefix rule",
+       "link": "/traps/trap-sql-composite-index-leftmost-prefix",
+       "kind": "sql",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-nth-highest-with-duplicates",
+       "title": "Nth highest salary with LIMIT/OFFSET and ties",
+       "link": "/traps/trap-sql-nth-highest-with-duplicates",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-rank-dense-rank-row-number",
+       "title": "ROW_NUMBER vs RANK vs DENSE_RANK",
+       "link": "/traps/trap-sql-rank-dense-rank-row-number",
+       "kind": "sql",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-delete-duplicates-mysql-1093",
+       "title": "Deleting duplicates in MySQL (ERROR 1093)",
+       "link": "/traps/trap-sql-delete-duplicates-mysql-1093",
+       "kind": "sql",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-repeatable-read-lost-update",
+       "title": "MySQL REPEATABLE READ: snapshot reads vs UPDATE",
+       "link": "/traps/trap-sql-repeatable-read-lost-update",
+       "kind": "sql",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-sql-between-datetime-end-of-day",
+       "title": "BETWEEN on DATETIME misses the last day",
+       "link": "/traps/trap-sql-between-datetime-end-of-day",
+       "kind": "sql",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-dijkstra-assumptions",
+       "title": "Dijkstra: negative edges and stale queue entries",
+       "link": "/traps/trap-dsa-dijkstra-assumptions",
+       "kind": "dsa",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-greedy-vs-dp",
+       "title": "Greedy coin change fails on arbitrary coins",
+       "link": "/traps/trap-dsa-greedy-vs-dp",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-sliding-window-negatives",
+       "title": "Sliding window with negative numbers",
+       "link": "/traps/trap-dsa-sliding-window-negatives",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-directed-cycle-detection",
+       "title": "Directed cycle detection with a single visited set",
+       "link": "/traps/trap-dsa-directed-cycle-detection",
+       "kind": "dsa",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-dsa-recursion-complexity",
+       "title": "Naive recursion: exponential time and hidden stack space",
+       "link": "/traps/trap-dsa-recursion-complexity",
+       "kind": "dsa",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-hot-key",
+       "title": "Hot key / celebrity problem",
+       "link": "/traps/trap-system-design-hot-key",
+       "kind": "system-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-global-id",
+       "title": "Generating IDs after sharding",
+       "link": "/traps/trap-system-design-global-id",
+       "kind": "system-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-just-add-kafka",
+       "title": "\"Just add Kafka\" without delivery semantics",
+       "link": "/traps/trap-system-design-just-add-kafka",
+       "kind": "system-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-read-your-writes",
+       "title": "Read-your-writes with async replicas",
+       "link": "/traps/trap-system-design-read-your-writes",
+       "kind": "system-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-system-design-counting-at-scale",
+       "title": "COUNT(*) on every read for likes and views",
+       "link": "/traps/trap-system-design-counting-at-scale",
+       "kind": "system-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-saga-vs-2pc",
+       "title": "Cross-service transactions: @Transactional, 2PC or saga",
+       "link": "/traps/trap-distributed-systems-saga-vs-2pc",
+       "kind": "distributed-systems",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-clock-ordering",
+       "title": "Ordering events by wall-clock timestamps",
+       "link": "/traps/trap-distributed-systems-clock-ordering",
+       "kind": "distributed-systems",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-lock-fencing",
+       "title": "Distributed lock without a fencing token",
+       "link": "/traps/trap-distributed-systems-lock-fencing",
+       "kind": "distributed-systems",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-retry-storm",
+       "title": "Retry storms: retries at every layer, no backoff",
+       "link": "/traps/trap-distributed-systems-retry-storm",
+       "kind": "distributed-systems",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-distributed-systems-missing-timeouts",
+       "title": "Missing timeouts cause cascading failure",
+       "link": "/traps/trap-distributed-systems-missing-timeouts",
+       "kind": "distributed-systems",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-put-vs-patch",
+       "title": "PUT vs PATCH semantics",
+       "link": "/traps/trap-api-design-put-vs-patch",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-idor",
+       "title": "IDOR / broken object-level authorization",
+       "link": "/traps/trap-api-design-idor",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-breaking-changes",
+       "title": "What counts as a breaking API change",
+       "link": "/traps/trap-api-design-breaking-changes",
+       "kind": "api-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-chatty-n-plus-one",
+       "title": "Chatty APIs: N+1 calls from the client",
+       "link": "/traps/trap-api-design-chatty-n-plus-one",
+       "kind": "api-design",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-api-design-rate-limiting",
+       "title": "Rate limiting: per-instance counters and wrong status",
+       "link": "/traps/trap-api-design-rate-limiting",
+       "kind": "api-design",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-async-foreach",
+       "title": "`async` callback inside forEach is not awaited",
+       "link": "/traps/trap-angular-js-async-foreach",
+       "kind": "angular-js",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-equality-coercion",
+       "title": "`==` vs `===` and coercion surprises",
+       "link": "/traps/trap-angular-js-equality-coercion",
+       "kind": "angular-js",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-onpush-mutation",
+       "title": "OnPush not updating after mutation",
+       "link": "/traps/trap-angular-js-onpush-mutation",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-subscription-leaks",
+       "title": "Subscription leaks and nested subscribes",
+       "link": "/traps/trap-angular-js-subscription-leaks",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-angular-js-switchmap-vs-mergemap",
+       "title": "Choosing switchMap / mergeMap / concatMap / exhaustMap",
+       "link": "/traps/trap-angular-js-switchmap-vs-mergemap",
+       "kind": "angular-js",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-mutex-vs-semaphore",
+       "title": "Mutex vs semaphore",
+       "link": "/traps/trap-os-networking-mutex-vs-semaphore",
+       "kind": "os-networking",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-time-wait",
+       "title": "TIME_WAIT and ephemeral port exhaustion",
+       "link": "/traps/trap-os-networking-time-wait",
+       "kind": "os-networking",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-url-flow",
+       "title": "What happens when you type a URL",
+       "link": "/traps/trap-os-networking-url-flow",
+       "kind": "os-networking",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-cors",
+       "title": "CORS is enforced by the browser",
+       "link": "/traps/trap-os-networking-cors",
+       "kind": "os-networking",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-os-networking-jwt-storage",
+       "title": "Where to store tokens: localStorage vs HttpOnly cookie",
+       "link": "/traps/trap-os-networking-jwt-storage",
+       "kind": "os-networking",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-fake-weakness",
+       "title": "The fake weakness (\"I'm a perfectionist\")",
+       "link": "/traps/trap-behavioral-fake-weakness",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-failure-story",
+       "title": "No real failure story (or a disguised humblebrag)",
+       "link": "/traps/trap-behavioral-failure-story",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-project-tech-dump",
+       "title": "\"Walk me through your project\" answered with a tech-stack list",
+       "link": "/traps/trap-behavioral-project-tech-dump",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-conflict-villain",
+       "title": "Conflict stories with a villain (or no conflict at all)",
+       "link": "/traps/trap-behavioral-conflict-villain",
+       "kind": "behavioral",
+       "why": "Common. Most candidates answer this wrong."
+      },
+      {
+       "key": "trap:trap-behavioral-ctc-anchoring",
+       "title": "Anchoring salary to current CTC too early (India)",
+       "link": "/traps/trap-behavioral-ctc-anchoring",
+       "kind": "behavioral",
+       "why": "Very common. Most candidates answer this wrong."
+      }
+     ]
+    },
+    {
+     "id": "t2-rounds",
+     "title": "The other rounds",
+     "description": "Rounds that some companies run: know the format before you walk in.",
+     "items": [
+      {
+       "key": "round:online-assessment",
+       "title": "🧪 Online Assessment (OA)",
+       "link": "/rounds/online-assessment",
+       "kind": "Round",
+       "why": "Most product companies · Gate: pass/fail, rarely discussed later"
+      },
+      {
+       "key": "round:ai-assisted-coding",
+       "title": "🤖 AI-Assisted Coding",
+       "link": "/rounds/ai-assisted-coding",
+       "kind": "Round",
+       "why": "Some companies · Replaces one of the two coding rounds at Meta (~20-25% of that loop)"
+      },
+      {
+       "key": "round:practical-coding",
+       "title": "🛠️ Practical Coding (changing requirements + tests)",
+       "link": "/rounds/practical-coding",
+       "kind": "Round",
+       "why": "Some companies · ~15-20% where it replaces a DSA round; growing fastest of all formats"
+      },
+      {
+       "key": "round:concurrency-round",
+       "title": "⚙️ Concurrency Round",
+       "link": "/rounds/concurrency-round",
+       "kind": "Round",
+       "why": "Most product companies · Often decides SDE-2 vs SDE-1 level at Java-heavy companies"
+      },
+      {
+       "key": "round:code-review-round",
+       "title": "🔍 Code Review Round",
+       "link": "/rounds/code-review-round",
+       "kind": "Round",
+       "why": "Some companies · ~10-15% where it appears; growing because AI made writing code cheap and judging it valuable"
+      },
+      {
+       "key": "round:project-deep-dive",
+       "title": "🗂️ Project Deep Dive",
+       "link": "/rounds/project-deep-dive",
+       "kind": "Round",
+       "why": "Almost every loop · ~15% on its own, but it colours how every other round is read"
+      },
+      {
+       "key": "round:hiring-manager-and-hr",
+       "title": "💼 Hiring Manager & HR (incl. CTC and notice period)",
+       "link": "/rounds/hiring-manager-and-hr",
+       "kind": "Round",
+       "why": "Almost every loop · Pass/fail, and it sets your level and package"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

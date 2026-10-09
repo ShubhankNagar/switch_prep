@@ -1,0 +1,23 @@
+# Java / Maven
+backend/target/
+backend/data/
+*.class
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Bundled frontend copied into the backend by scripts/build-all.sh
+backend/src/main/resources/static/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+.env

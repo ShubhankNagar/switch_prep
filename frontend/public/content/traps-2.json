@@ -1,0 +1,1311 @@
+{
+ "traps": [
+  {
+   "id": "trap-dsa-binary-search-bounds",
+   "area": "dsa",
+   "title": "Binary search: infinite loop and wrong bounds",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "You need the **first index whose value is `>= target`** (lower bound) in a sorted array that may contain duplicates. The candidate writes:\n\n```java\nint lo = 0, hi = nums.length - 1;\nwhile (lo < hi) {\n    int mid = (lo + hi) / 2;\n    if (nums[mid] < target) lo = mid;\n    else hi = mid;\n}\nreturn lo;\n```\n\nWhat is wrong with it?",
+   "options": [
+    "Nothing, it is correct for every input.",
+    "Only the midpoint can overflow; use `lo + (hi - lo) / 2`.",
+    "`lo = mid` with a rounded-down `mid` can loop forever, and `hi = length - 1` can never return \"insert at end\"; use `lo = mid + 1` and `hi = nums.length`.",
+    "It must use `while (lo <= hi)`; nothing else changes."
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "The only issue is `(lo + hi) / 2` overflowing; switch to `lo + (hi - lo) / 2` and it is fine.",
+   "whyPeopleGetItWrong": "Candidates memorise one famous binary-search bug (overflow) and stop looking. The real killers are the **loop invariant** bugs: mixing `lo < hi` with `lo = mid` and a rounded-down `mid`, and choosing `hi = n - 1` when \"not found\" should be `n`. These pass the happy-path example the candidate traces by hand and fail only on two-element windows or when every element is smaller than the target, which is exactly what the interviewer tests next.",
+   "correct": "Three separate problems:\n\n1. **Infinite loop.** When `hi == lo + 1`, `mid` rounds down to `lo`. If `nums[lo] < target`, then `lo = mid` changes nothing and the loop never ends. Rule: if a branch sets `lo = mid`, you must use the *upper* mid `lo + (hi - lo + 1) / 2`. Better: write `lo = mid + 1`, because `mid` is known not to be the answer.\n2. **Wrong range.** Even after fixing the loop with `lo = mid + 1`, starting from `hi = nums.length - 1` means the function can never return `nums.length` (\"insert at the end\"), so `[1, 2, 3]` with target `4` returns `2`.\n3. **Overflow.** `(lo + hi) / 2` overflows only when `lo + hi > 2^31 - 1`. That is rare on arrays but common in *binary search on the answer* over values up to 2 billion.\n\nState the invariant out loud (\"the answer is always in `[lo, hi]`\") and every bound follows from it.",
+   "fix": "```java\n// first index i with nums[i] >= target; returns nums.length if none\nstatic int lowerBound(int[] nums, int target) {\n    int lo = 0, hi = nums.length;            // answer lives in [lo, hi]\n    while (lo < hi) {\n        int mid = lo + (hi - lo) / 2;        // no overflow, rounds down\n        if (nums[mid] < target) lo = mid + 1; // mid can't be the answer\n        else hi = mid;                        // mid might be the answer\n    }\n    return lo;\n}\n```\nQuick tests: `[1,2,2,2,5]`, 2 → 1; `[1,2,3]`, 4 → 3; `[]`, 1 → 0.",
+   "interviewTip": "Say the invariant out loud before coding and test a 2-element array plus a target larger than every element.",
+   "askedAt": [
+    "Google",
+    "Amazon",
+    "Flipkart"
+   ]
+  },
+  {
+   "id": "trap-dsa-bfs-visited-on-enqueue",
+   "area": "dsa",
+   "title": "BFS: mark visited on enqueue, not dequeue",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "Shortest path in a grid (0 = open). The candidate's BFS returns correct answers on small grids but times out on a 50x50 grid with no walls:\n\n```java\nDeque<int[]> q = new ArrayDeque<>();\nq.add(new int[]{0, 0});\nwhile (!q.isEmpty()) {\n    int[] cur = q.poll();\n    seen[cur[0]][cur[1]] = true;              // marked here...\n    for (int[] d : DIRS) {\n        int r = cur[0] + d[0], c = cur[1] + d[1];\n        if (inside(r, c) && grid[r][c] == 0 && !seen[r][c])\n            q.add(new int[]{r, c});           // ...but not here\n    }\n}\n```\n\nWhy?",
+   "options": [
+    "`ArrayDeque` is slower than `LinkedList` for BFS.",
+    "Cells are marked only when dequeued, so the same cell is enqueued again and again before it is processed and the copies multiply; mark visited when enqueueing.",
+    "BFS on a grid is inherently O(V^2).",
+    "It needs DFS, which visits each cell once."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "BFS on a grid is just slow; switch to DFS or use a LinkedList instead of ArrayDeque.",
+   "whyPeopleGetItWrong": "Marking a node \"visited\" when you *process* it feels natural because that is how DFS is usually written. In BFS, though, a cell sits in the queue for a while before it is processed. During that time every neighbour that is expanded sees `seen == false` and adds *another* copy. Each copy then expands its neighbours again, so the copies multiply. Hand-tracing a 3x3 grid hides it, because the duplicates look harmless.",
+   "correct": "The number of queue entries grows like the number of shortest paths, which is combinatorial. Measured with exactly this code on an open grid: 10x10 → 184,755 polls for 100 cells; 14x14 → about 40 million polls for 196 cells.\n\n**Fix:** set `seen = true` at the moment you **enqueue** (including the source). Then each cell enters the queue at most once, giving O(V + E) time and O(V) queue memory. Process the queue level by level (`for size = q.size()`) to count steps without storing distances.\n\nMarking on dequeue *with* a `if (seen) continue;` skip is still correct, but it lets the queue hold up to E entries instead of V. On dense graphs (word ladder with many neighbours) that is a real memory problem. Interviewers see this bug constantly in Rotting Oranges, Word Ladder and Number of Islands.",
+   "fix": "```java\nstatic int shortestPath(int[][] grid) {     // 0 = open, 1 = wall; steps from top-left to bottom-right\n    int n = grid.length, m = grid[0].length;\n    if (grid[0][0] == 1 || grid[n - 1][m - 1] == 1) return -1;\n    boolean[][] seen = new boolean[n][m];\n    Deque<int[]> q = new ArrayDeque<>();\n    q.add(new int[]{0, 0});\n    seen[0][0] = true;                            // mark the source too\n    for (int steps = 0; !q.isEmpty(); steps++) {\n        for (int size = q.size(); size > 0; size--) {   // one BFS level\n            int[] cur = q.poll();\n            if (cur[0] == n - 1 && cur[1] == m - 1) return steps;\n            for (int[] d : DIRS) {\n                int r = cur[0] + d[0], c = cur[1] + d[1];\n                if (r >= 0 && c >= 0 && r < n && c < m && grid[r][c] == 0 && !seen[r][c]) {\n                    seen[r][c] = true;            // mark on ENQUEUE: each cell enters once\n                    q.add(new int[]{r, c});\n                }\n            }\n        }\n    }\n    return -1;\n}\n```",
+   "interviewTip": "Say \"I mark visited when I enqueue so each node enters the queue once\" while you write that line.",
+   "askedAt": [
+    "Amazon",
+    "Microsoft",
+    "Uber"
+   ]
+  },
+  {
+   "id": "trap-dsa-dijkstra-assumptions",
+   "area": "dsa",
+   "title": "Dijkstra: negative edges and stale queue entries",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "You implement Dijkstra with a `PriorityQueue` and lazy insertion. The interviewer then asks:\n\n1. \"Some edges now have **negative** weights (cashback legs on a route). Does your code still work?\"\n2. \"Why do you need the line `if (d > dist[u]) continue;`?\"\n\nWhich answer is correct?",
+   "options": [
+    "Works with negative edges as long as there is no negative cycle.",
+    "With negative edges a node can be finalised too early, so use Bellman-Ford (or topological relaxation on a DAG); the stale check skips outdated duplicate entries because PriorityQueue has no decrease-key.",
+    "Removing the stale check changes nothing, not even running time.",
+    "Add the absolute value of the most negative weight to every edge, then Dijkstra is correct."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Dijkstra works with negative edges as long as there is no negative cycle, and the stale check is only a micro-optimisation.",
+   "whyPeopleGetItWrong": "People mix up the requirement of Bellman-Ford (no negative *cycles*) with Dijkstra's stronger one (no negative *edges*). The stale-entry line looks like an optimisation because removing it does not change the answer on small tests. Candidates also suggest \"add a constant to every edge\" as a quick fix without checking that it changes which path is shortest.",
+   "correct": "**Negative edges break Dijkstra's core guarantee**: once a node is popped, its distance is final. Example: A→B (2), A→C (3), C→B (−2), B→D (1). The visited-set version finalises B at 2 and D at 3, but the true values are B = 1 and D = 2. The lazy re-insertion version may correct itself by re-pushing nodes, but then it is no longer O(E log V), and the worst case becomes exponential. Use **Bellman-Ford** (O(VE), also detects negative cycles), or relax edges in topological order if the graph is a DAG.\n\n**Adding a constant** to every edge penalises paths with more edges, so the shortest path can change.\n\n**The stale check** matters because Java's `PriorityQueue` has no decrease-key. You push duplicates, and an outdated entry must be skipped. Otherwise every stale pop rescans the adjacency list, and the complexity degrades.",
+   "fix": "```java\nstatic long[] dijkstra(List<List<int[]>> adj, int src) {   // adj.get(u) = {v, w}, all w >= 0\n    long[] dist = new long[adj.size()];\n    Arrays.fill(dist, Long.MAX_VALUE);\n    dist[src] = 0;\n    PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(e -> e[1]));\n    pq.add(new long[]{src, 0});\n    while (!pq.isEmpty()) {\n        long[] top = pq.poll();\n        int u = (int) top[0];\n        if (top[1] > dist[u]) continue;           // stale entry: a shorter path was already found\n        for (int[] e : adj.get(u)) {\n            long nd = dist[u] + e[1];\n            if (nd < dist[e[0]]) {\n                dist[e[0]] = nd;\n                pq.add(new long[]{e[0], nd});     // lazy insert instead of decrease-key\n            }\n        }\n    }\n    return dist;\n}\n```",
+   "interviewTip": "Before coding, say \"weights are non-negative, so Dijkstra applies; otherwise Bellman-Ford\", which shows you know the precondition.",
+   "askedAt": [
+    "Google",
+    "Uber",
+    "Ola"
+   ]
+  },
+  {
+   "id": "trap-dsa-int-overflow",
+   "area": "dsa",
+   "title": "Integer overflow in sums, products and comparators",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "What does this print?\n\n```java\nint[] nums = {2_000_000_000, 2_000_000_000};\nint sum = 0;\nfor (int x : nums) sum += x;\nlong total = sum;              // \"I store it in a long, so it's safe\"\nSystem.out.println(total);\n```",
+   "options": [
+    "4000000000",
+    "-294967296",
+    "It throws ArithmeticException",
+    "2147483647"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "4000000000, because the result is stored in a `long`.",
+   "whyPeopleGetItWrong": "The overflow happens **inside** the loop, in `int` arithmetic, before the value ever reaches the `long`. Assigning to a wider type afterwards cannot recover lost bits. The same mistake hides in `long area = w * h;` (an int multiply, then widened) and in comparators written as `(a, b) -> a - b`. Constraints like `nums[i] <= 10^9` with n up to `10^5` are the interviewer's hint that sums need `long`, and most candidates skim past them.",
+   "correct": "It prints **-294967296**. Java `int` arithmetic wraps silently: 4,000,000,000 − 2^32 = −294,967,296. No exception is thrown.\n\nWhere it bites in interviews:\n- **Sums and prefix sums** over large values → accumulate in `long`.\n- **Products** (`w * h`, `a * b % MOD`) → cast one operand *before* multiplying: `(long) w * h`.\n- **Comparators**: `(a, b) -> a - b` overflows for large or negative values. For example, `Integer.MIN_VALUE - 1` becomes positive, so the sort order silently breaks. Use `Integer.compare(a, b)`.\n- **Midpoints**: `(lo + hi) / 2` when searching over values up to 2^31 − 1.\n\n`Math.addExact` and `Math.multiplyExact` throw `ArithmeticException` instead of wrapping, which is useful when correctness matters more than speed (money, quotas).",
+   "fix": "```java\nlong sum = 0;\nfor (int x : nums) sum += x;                  // accumulate in long\nlong area = (long) width * height;            // widen BEFORE multiplying\nlong prod = (a % MOD) * (b % MOD) % MOD;      // a, b are long; MOD = 1_000_000_007\nlist.sort((x, y) -> Integer.compare(x, y));   // never (x, y) -> x - y\nint checked = Math.addExact(p, q);            // throws ArithmeticException instead of wrapping\n```",
+   "interviewTip": "Read the constraints aloud and say \"max sum is 10^5 × 10^9 = 10^14, so I'll use long\" before writing the loop.",
+   "askedAt": [
+    "Goldman Sachs",
+    "JPMorgan",
+    "Amazon"
+   ]
+  },
+  {
+   "id": "trap-dsa-greedy-vs-dp",
+   "area": "dsa",
+   "title": "Greedy coin change fails on arbitrary coins",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Coins = `{1, 3, 4}`, amount = `6`, minimise the number of coins. The candidate proposes: \"Always take the largest coin that fits, it's O(n) and obviously optimal.\" What does greedy return, and what is optimal?",
+   "options": [
+    "Greedy returns 2, which is optimal.",
+    "Greedy returns 3 (4+1+1) but the optimum is 2 (3+3).",
+    "Both return 3.",
+    "Greedy finds no answer."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Greedy is optimal because taking the biggest coin first always minimises the count.",
+   "whyPeopleGetItWrong": "Greedy works for real currencies (₹1, 2, 5, 10...), which are designed to be \"canonical\", so everyday intuition says it always works. Candidates also see greedy succeed on the interviewer's first example and never search for a counterexample. The deeper miss is not knowing that greedy needs a **proof** (an exchange argument). DP is the safe default when choices interact.",
+   "correct": "Greedy takes 4, then 1, then 1 = **3 coins**. The optimum is 3 + 3 = **2 coins**. Greedy can even fail to find a solution that exists: with coins `{5, 2}` and amount 6, it takes 5 and gets stuck, while 2 + 2 + 2 works.\n\nUse DP: `dp[a] = min over coins c of dp[a - c] + 1`, with `dp[0] = 0`. That is O(amount × coins) time and O(amount) space.\n\nWhen *is* greedy right? When you can prove that swapping the greedy choice into any optimal solution never makes it worse. Classic cases: interval scheduling by earliest end time, Huffman coding, and Jump Game reachability. In an interview, if you propose greedy, either give that argument in one sentence or try two or three small counterexamples out loud. That habit alone separates mid-level from senior signal.",
+   "fix": "```java\nstatic int minCoins(int[] coins, int amount) {\n    int[] dp = new int[amount + 1];               // dp[a] = fewest coins to make a\n    Arrays.fill(dp, Integer.MAX_VALUE);\n    dp[0] = 0;\n    for (int a = 1; a <= amount; a++)\n        for (int c : coins)\n            if (c <= a && dp[a - c] != Integer.MAX_VALUE)\n                dp[a] = Math.min(dp[a], dp[a - c] + 1);\n    return dp[amount] == Integer.MAX_VALUE ? -1 : dp[amount];\n}\n```\n`minCoins({1,3,4}, 6) = 2`, `minCoins({2,5}, 6) = 3`, `minCoins({2}, 3) = -1`.",
+   "interviewTip": "Whenever you propose greedy, immediately say \"let me try to break it with a small counterexample\" and do it.",
+   "askedAt": [
+    "Amazon",
+    "Flipkart",
+    "Walmart"
+   ]
+  },
+  {
+   "id": "trap-dsa-sliding-window-negatives",
+   "area": "dsa",
+   "title": "Sliding window with negative numbers",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Count subarrays whose sum equals `k`. The array **can contain negative numbers**. The candidate uses a shrinking window:\n\n```java\nint count = 0, sum = 0, left = 0;\nfor (int right = 0; right < nums.length; right++) {\n    sum += nums[right];\n    while (sum > k && left <= right) sum -= nums[left++];\n    if (sum == k) count++;\n}\nreturn count;\n```\n\nFor `nums = [1, -1, 1]`, `k = 1`, the correct answer is 3. What does this return, and why?",
+   "options": [
+    "3",
+    "2",
+    "1",
+    "It loops forever"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Sliding window is O(n) and works for any subarray-sum problem; just tweak the shrink condition.",
+   "whyPeopleGetItWrong": "\"Subarray\" plus \"sum\" pattern-matches to sliding window, so candidates reach for it without checking its precondition: the window sum must change **monotonically**, growing when you extend right and shrinking when you move left. That only holds when all numbers are non-negative. With negatives, a window whose sum is too big can become valid again by *adding* elements, so shrinking throws away answers.",
+   "correct": "It returns **2** and misses `[1, -1, 1]`. When negatives are allowed, use **prefix sums + a hash map**:\n\n- Let `prefix` be the sum of `nums[0..i]`. A subarray `(j, i]` sums to `k` exactly when `prefix_i - prefix_j = k`.\n- Keep a map of `prefix value → count seen so far`. At each index, add `map[prefix - k]` to the answer.\n- Seed the map with `{0: 1}` so subarrays starting at index 0 are counted. Forgetting this is the second most common bug.\n\nThis is O(n) time and O(n) space. The same idea solves \"longest subarray with sum k\" (store the *first* index of each prefix) and \"subarray sum divisible by k\" (store `prefix % k`, normalised to be non-negative).\n\nRule of thumb: sliding window for **non-negative** arrays or \"at most K distinct\" style constraints; prefix sum + hash map when negatives are possible.",
+   "fix": "```java\nstatic int subarraySum(int[] nums, int k) {\n    Map<Integer, Integer> seen = new HashMap<>();   // prefix sum -> how many times seen\n    seen.put(0, 1);                                 // empty prefix: subarrays starting at index 0\n    int prefix = 0, count = 0;\n    for (int x : nums) {\n        prefix += x;\n        count += seen.getOrDefault(prefix - k, 0);  // earlier prefix p with prefix - p == k\n        seen.merge(prefix, 1, Integer::sum);\n    }\n    return count;\n}\n```",
+   "interviewTip": "Ask \"can values be negative?\" before choosing a window; the answer decides the algorithm.",
+   "askedAt": [
+    "Amazon",
+    "Meta",
+    "PhonePe"
+   ]
+  },
+  {
+   "id": "trap-dsa-directed-cycle-detection",
+   "area": "dsa",
+   "title": "Directed cycle detection with a single visited set",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "Course Schedule: edges are `0→1, 0→2, 1→3, 2→3`. The candidate runs a DFS with one `visited` set and reports \"cycle\" whenever it reaches an already-visited node. What does it report for this graph?",
+   "options": [
+    "No cycle (correct).",
+    "Cycle: a false positive, because node 3 is reached by two different paths.",
+    "StackOverflowError.",
+    "It depends on adjacency order but is never wrong."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "A visited set is enough: seeing a visited node again always means there is a cycle.",
+   "whyPeopleGetItWrong": "The undirected version (visited + parent check) is what most people learn first, and they reuse it unchanged for directed graphs. In a directed graph, reaching a node twice through two different paths (a diamond) is completely normal. Only an edge back to a node that is **still on the current DFS path** forms a cycle. Small test cases without diamonds pass, so the bug survives until the interviewer draws one.",
+   "correct": "It reports a **false cycle**: DFS goes 0→1→3, backtracks, then 0→2→3, and node 3 is already visited.\n\nCorrect options for **directed** graphs:\n- **Three colours**: unvisited, on the current path (gray), done (black). A cycle exists only if you hit a **gray** node. Once a node is black, reaching it again is fine.\n- **Kahn's algorithm (BFS topological sort)**: repeatedly remove nodes with in-degree 0. If fewer than n nodes are removed, there is a cycle. It is iterative, so there is no stack-overflow risk at 10^5 nodes, and it also produces the course order (Course Schedule II).\n\nFor **undirected** graphs, use visited + \"ignore the edge back to my parent\", or union-find (an edge whose endpoints already share a root closes a cycle).\n\nBoth directed approaches are O(V + E).",
+   "fix": "```java\n// 0 = unvisited, 1 = on the current DFS path, 2 = fully explored\nstatic boolean hasCycle(List<List<Integer>> adj) {\n    int[] state = new int[adj.size()];\n    for (int i = 0; i < adj.size(); i++)\n        if (state[i] == 0 && dfs(i, adj, state)) return true;\n    return false;\n}\n\nstatic boolean dfs(int u, List<List<Integer>> adj, int[] state) {\n    state[u] = 1;\n    for (int v : adj.get(u)) {\n        if (state[v] == 1) return true;            // back edge: v is an ancestor on this path\n        if (state[v] == 0 && dfs(v, adj, state)) return true;\n    }\n    state[u] = 2;                                  // done: reaching u again is NOT a cycle\n    return false;\n}\n```",
+   "interviewTip": "When you hear \"dependencies\" or \"prerequisites\", say \"directed graph, so I need on-path tracking or Kahn's\" up front.",
+   "askedAt": [
+    "Amazon",
+    "Atlassian",
+    "Swiggy"
+   ]
+  },
+  {
+   "id": "trap-dsa-recursion-complexity",
+   "area": "dsa",
+   "title": "Naive recursion: exponential time and hidden stack space",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "The candidate writes this and says: \"It's O(n) time and O(1) space since I don't allocate anything.\"\n\n```java\nint ways(int n) {              // climbing stairs: 1 or 2 steps at a time\n    if (n <= 1) return 1;\n    return ways(n - 1) + ways(n - 2);\n}\n```\n\nWhat is the real complexity?",
+   "options": [
+    "O(n) time, O(1) space",
+    "O(2^n) time (about 1.618^n), O(n) stack space",
+    "O(n log n) time, O(n) space",
+    "O(n^2) time, O(1) space"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "O(n) time and O(1) space, because there is one call per value of n and no extra data structures.",
+   "whyPeopleGetItWrong": "Candidates count the *distinct* inputs (n of them) instead of the *calls*, and forget that the same subproblem is recomputed again and again. They also treat the call stack as free, because nothing is \"allocated\". Interviewers specifically probe complexity claims, and a confident wrong answer hurts more than an honest \"let me draw the recursion tree\".",
+   "correct": "Each call branches into two, giving a recursion tree of depth n. Time is **O(2^n)** (tightly about O(1.618^n)). ways(40) makes over 300 million calls. Space is **O(n)** for the call stack, because the deepest chain is n frames.\n\nThe fixes:\n- **Memoisation**: each state is computed once. Time = number of states × work per state = O(n). Space O(n) for the memo plus O(n) for the stack.\n- **Bottom-up with two variables**: O(n) time, O(1) space, and no recursion depth.\n\nRecursion depth is a practical concern too. With the default JVM stack, a recursive DFS on a 10^5-node linked list or skewed tree can throw `StackOverflowError`. Mention that an iterative version or an explicit stack avoids it.\n\nGeneral recipe to state complexity: **number of states × transitions per state**, plus the **maximum stack depth** for space.",
+   "fix": "```java\n// top-down: O(n) time, O(n) memo + O(n) stack\nstatic long ways(int n, long[] memo) {\n    if (n <= 1) return 1;\n    if (memo[n] != 0) return memo[n];\n    return memo[n] = ways(n - 1, memo) + ways(n - 2, memo);\n}\n\n// bottom-up: O(n) time, O(1) space, no stack-depth risk\nstatic long waysIter(int n) {\n    long prev = 1, cur = 1;                        // ways(0), ways(1)\n    for (int i = 2; i <= n; i++) {\n        long next = prev + cur;\n        prev = cur;\n        cur = next;\n    }\n    return cur;\n}\n```",
+   "interviewTip": "Draw the first three levels of the recursion tree before stating complexity; the repetition becomes obvious to you and the interviewer.",
+   "askedAt": [
+    "Amazon",
+    "Infosys",
+    "Paytm"
+   ]
+  },
+  {
+   "id": "trap-system-design-jump-to-architecture",
+   "area": "system-design",
+   "title": "Drawing boxes before requirements and numbers",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "\"Design a URL shortener.\" Within the first two minutes the candidate says: \"We'll have an API gateway, five microservices, Kafka, Cassandra, a Redis cluster and Kubernetes.\" The interviewer asks, \"Why Kafka?\" and the candidate can't connect it to anything.\n\nWhat should the first 5-8 minutes look like instead?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Show breadth fast by naming the standard big-tech stack; requirements can be figured out along the way.",
+   "whyPeopleGetItWrong": "Candidates memorise reference architectures from videos and fear that silence looks like not knowing. So they show tools instead of reasoning. But interviewers score **requirement gathering, estimation and justified trade-offs**. A component with no requirement behind it is a red flag, not a bonus. Over-building also eats the time you need for the deep dive, which is where senior signal is earned. Service-company engineers who have never chosen an architecture are especially prone to reciting one.",
+   "correct": "Spend the first few minutes on:\n\n1. **Functional scope**: 3-4 core features, and say what you are cutting (\"custom aliases yes, analytics later\").\n2. **Non-functional needs**: latency targets, availability vs consistency, durability, read:write ratio.\n3. **Back-of-envelope numbers that drive decisions**: QPS (average and peak), storage over 5 years, bandwidth.\n4. **API and data model**, then the **simplest design that meets the numbers**: often one service and one database.\n5. **Deep dive** where the numbers say it hurts: hot reads → cache, ID generation, partitioning.\n\nEvery box must be justified by a requirement: \"reads are 100x writes and p99 should be under 50 ms, so I put a cache in front of the database.\" Start simple and evolve. \"We don't need Kafka at 40 writes/sec\" is a *strong* statement, not a weak one.",
+   "fix": "```text\nURL shortener: numbers first\n100M new URLs/month   -> 100M / 2.6M s ≈ 40 writes/s avg (≈ 200/s peak)\nRead:write = 100:1    -> ≈ 4,000 reads/s avg (≈ 20k/s peak)\nRow ≈ 500 B, 5 years  -> 100M × 60 = 6B rows × 500 B ≈ 3 TB\nDecisions: a single primary handles the writes; reads need a cache (hot links);\n           3 TB needs partitioning eventually -> key = short code; 7 base62 chars = 3.5 trillion codes\n```",
+   "interviewTip": "Open with \"Let me spend five minutes on requirements and scale, then design to those numbers\", and later point back to them when you justify each component.",
+   "askedAt": [
+    "Amazon",
+    "Google",
+    "Flipkart",
+    "Razorpay"
+   ]
+  },
+  {
+   "id": "trap-system-design-cache-aside-race",
+   "area": "system-design",
+   "title": "Cache-aside write ordering and stale cache",
+   "level": "Advanced",
+   "frequency": "Very common",
+   "prompt": "Product prices are read through Redis (cache-aside: on a miss, read the DB and populate the cache). When a price changes, which ordering is **safest**?",
+   "options": [
+    "Update cache, then update DB",
+    "Update DB, then set the new value in the cache",
+    "Delete the cache key, then update DB",
+    "Update DB (commit), then delete the cache key, with a TTL as a safety net"
+   ],
+   "answer": 3,
+   "commonWrongAnswer": "Update the DB and then write the new value into the cache, so the cache is always fresh.",
+   "whyPeopleGetItWrong": "\"Write the new value to the cache\" feels both efficient and fresh, and candidates reason about one request at a time. The bugs only appear with **two concurrent requests** interleaving, which nobody draws on the whiteboard. Another common blind spot: people forget the delete must run **after the transaction commits**. In Spring, an eviction inside a `@Transactional` method runs before commit, so a concurrent reader can repopulate the cache with the old row.",
+   "correct": "**Update the DB, then delete the key** (with a TTL on every entry as a safety net).\n\nWhy the others fail:\n- **DB then set cache**: writer 1 sets the DB to 10, writer 2 sets it to 20, writer 2 caches 20, then writer 1 caches 10. The cache is stale *indefinitely*.\n- **Delete then update DB**: between the delete and the commit, a reader misses, reads the *old* row and puts it back in the cache.\n- **Cache then DB**: if the DB write fails, the cache serves a price that never existed.\n\nDelete-after-commit still has a rare race: a slow reader loads the old value before the commit and writes it after the delete. Narrow it with short TTLs, a delayed second delete, or versioned writes (\"set only if newer\"). For strong guarantees, drive invalidation from the DB's change log (CDC, for example Debezium on the MySQL binlog), so an app crash between commit and delete cannot leave the cache stale.",
+   "fix": "```text\nwrite(price):\n  BEGIN; UPDATE products SET price = ? WHERE id = ?; COMMIT;\n  after commit -> DEL product:{id}            (Spring: @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT))\n  optional     -> schedule a second DEL ~1s later (closes the slow-reader race)\nread(id):\n  v = GET product:{id}\n  if miss: v = SELECT ...; SET product:{id} v EX 300   (TTL bounds any staleness)\n```",
+   "interviewTip": "Name the exact interleaving that breaks each option; that is what separates a senior answer from \"invalidate the cache\".",
+   "askedAt": [
+    "Amazon",
+    "Flipkart",
+    "Swiggy",
+    "PhonePe"
+   ]
+  },
+  {
+   "id": "trap-system-design-hot-key",
+   "area": "system-design",
+   "title": "Hot key / celebrity problem",
+   "level": "Advanced",
+   "frequency": "Common",
+   "prompt": "Your Redis cache is sharded across 10 nodes by key hash. A celebrity posts, and the key `post:9001` suddenly gets **500k reads/sec**. One node hits 100% CPU while the other nine are idle. What do you do?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Add more Redis nodes or switch to consistent hashing so the load spreads out.",
+   "whyPeopleGetItWrong": "Sharding and consistent hashing spread **keys**, so candidates assume they spread **load**. But a single key always hashes to a single node, so adding nodes changes nothing for that key. People also forget the follow-on failure: when that hot entry expires, thousands of requests miss at once and stampede the database. Interviewers use \"celebrity\" and \"flash sale\" prompts specifically to test whether you know this.",
+   "correct": "First **detect** it: per-key request sampling, Redis `--hotkeys` (with an LFU eviction policy), or client-side counters. Then apply one or more mitigations:\n\n1. **Local in-process cache** (Caffeine, 1-5 s TTL) on every app server. A few seconds of staleness on a like count or post body is fine, and it absorbs most reads before they reach Redis.\n2. **Replicate the hot key**: store `post:9001#0..#7` on different nodes. Reads pick a random copy, and writes update all copies.\n3. **Read replicas** for the overloaded shard.\n4. **Request coalescing (single-flight)**: on a miss, only one request loads from the DB while the others wait for its result.\n5. For **hot writes** (a counter on a viral post), split into N sub-counters and sum on read.\n\nFor feeds, use **hybrid fan-out**: push posts to followers' timelines for normal users, but pull celebrity posts at read time.",
+   "fix": "```java\n// Read path: local cache first, then one of N replicas of the hot key\nstatic final int COPIES = 8;\n\nString readHot(String key) {\n    String v = localCache.getIfPresent(key);            // Caffeine, TTL ~2s, absorbs most traffic\n    if (v != null) return v;\n    int copy = ThreadLocalRandom.current().nextInt(COPIES);\n    v = redis.get(key + \"#\" + copy);                    // copies hash to different nodes\n    if (v == null) v = loadOnce(key);                   // single-flight DB load + write all copies\n    localCache.put(key, v);\n    return v;\n}\n```",
+   "interviewTip": "Say \"one key always lives on one shard, so more shards won't help\" before proposing fixes; it shows you understand the root cause.",
+   "askedAt": [
+    "Meta",
+    "Twitter/X",
+    "ShareChat",
+    "Hotstar"
+   ]
+  },
+  {
+   "id": "trap-system-design-shard-key",
+   "area": "system-design",
+   "title": "Choosing a shard key that creates hotspots",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "An `orders` table has 2 billion rows and is growing. The dominant queries are \"show **my** orders\" (by user) and \"get order by id\". Which shard key is the best default?",
+   "options": [
+    "`created_at` range (one shard per month)",
+    "`hash(user_id)`",
+    "`country`",
+    "Ranges of the auto-increment `order_id`"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Shard by `created_at` (one shard per month), because old data can then be archived easily.",
+   "whyPeopleGetItWrong": "Time ranges and auto-increment ranges *feel* natural because data is naturally ordered that way and archival looks easy. Candidates miss that **all new writes land on the newest shard**, so one shard is hot while the others idle. Others pick a low-cardinality or skewed key like country (the India shard is huge) without checking the distribution. The real skill being tested is starting from the **access patterns**, not from the data.",
+   "correct": "**`hash(user_id)`**. A user's orders live together, so \"my orders\" is a single-shard query, and hashing spreads writes evenly.\n\nThen handle the other access paths explicitly:\n- **Get by order id**: embed the shard (or user id bits) inside the order id, or keep a small `order_id → user_id` lookup table.\n- **Queries by merchant or date range** become scatter-gather across shards. Serve them from a separate read model (merchant-partitioned copy fed by CDC or Kafka) or a search/analytics store.\n- **Co-locate related tables** (order_items, payments) on the same key to avoid cross-shard joins and distributed transactions.\n- **Plan for resharding**: map keys to many *logical* shards (for example 1024) and logical shards to fewer physical nodes, so growth means moving whole logical shards, not rehashing every row.\n\nMention the trade-off: one huge customer (a B2B merchant) can still create a hotspot.",
+   "fix": "```text\nlogical = murmur3(user_id) % 1024          -- fixed forever\nphysical = shard_map[logical]              -- small config table, changes during rebalancing\norder_id = snowflake id with logical shard in its low bits  -> get-by-id needs no lookup\nmerchant dashboards -> CDC -> separate store partitioned by merchant_id\n```",
+   "interviewTip": "Before naming a shard key, list the top 2-3 queries; the right key is the one that keeps the most frequent query on one shard.",
+   "askedAt": [
+    "Flipkart",
+    "Amazon",
+    "Razorpay",
+    "Meesho"
+   ]
+  },
+  {
+   "id": "trap-system-design-global-id",
+   "area": "system-design",
+   "title": "Generating IDs after sharding",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "You have sharded MySQL. What is the best default for generating `order_id`, given that it must be unique across shards, fit in a `BIGINT` and be roughly time-ordered?",
+   "options": [
+    "Per-shard `AUTO_INCREMENT`",
+    "Random UUIDv4 stored as `VARCHAR(36)` primary key",
+    "Snowflake-style 64-bit id (timestamp | worker | sequence), or UUIDv7",
+    "`SELECT MAX(id) + 1` before each insert"
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "Keep `AUTO_INCREMENT`, or use a random `UUID.randomUUID()` string as the primary key.",
+   "whyPeopleGetItWrong": "Auto-increment \"just works\" on one database, so candidates forget that two shards will both hand out id 1001. Random UUIDs solve uniqueness, so they stop there, without knowing how InnoDB stores rows: the primary key **is** the clustered index. Random keys scatter inserts across pages, and every secondary index stores a copy of the PK. Interviewers at Java/MySQL shops probe exactly this.",
+   "correct": "A **Snowflake-style 64-bit id**: 41 bits of milliseconds since a custom epoch, 10 bits of worker id, and 12 bits of sequence. That gives 4,096 ids per ms per worker, roughly time-ordered values (good B-tree locality), and a `BIGINT`. The edge cases to mention are the clock moving backwards (refuse or wait) and assigning unique worker ids (config, ZooKeeper or a DB lease).\n\nWhy not the others:\n- **Per-shard AUTO_INCREMENT** collides. Offsets (`auto_increment_increment`) work but freeze the shard count.\n- **Random UUIDv4 as a VARCHAR(36) PK** causes random inserts → page splits and buffer-pool misses, plus a 36-byte PK copied into every secondary index.\n- **`MAX(id) + 1`** races under concurrency.\n\nAlternatives: **UUIDv7** (RFC 9562, time-ordered, stored as `BINARY(16)`), or **segment allocation**, where each app instance reserves ranges of 1,000 ids from a DB row.",
+   "fix": "```java\npublic final class Snowflake {\n    private static final long EPOCH = 1704067200000L;  // 2024-01-01T00:00:00Z\n    private final long workerId;                        // 0..1023, unique per running instance\n    private long lastMs = -1L, seq = 0L;\n\n    public Snowflake(long workerId) {\n        if (workerId < 0 || workerId > 1023) throw new IllegalArgumentException(\"workerId\");\n        this.workerId = workerId;\n    }\n\n    public synchronized long nextId() {\n        long now = System.currentTimeMillis();\n        if (now < lastMs) throw new IllegalStateException(\"clock moved backwards\");\n        if (now == lastMs) {\n            seq = (seq + 1) & 4095;                     // 12-bit sequence\n            if (seq == 0)                               // 4096 ids used this ms: wait for the next ms\n                while ((now = System.currentTimeMillis()) <= lastMs) { }\n        } else {\n            seq = 0;\n        }\n        lastMs = now;\n        return ((now - EPOCH) << 22) | (workerId << 12) | seq;   // 41 | 10 | 12 bits\n    }\n}\n```",
+   "interviewTip": "Mention the InnoDB clustered-index cost of random UUIDs; it shows you know the database, not just the buzzword.",
+   "askedAt": [
+    "Twitter/X",
+    "Flipkart",
+    "Swiggy"
+   ]
+  },
+  {
+   "id": "trap-system-design-just-add-kafka",
+   "area": "system-design",
+   "title": "\"Just add Kafka\" without delivery semantics",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Order service → notification service. The candidate says: \"I'll put Kafka in between, now it's reliable and decoupled.\" The interviewer asks:\n\n- \"The consumer sends the SMS, then crashes before committing the offset. What happens?\"\n- \"Do events for one order arrive in order?\"\n- \"One message always throws. Then what?\"\n- \"How does the event get into Kafka if the order DB commit succeeds but the publish fails?\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Kafka is durable and decoupled, so once a message is in the queue reliability is solved.",
+   "whyPeopleGetItWrong": "A queue is a component, not a guarantee. Candidates name-drop Kafka because it appears in every reference design, but they can't state its **delivery semantics, ordering scope or failure handling**. Interviewers ask these follow-ups precisely because the answers reveal whether you have run a consumer in production or only drawn one. \"It's reliable\" without specifics reads as memorised.",
+   "correct": "A queue moves the problem; you still have to specify:\n\n- **Delivery**: committing offsets after processing gives **at-least-once**, so the SMS above is sent twice on restart. The consumer must be **idempotent** (dedupe on event id, or a unique constraint on `(order_id, notification_type)`).\n- **Ordering**: only within a partition. Use `orderId` as the message key so one order's events stay ordered. There is no global order.\n- **Poison messages**: bounded retries with backoff (retry topic), then a **dead-letter topic** with alerting and a replay tool. Never block the partition forever.\n- **Producer side**: `acks=all` plus the idempotent producer. And the DB-commit-then-publish gap is the **dual-write problem**, solved with an outbox.\n- **Operations**: consumer lag alerts, retention and replay, schema evolution.\n\nAlso ask whether async is right at all: if the user needs the result now, a queue only adds latency.",
+   "fix": "```text\nQueue checklist (say it every time you draw one)\n1. Semantics : at-least-once (commit after processing) -> idempotent consumer\n2. Ordering  : key = aggregate id (orderId); order only within a partition\n3. Failure   : retry with backoff -> DLQ -> alert -> replay tool\n4. Producer  : acks=all, enable.idempotence=true, outbox for DB + event atomicity\n5. Ops       : consumer lag SLO, retention for replay, schema compatibility rules\n```",
+   "interviewTip": "Whenever you add a queue, say in one breath: \"at-least-once, keyed by X for ordering, idempotent consumer, DLQ after N retries.\"",
+   "askedAt": [
+    "Swiggy",
+    "Zomato",
+    "Uber",
+    "Razorpay"
+   ]
+  },
+  {
+   "id": "trap-system-design-read-your-writes",
+   "area": "system-design",
+   "title": "Read-your-writes with async replicas",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "MySQL primary + 2 async read replicas; all reads go to replicas. A user changes their display name, the page reloads and shows the **old** name; a second reload shows the new one. Support files it as \"save is broken\". What is the best fix?",
+   "options": [
+    "Make all replicas synchronous.",
+    "Route the writer's reads of their own recent data to the primary (sticky window or GTID/LSN check) and return the updated object in the write response.",
+    "Add a Redis cache in front of the replicas.",
+    "Buy bigger replicas so lag becomes zero."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Put a Redis cache in front of the replicas, or make replication synchronous.",
+   "whyPeopleGetItWrong": "Replication lag is usually milliseconds, so candidates assume replicas are \"basically consistent\". Under load or long transactions, lag spikes to seconds. Making every replica synchronous sounds rigorous, but it ties write latency and availability to the slowest replica. Adding a cache usually makes staleness *worse*. The skill being tested is naming the consistency model the user expects (**read-your-writes**) and providing it narrowly, only where it matters.",
+   "correct": "Give **read-your-writes** consistency to the user who wrote, without sending everyone to the primary:\n\n1. **Read your own data from the primary**: profile or settings pages are low volume, so route them to the primary.\n2. **Sticky window**: after a write, store `lastWriteAt` in the session or a cookie and route that user's reads to the primary for a few seconds.\n3. **Position tracking**: record the write's GTID (MySQL) or LSN (Postgres), and read from a replica only once it has applied that position. Otherwise fall back to the primary.\n4. **Return the updated resource in the write response** and update client state, so the UI never needs to re-read immediately.\n\nRelated guarantee: **monotonic reads**. Pin a user to one replica so successive reads never go \"back in time\" when replicas have different lag. Monitor replica lag and take lagging replicas out of rotation.",
+   "fix": null,
+   "interviewTip": "Name the guarantee (\"read-your-writes\", \"monotonic reads\") before the fix; vocabulary signals seniority here.",
+   "askedAt": [
+    "Amazon",
+    "LinkedIn",
+    "Atlassian"
+   ]
+  },
+  {
+   "id": "trap-system-design-counting-at-scale",
+   "area": "system-design",
+   "title": "COUNT(*) on every read for likes and views",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "Each post in the feed shows a like count. The candidate's design runs `SELECT COUNT(*) FROM likes WHERE post_id = ?` for every post on every feed render. There are 20 posts per feed and **50k feed loads/sec**. What is wrong, and what would you do?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Add an index on `post_id` and COUNT(*) will be fast enough.",
+   "whyPeopleGetItWrong": "An index makes one count fast, so it feels solved. But the work still grows with the number of likes: counting 2 million index entries for a viral post on every view is about a million times more work than reading one number. Candidates also jump straight to \"Redis counter\" without saying what keeps it correct, how it survives restarts, or what happens when one row becomes a write hotspot.",
+   "correct": "50k × 20 = **1 million counts/sec**, and each one scans index entries proportional to the like count. Instead, **precompute** the count:\n\n- Keep `likes(user_id, post_id)` with a UNIQUE constraint as the source of truth. It makes liking idempotent.\n- Maintain a counter: increment `post_counters` **only if the insert actually happened**. For viral posts, one counter row becomes a lock hotspot, so use **N sharded counter rows** (pick one at random on write, SUM on read), or `INCR` in Redis and flush to the DB periodically.\n- Accept **eventual consistency** for display (\"1.2M\" does not need to be exact), and run a periodic reconciliation job that recomputes counts from the source table.\n- For **unique** counts (unique viewers), use HyperLogLog: about 12 KB per key with roughly 0.81% error, instead of storing every viewer id.\n\nCache the rendered counts alongside the post object.",
+   "fix": "```sql\n-- source of truth, idempotent like\nINSERT IGNORE INTO likes(user_id, post_id) VALUES (?, ?);      -- UNIQUE(user_id, post_id)\n-- only if a row was inserted (affected rows = 1):\nUPDATE post_counters SET likes = likes + 1\n WHERE post_id = ? AND shard = ?;                              -- shard = random 0..15\n-- read path (cache the result for a few seconds)\nSELECT SUM(likes) FROM post_counters WHERE post_id = ?;\n```",
+   "interviewTip": "Multiply it out loud (\"50k × 20 = 1M counts/sec\"); the number alone justifies precomputation.",
+   "askedAt": [
+    "Meta",
+    "Instagram",
+    "ShareChat",
+    "Dream11"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-timeout-is-unknown",
+   "area": "distributed-systems",
+   "title": "A timeout is not a failure",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Checkout calls the payment gateway to charge ₹500. The call **times out after 3 seconds**. What do you know about the charge?",
+   "options": [
+    "It failed, so it is safe to retry with a new request.",
+    "It succeeded; the gateway is just slow.",
+    "Unknown: it may or may not have happened, so retry with the same idempotency key or query its status before deciding.",
+    "The gateway rolls it back automatically on timeout."
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "The payment failed, so show an error and let the user (or the code) retry.",
+   "whyPeopleGetItWrong": "Locally, an exception means \"it didn't happen\", and candidates carry that intuition over the network. But a timeout only means **you stopped waiting**. The request may never have arrived, may have been processed with the response lost, or may still be running. Treating it as a failure and retrying without protection is how real systems double-charge customers. Interviewers at payments companies open with this exact scenario.",
+   "correct": "The outcome is **unknown**. Design for all three possibilities:\n\n- **Idempotency key per logical operation**, not per attempt. Generate it once, persist it with the order, and send the same key on every retry. The gateway (Stripe's `Idempotency-Key` header, or the unique order/reference id that most Indian PSPs require) returns the original result instead of charging again.\n- **Never mark the order failed on a timeout.** Mark it `PAYMENT_PENDING` and settle the real status via the gateway's status API, a webhook, or a periodic **reconciliation job** that compares your records with the provider's.\n- **Retry with backoff**, and only for retryable outcomes (timeouts, 5xx, connection resets). A `400` or \"card declined\" must not be retried.\n- On your own APIs, make the operation idempotent server-side so *your* clients can retry safely too.\n\nThe one-line principle: **retries are only safe when the operation is idempotent**.",
+   "fix": "```java\nPaymentResult chargeWithRetry(Order order, long amountPaise) throws InterruptedException {\n    String idemKey = order.paymentAttemptKey();      // generated ONCE per logical payment, stored with the order\n    for (int attempt = 0; attempt < 3; attempt++) {\n        try {\n            return gateway.charge(order.id(), amountPaise, idemKey);   // same key on every retry\n        } catch (TimeoutException e) {\n            Thread.sleep(backoffMillis(attempt, 200, 2_000));         // outcome unknown: retry is safe\n        }                                                              // only because the key repeats\n    }\n    order.markPaymentPending();     // NOT failed: a reconciler / webhook settles the real status\n    return PaymentResult.PENDING;\n}\n```",
+   "interviewTip": "Say \"a timeout means unknown, not failed\" before proposing any retry; it is the sentence payment interviewers wait for.",
+   "askedAt": [
+    "Razorpay",
+    "PhonePe",
+    "Paytm",
+    "Stripe"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-exactly-once-myth",
+   "area": "distributed-systems",
+   "title": "\"Kafka gives exactly-once, so no dedupe needed\"",
+   "level": "Advanced",
+   "frequency": "Very common",
+   "prompt": "Your Kafka consumer credits wallet balances in MySQL. A teammate says: \"Kafka has exactly-once semantics now, so we don't need to handle duplicates.\" Is that right?",
+   "options": [
+    "True: idempotent producer + transactions guarantee each credit happens once.",
+    "False: Kafka's exactly-once covers Kafka-to-Kafka transactions; a side effect in MySQL can repeat after a crash or rebalance, so the consumer must be idempotent (dedupe on event id in the same DB transaction).",
+    "True, as long as auto-commit is enabled.",
+    "False: Kafka only supports at-most-once."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Yes: with `enable.idempotence=true` and Kafka transactions, each message is processed exactly once.",
+   "whyPeopleGetItWrong": "\"Exactly-once\" is a real Kafka feature name, so people take it literally. It covers the **Kafka-to-Kafka** path: read from a topic, write to a topic and commit offsets in one Kafka transaction. Writes to MySQL, emails or HTTP calls are outside that transaction. Candidates also confuse the idempotent **producer** (no duplicate appends on producer retry) with an idempotent **consumer**, which is your job.",
+   "correct": "No. A consumer can apply the side effect, then crash or get rebalanced before committing the offset. The message is redelivered and the wallet is credited twice.\n\nOver an unreliable network you can choose **at-most-once** (commit first, so messages can be lost) or **at-least-once** (commit after, so messages can repeat). \"Exactly-once processing\" in practice means **at-least-once delivery + idempotent processing**:\n\n- **Dedupe table**: insert the event id into `processed_events` (primary key) **in the same DB transaction** as the business change. On a duplicate, the insert fails and you skip.\n- **Naturally idempotent writes**: `UPSERT`, or conditional updates like `SET status='PAID' WHERE status='PENDING'`.\n- Or store consumer offsets in the same DB transaction as the effect.\n\nAlso avoid auto-commit for important consumers: it commits on a timer, regardless of whether processing succeeded.",
+   "fix": "```sql\nBEGIN;\nINSERT INTO processed_events(event_id) VALUES (:eventId);    -- PRIMARY KEY: duplicate => rollback & skip\nUPDATE wallets SET balance = balance + :amount WHERE user_id = :userId;\nCOMMIT;\n-- then commit the Kafka offset; a crash before that only replays an event we will skip\n```",
+   "interviewTip": "Define it precisely: \"exactly-once effect = at-least-once delivery + idempotent consumer\", then show where the dedupe key lives.",
+   "askedAt": [
+    "PhonePe",
+    "CRED",
+    "Uber",
+    "Confluent"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-dual-write",
+   "area": "distributed-systems",
+   "title": "Dual write: DB + Kafka in one method",
+   "level": "Advanced",
+   "frequency": "Very common",
+   "prompt": "What can go wrong here?\n\n```java\n@Transactional\npublic void placeOrder(Order order) {\n    orderRepository.save(order);\n    kafkaTemplate.send(\"order-placed\", order.getId(), toJson(order));\n}\n```",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Nothing: `@Transactional` makes the save and the send atomic, and if Kafka fails the transaction rolls back.",
+   "whyPeopleGetItWrong": "`@Transactional` looks like it covers everything inside the method, but it only controls the **database connection**. Kafka is a separate system with its own commit. Candidates also miss that `send()` is **asynchronous**: it returns a future, so a broker failure often never throws inside the method at all. Moving the send \"after commit\" feels like the fix but only closes one of the two gaps.",
+   "correct": "There are two failure windows, because two systems cannot commit atomically without a shared protocol:\n\n1. **Ghost event**: the send succeeds, then the DB transaction rolls back (a constraint violation at flush or commit). Consumers act on an order that does not exist.\n2. **Lost event**: the DB commits, but the send fails, the broker is down, or the pod dies first. The order exists, but nobody downstream ever hears about it. Payment, inventory and email silently diverge.\n\n**Transactional outbox**: in the same DB transaction, insert an `outbox` row describing the event. A relay publishes outbox rows to Kafka and marks them sent. The relay is either a poller using `SELECT ... FOR UPDATE SKIP LOCKED`, or CDC such as Debezium tailing the binlog. Now the event exists **if and only if** the order does.\n\nThe relay can publish twice (a crash between send and mark), so delivery is at-least-once and consumers dedupe on the event id. Key messages by aggregate id to keep per-order ordering.",
+   "fix": "```java\n@Transactional\npublic void placeOrder(Order order) {\n    orderRepository.save(order);\n    outboxRepository.save(new OutboxEvent(UUID.randomUUID(), \"order-placed\",\n            order.getId(), toJson(order)));          // same DB transaction: both rows or neither\n}\n\n// Relay: a scheduler like this, or Debezium CDC reading the binlog instead\n@Scheduled(fixedDelay = 500)\n@Transactional\npublic void relayOutbox() {\n    for (OutboxEvent e : outboxRepository.lockNextBatch(100)) {    // SELECT ... FOR UPDATE SKIP LOCKED\n        kafkaTemplate.send(e.type(), e.aggregateId(), e.payload()).join();  // wait for the broker ack\n        outboxRepository.markSent(e.id());   // crash before this line => re-sent => consumers dedupe on e.id()\n    }\n}\n```",
+   "interviewTip": "Name both windows (ghost event and lost event); most candidates only see one.",
+   "askedAt": [
+    "Razorpay",
+    "Swiggy",
+    "Walmart",
+    "Zalando"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-saga-vs-2pc",
+   "area": "distributed-systems",
+   "title": "Cross-service transactions: @Transactional, 2PC or saga",
+   "level": "Advanced",
+   "frequency": "Common",
+   "prompt": "Order, Inventory and Payment are separate services with separate databases. Placing an order must reserve stock and charge the customer, or do neither. The candidate says: \"I'll wrap the three calls in `@Transactional`; if payment fails everything rolls back.\" How do you actually keep them consistent?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Wrap the service calls in `@Transactional`, or use XA/two-phase commit across the three databases.",
+   "whyPeopleGetItWrong": "In a monolith, `@Transactional` really did make everything atomic, so the habit carries over. But it only governs the local database connection: an HTTP call to Inventory that already committed will not be undone. 2PC sounds like the textbook answer, but candidates can't explain why almost nobody runs it across microservices. Interviewers want to see that you know **sagas trade isolation for availability**, and how to cope with that.",
+   "correct": "**2PC/XA** blocks: participants hold locks while waiting for the coordinator, a coordinator failure can leave them stuck, and many brokers and NoSQL stores don't support it. Availability suffers.\n\n**Saga**: a sequence of local transactions, each with a **compensating action**. Reserve stock → charge payment → confirm order. If the charge fails, release the stock and cancel the order.\n- **Orchestration** (a central state machine, for example Temporal or a custom orchestrator) is easier to reason about and monitor. **Choreography** (services react to each other's events) suits short flows.\n- **No isolation**: others can see intermediate states. Model them explicitly (`PENDING`, `RESERVED`) and treat them as semantic locks.\n- **Compensations must be idempotent and retryable**, and every step must be triggered reliably (outbox).\n- Order the steps so that irreversible actions (sending an email, shipping) come **last**, after the point of no return.",
+   "fix": "```text\nOrchestrated saga: place order\n1. Order:     create order (PENDING)\n2. Inventory: reserve items         -- compensation: release reservation\n3. Payment:   charge (idempotency key = orderId)  -- compensation: refund\n4. Order:     mark CONFIRMED  -> only now send email / start shipping\nFailure at 3 -> run compensations in reverse: release stock (2), cancel order (1)\nEvery command & compensation: idempotent, retried with backoff, state persisted per step\n```",
+   "interviewTip": "Say \"there is no rollback across services, only compensation\" and walk the failure path step by step.",
+   "askedAt": [
+    "Flipkart",
+    "Uber",
+    "Amazon",
+    "Myntra"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-clock-ordering",
+   "area": "distributed-systems",
+   "title": "Ordering events by wall-clock timestamps",
+   "level": "Advanced",
+   "frequency": "Common",
+   "prompt": "Two app servers can update the same document. Conflicts are resolved by keeping the write with the larger `System.currentTimeMillis()` (last-write-wins). Server B's clock is 300 ms behind server A's. What happens?",
+   "options": [
+    "Nothing: NTP keeps clocks within microseconds.",
+    "A later write from B can be silently discarded because its timestamp is smaller.",
+    "The database rejects the out-of-order write.",
+    "Only reads are affected, not writes."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Nothing serious: NTP keeps server clocks in sync, so timestamps are a reliable global order.",
+   "whyPeopleGetItWrong": "On one machine, timestamps really do order events, and NTP sounds like it makes all machines one machine. In reality, clocks drift, NTP corrects in jumps (sometimes backwards), VMs pause, and skew of milliseconds to seconds is normal. Candidates also use `currentTimeMillis()` to measure durations, so a clock adjustment produces negative or huge latencies. Interviewers test whether you know that **physical time is not a reliable ordering mechanism across machines**.",
+   "correct": "A write from B that **really happened later** can carry a *smaller* timestamp and be **silently discarded**. Nothing errors; data just disappears.\n\nUse ordering that does not depend on clocks:\n- **Version numbers with conditional writes** (optimistic locking): `UPDATE ... SET v = v + 1 WHERE id = ? AND v = ?`. Zero rows updated means someone else won, so re-read and retry or report a conflict. JPA's `@Version` does exactly this.\n- **A single sequencer per key**: route all events for a key to one Kafka partition, and its offset is the order. Or use a DB-assigned sequence.\n- **Logical clocks**: Lamport clocks give a consistent order; vector clocks detect truly concurrent writes so you can merge instead of dropping one.\n\nMeasure durations with `System.nanoTime()`, which is monotonic, never `currentTimeMillis()`.",
+   "fix": "```sql\n-- optimistic concurrency instead of timestamps\nSELECT body, version FROM documents WHERE id = 42;          -- version = 7\nUPDATE documents SET body = :newBody, version = version + 1\n WHERE id = 42 AND version = 7;\n-- 1 row  -> you won\n-- 0 rows -> someone else wrote first: re-read, merge or return 409 Conflict\n```",
+   "interviewTip": "Say \"I won't order across machines by wall clock; I'll use a version check or a per-key sequencer\".",
+   "askedAt": [
+    "Google",
+    "Atlassian",
+    "Amazon"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-lock-fencing",
+   "area": "distributed-systems",
+   "title": "Distributed lock without a fencing token",
+   "level": "Advanced",
+   "frequency": "Common",
+   "prompt": "A nightly payout job runs on 3 instances; only one may process it. The candidate's lock:\n\n```text\nSET lock:payout <instanceId> NX PX 30000     -- acquire, 30 s lease\n...process payouts...\nDEL lock:payout                              -- release\n```\n\nThe interviewer says: \"Instance 1 hits a 40-second GC pause in the middle of the job.\" What breaks, and how do you make it safe?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Make the lease longer (5 minutes) or renew it in a background thread, and it's safe.",
+   "whyPeopleGetItWrong": "A lock feels absolute because in-process locks *are*: the JVM cannot \"forget\" you hold a `synchronized` block. A distributed lock is only a **lease** that expires while you are paused, and the paused process cannot notice. Longer TTLs and watchdog renewal (like Redisson's) shrink the window but cannot close it: the renewal thread pauses too. Interviewers want the words **fencing token** and an idempotent fallback.",
+   "correct": "What breaks:\n1. The lease expires at 30 s, instance 2 acquires the lock, and **both run payouts**.\n2. Instance 1 wakes up, finishes and calls `DEL`, deleting **instance 2's** lock, so instance 3 can enter too.\n\nFixes, in increasing strength:\n- **Release only your own lock**: compare-and-delete in a Lua script using a unique token per acquisition.\n- **Fencing token**: each lock grant comes with a monotonically increasing number (ZooKeeper zxid, etcd revision, or a DB sequence). The **resource** rejects writes carrying an older token. Redis locks do not provide this natively.\n- **Make the work idempotent**: a unique constraint on `(user_id, payout_date)` means a second run cannot pay twice. This is the real safety net, and the lock becomes an efficiency optimisation.\n\nThe same reasoning applies to split brain: two nodes that both believe they are leader must be fenced by the storage layer.",
+   "fix": "```text\n-- 1. release only if it is still yours (Lua, atomic)\nif redis.call(\"GET\", KEYS[1]) == ARGV[1] then\n  return redis.call(\"DEL\", KEYS[1])\nelse\n  return 0\nend\n\n-- 2. fencing: the resource checks the token from the lock service\nUPDATE job_runs SET last_token = :token, status = 'RUNNING'\n WHERE job = 'payout-2026-10-09' AND last_token < :token;   -- 0 rows => you lost the lock, stop\n\n-- 3. idempotent effect: a second run cannot double-pay\nUNIQUE KEY uk_payout (user_id, payout_date)\n```",
+   "interviewTip": "Say \"a distributed lock is a lease, so correctness must come from fencing or idempotency, not from the lock\".",
+   "askedAt": [
+    "Uber",
+    "Razorpay",
+    "Atlassian"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-retry-storm",
+   "area": "distributed-systems",
+   "title": "Retry storms: retries at every layer, no backoff",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "The recommendation service has a 2-minute blip. The mobile client retries failed calls 3 times immediately, the API gateway retries 3 times, and the BFF's HTTP client retries 3 times. The service comes back up and **immediately falls over again**. Why?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "The service needs more instances; retries are always good for reliability.",
+   "whyPeopleGetItWrong": "Each team adds retries locally because one retry clearly helps one request. Nobody multiplies across layers, and nobody pictures thousands of clients retrying **in lockstep**. Candidates also retry everything, including 400s, and ignore `Retry-After`. Interviewers ask this to see whether you think about the system as a whole, which is a core senior signal.",
+   "correct": "**Retry amplification**: each layer makes 1 + 3 = 4 attempts, and the layers nest, so one user action can become 4 × 4 × 4 = **64 requests** to the struggling service. Immediate retries arrive as synchronised waves (a thundering herd) and crush it the moment it recovers.\n\nFixes:\n- **Retry at one layer**, usually closest to the failing dependency, and make the other layers fail fast.\n- **Exponential backoff with jitter**, so clients spread out instead of retrying in sync.\n- **Retry budget**: retries limited to about 10% of normal traffic.\n- **Circuit breaker** (Resilience4j): after repeated failures, stop calling for a cool-down period and probe with a few requests.\n- Retry only **idempotent, retryable** errors (timeouts, 503, connection resets) and honour `Retry-After`.\n\nThe cache-stampede variant has the same cure: add **TTL jitter** so keys don't expire together, and use single-flight loading on a miss.",
+   "fix": "```java\n// Exponential backoff with \"full jitter\": sleep a random time in [0, min(cap, base * 2^attempt)]\nstatic long backoffMillis(int attempt, long baseMs, long capMs) {\n    long ceiling = Math.min(capMs, baseMs * (1L << Math.min(attempt, 20)));\n    return ThreadLocalRandom.current().nextLong(ceiling + 1);\n}\n```\nAttempt 0 → 0-200 ms, attempt 1 → 0-400 ms, attempt 2 → 0-800 ms ... capped at `capMs`.",
+   "interviewTip": "Multiply the attempts across layers out loud; showing the 64x number is what makes this answer memorable.",
+   "askedAt": [
+    "Amazon",
+    "Netflix",
+    "Swiggy",
+    "Hotstar"
+   ]
+  },
+  {
+   "id": "trap-distributed-systems-missing-timeouts",
+   "area": "distributed-systems",
+   "title": "Missing timeouts cause cascading failure",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Service A (Tomcat, 200 worker threads, 50 req/s) calls service B with a `RestTemplate` built with `new RestTemplate()`. B's database slows down and B now takes **60 seconds** to respond. What happens to A?",
+   "options": [
+    "Only A's calls to B are slow; everything else in A is fine.",
+    "A's threads all block waiting on B, so A stops serving every endpoint and the failure cascades to A's callers.",
+    "RestTemplate times out after 30 s by default, so A recovers.",
+    "Tomcat automatically sheds the calls to B."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "A's calls to B just become slow, but A's other endpoints keep working; `RestTemplate` times out after 30 seconds anyway.",
+   "whyPeopleGetItWrong": "Defaults feel safe, so nobody checks them. `new RestTemplate()` (and the JDK `HttpClient`) have **no** read timeout by default, so they wait indefinitely. Candidates think of latency per request, not of **threads as a finite pool**. Little's law makes the outage obvious, but few people apply it. Interviewers also check whether your timeouts are consistent across hops, because mismatched values cause wasted work.",
+   "correct": "By Little's law, the number of requests in flight = arrival rate × latency = 50/s × 60 s = **3,000**. A has 200 threads, so within about 4 seconds every thread is blocked waiting on B. Now **A is down for all endpoints**, including those that never touch B, and A's callers start piling up the same way. That is a **cascading failure**.\n\nDefences:\n- **Explicit timeouts on every outbound call**: a connect timeout around 1 s, and a read timeout based on B's p99.9 latency, not on hope.\n- **Deadline propagation**: each hop's timeout must fit inside the caller's remaining budget. An inner timeout longer than the outer one wastes work nobody is waiting for.\n- **Bulkhead**: cap concurrent calls per dependency (separate pool or semaphore) so one slow dependency cannot take all threads.\n- **Circuit breaker + fallback**: fail fast while B is unhealthy and serve cached or default data.",
+   "fix": "```java\nHttpClient client = HttpClient.newBuilder()\n        .connectTimeout(Duration.ofSeconds(1))           // default: none\n        .build();\n\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"http://reco-service/api/recs?user=42\"))\n        .timeout(Duration.ofMillis(800))                 // response deadline; default: wait forever\n        .build();\n\n// plus: a bulkhead (cap concurrent calls to this dependency), a circuit breaker,\n// and a fallback (e.g. cached or popular items) when the call fails fast\n```",
+   "interviewTip": "Quote Little's law with numbers (\"50/s × 60 s = 3,000 in flight vs 200 threads\") to show the failure, then list the defences.",
+   "askedAt": [
+    "Amazon",
+    "Walmart",
+    "Flipkart",
+    "Goldman Sachs"
+   ]
+  },
+  {
+   "id": "trap-api-design-idempotency-keys",
+   "area": "api-design",
+   "title": "Making POST retries safe with idempotency keys",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "`POST /v1/payments` creates a charge. Mobile clients on flaky networks retry when a request times out, and some users double-tap \"Pay\". The candidate's plan: \"Before inserting, check whether this user made a payment with the same amount in the last 60 seconds.\" What is the correct design?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Detect duplicates heuristically: same user, same amount, within a short time window.",
+   "whyPeopleGetItWrong": "The heuristic is easy to explain and seems to catch the obvious case. But it blocks **legitimate** repeats (two ₹100 recharges in a minute), misses retries that arrive after the window, and races when two duplicates arrive at the same instant (both checks pass). Candidates also forget that the retry must get the **same response** as the original. The client needs to know what happened, not just avoid a second charge.",
+   "correct": "Use an **idempotency key** chosen by the client for each logical operation (a UUID sent in an `Idempotency-Key` header, reused on every retry):\n\n1. **Atomically claim the key**: insert `(client_id, key, request_hash, status=IN_PROGRESS)` relying on a UNIQUE constraint. Only one request wins, even under concurrency.\n2. Process the payment, then store the **status code and response body** with the key.\n3. **Retry with the same key** after completion → return the stored response unchanged (same status, same body).\n4. **Same key while still in progress** → `409 Conflict` (the client retries later).\n5. **Same key with a different body** → `422`: that is a client bug, not a retry.\n6. Expire keys after a period (for example 24-72 hours), and scope them per client or merchant.\n\nPUT and DELETE are idempotent by definition when designed properly. POST is not, so it needs this. Pass the same key downstream to the payment provider.",
+   "fix": "```sql\nCREATE TABLE idempotency_keys (\n  client_id     BIGINT       NOT NULL,\n  idem_key      VARCHAR(64)  NOT NULL,\n  request_hash  CHAR(64)     NOT NULL,      -- SHA-256 of the request body\n  status        VARCHAR(16)  NOT NULL,      -- IN_PROGRESS | COMPLETED\n  response_code INT          NULL,\n  response_body JSON         NULL,\n  created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (client_id, idem_key)         -- the race is decided here\n);\n```",
+   "interviewTip": "Walk through the concurrent double-tap case (two requests, same key, same millisecond) and show the unique constraint deciding the winner.",
+   "askedAt": [
+    "Razorpay",
+    "Stripe",
+    "PhonePe",
+    "Juspay"
+   ]
+  },
+  {
+   "id": "trap-api-design-offset-pagination",
+   "area": "api-design",
+   "title": "Offset pagination drift and deep-page slowness",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "`GET /feed?page=3&size=20` is implemented as `ORDER BY created_at DESC LIMIT 20 OFFSET 40`. Users report **seeing the same post twice** while scrolling, and `page=5000` takes 4 seconds. Explain both, and what you would change.",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Add an index on `created_at`; that fixes both the speed and the duplicates.",
+   "whyPeopleGetItWrong": "Offset pagination is what every tutorial and Spring Data `Pageable` shows, so it feels standard. The drift bug only appears when data changes **between** page requests, which never happens in local testing. On speed, candidates assume an index lets the DB \"jump\" to row 100,000. It can't: `OFFSET` still walks through and discards every skipped row. And many forget a unique tie-breaker, so rows with equal timestamps shuffle between pages.",
+   "correct": "**Duplicates**: new posts are inserted at the top while the user scrolls, so everything shifts down. The item that was at position 40 is now at 41 and appears again on the next page. Deletes cause **skipped** items the same way.\n\n**Slowness**: `OFFSET 100000` makes the DB read and throw away 100,000 rows, so cost grows with the page number.\n\n**Fix: keyset (cursor) pagination.** Remember the last row you returned and ask for rows *after* it: `WHERE (created_at, id) < (last_created_at, last_id)`, ordered by `created_at DESC, id DESC`, with a composite index on `(created_at, id)`. The `id` breaks ties. Return an **opaque cursor** (base64 of those values) as `next_cursor`, and fetch `size + 1` rows to know whether there is a next page.\n\nTrade-offs: no \"jump to page 57\" and no cheap total count, which is fine for feeds and infinite scroll. Always enforce a **maximum page size** (for example 100). An unbounded list endpoint is a production incident waiting to happen.",
+   "fix": "```sql\n-- first page\nSELECT id, created_at, body FROM posts\n ORDER BY created_at DESC, id DESC\n LIMIT 21;                                  -- size + 1 => hasMore\n\n-- next page: cursor = base64({\"t\":\"2026-10-09T10:15:00Z\",\"id\":81234})\nSELECT id, created_at, body FROM posts\n WHERE created_at < :t OR (created_at = :t AND id < :id)\n ORDER BY created_at DESC, id DESC\n LIMIT 21;\n-- INDEX (created_at, id)\n```",
+   "interviewTip": "Mention the tie-breaker column; it is the detail that shows you have actually implemented cursor pagination.",
+   "askedAt": [
+    "Instagram",
+    "Slack",
+    "Flipkart",
+    "Swiggy"
+   ]
+  },
+  {
+   "id": "trap-api-design-status-codes",
+   "area": "api-design",
+   "title": "Status codes: 200-with-error, 401 vs 403",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "A logged-in user with a valid JWT calls `DELETE /projects/42`, but they only have **viewer** access to that project. What should the API return?",
+   "options": [
+    "200 OK with `{\"success\": false, \"error\": \"not allowed\"}`",
+    "401 Unauthorized",
+    "403 Forbidden (or 404 if you don't want to reveal the project exists)",
+    "400 Bad Request"
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "401 Unauthorized, because the user is not authorised to delete; or 200 with `{\"success\": false}`.",
+   "whyPeopleGetItWrong": "The names are misleading: \"401 Unauthorized\" really means **unauthenticated**. Many service-company codebases also return `200 OK` with an error flag because \"the request reached the server successfully\", and that habit sticks. Candidates don't connect status codes to the machinery that depends on them: client retry logic, caches, API gateways, monitoring dashboards and alerting all read the status code, not your JSON body.",
+   "correct": "**403 Forbidden**: the server knows who you are, and you are not allowed. Return **404** instead if revealing that project 42 even exists is itself a leak (GitHub does this for private repositories).\n\n- **401**: missing, invalid or expired credentials (\"who are you?\"). Send a `WWW-Authenticate` header; the client should re-authenticate.\n- **200 with an error body** breaks clients and observability: error-rate dashboards show 0%, caches may store the error, and retries can't tell what failed.\n\nOther codes interviewers check: **400** malformed request vs **422** semantically invalid (either is fine if you are consistent); **409** conflict (version mismatch, duplicate); **429** rate limited; **503** temporary, retry later vs **500** bug; **201 + Location** for create; **204** for a successful delete with no body.\n\nUse one consistent error format, for example RFC 9457 Problem Details, which Spring 6 supports through `ProblemDetail`.",
+   "fix": "```text\nHTTP/1.1 403 Forbidden\nContent-Type: application/problem+json\n\n{\n  \"type\": \"https://api.example.com/errors/forbidden\",\n  \"title\": \"Forbidden\",\n  \"status\": 403,\n  \"detail\": \"Viewers cannot delete projects.\",\n  \"instance\": \"/projects/42\"\n}\n```",
+   "interviewTip": "Say \"401 is authentication, 403 is authorisation\" and mention the 404-to-hide option; that covers what the interviewer is checking.",
+   "askedAt": [
+    "Atlassian",
+    "Amazon",
+    "Freshworks",
+    "Zoho"
+   ]
+  },
+  {
+   "id": "trap-api-design-put-vs-patch",
+   "area": "api-design",
+   "title": "PUT vs PATCH semantics",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "A user resource has `{name, email, phone}`. The client sends `PUT /users/7` with body `{\"phone\": \"9876543210\"}`, and the server maps the body onto the entity and saves it. What happens, and which statement is correct?",
+   "options": [
+    "Only `phone` changes; PUT and PATCH are interchangeable.",
+    "With PUT the body is the full new state, so `name`/`email` become null; partial updates belong in PATCH. PUT is idempotent; PATCH is not guaranteed to be.",
+    "PUT is not idempotent, but PATCH always is.",
+    "PATCH must always contain the full resource."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Only the phone changes; PUT and PATCH both mean \"update\" and are interchangeable.",
+   "whyPeopleGetItWrong": "In CRUD-style codebases, \"PUT = update\" is the whole mental model, so the distinction between **replace** and **modify** never comes up until data disappears. Naive DTO-to-entity mapping turns every missing field into `null`. Candidates also memorise \"PATCH is idempotent too\" without asking what the patch *does*: an \"append\" or \"increment\" applied twice is not the same as applied once.",
+   "correct": "Under **PUT** semantics the body **is the complete new representation**, so `name` and `email` become `null`. Naive mapping does exactly that. PUT means create-or-replace at a known URI, and repeating it leaves the same state, so it is **idempotent**.\n\n**PATCH** applies a change set:\n- **JSON Merge Patch** (RFC 7396): fields present are set, `null` means remove, absent means untouched.\n- **JSON Patch** (RFC 6902): a list of operations (`add`, `replace`, `remove`, `test`).\n\nPATCH is **not guaranteed idempotent**: adding to an array or incrementing a counter changes the state each time.\n\nImplementation details that come up in follow-ups:\n- In Spring, distinguish **absent** from **explicitly null**: read a `JsonNode`, or use a wrapper such as `JsonNullable`.\n- Prevent lost updates when two clients edit concurrently: `ETag` + `If-Match` (412 on mismatch) or a version field.\n- Never let PATCH change protected fields (`id`, `role`, `ownerId`).",
+   "fix": "```text\nPUT /users/7            {\"name\":\"Raj\",\"email\":\"raj@x.com\",\"phone\":\"9876543210\"}   -> full replace\nPATCH /users/7          Content-Type: application/merge-patch+json\n                        {\"phone\":\"9876543210\"}            -> only phone changes\n                        {\"phone\":null}                    -> phone removed\nPATCH /users/7          Content-Type: application/json-patch+json\n                        [{\"op\":\"replace\",\"path\":\"/phone\",\"value\":\"9876543210\"}]\nConcurrency: GET returns ETag: \"v7\"; PATCH with If-Match: \"v7\" -> 412 if someone changed it\n```",
+   "interviewTip": "Say \"PUT replaces, PATCH modifies; PUT is idempotent, PATCH depends on the operation\", then mention absent vs null handling.",
+   "askedAt": [
+    "TCS Digital",
+    "Walmart",
+    "Amazon"
+   ]
+  },
+  {
+   "id": "trap-api-design-idor",
+   "area": "api-design",
+   "title": "IDOR / broken object-level authorization",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "The endpoint below requires a valid JWT (Spring Security is configured). A security review flags it as **critical**. Why?\n\n```java\n@GetMapping(\"/api/orders/{orderId}\")\npublic OrderDto getOrder(@PathVariable Long orderId) {\n    Order order = orderRepository.findById(orderId)\n            .orElseThrow(NotFoundException::new);\n    return mapper.toDto(order);\n}\n```",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "It's secure because every request must carry a valid JWT; use UUIDs instead of numeric ids if you're worried.",
+   "whyPeopleGetItWrong": "Candidates treat **authentication** (who are you?) and **authorisation** (may you touch *this* object?) as one thing. Endpoint-level rules like `.anyRequest().authenticated()` feel complete, and tests are written with one user, so they never try user B's id. UUIDs feel like a fix because they are hard to guess, but ids leak through URLs, logs, emails and shared links. Obscurity is not access control.",
+   "correct": "Any logged-in user can change `orderId` and read **anyone's** order. That is **IDOR / Broken Object Level Authorization**, the #1 item in the OWASP API Security Top 10 (API1:2023), and it is behind many real data leaks. Sequential ids make enumeration trivial, but the bug is the **missing ownership check**, not the id format.\n\nFix:\n- **Scope every lookup by owner or tenant in the query** (`findByIdAndCustomerId`), so another user's object is simply not found.\n- Return **404**, not 403, so attackers cannot confirm the object exists.\n- Centralise it: method security (`@PreAuthorize` calling an ownership check), or a tenant filter applied to every query.\n- Apply the same rule to **writes**, and block mass assignment: never accept `customerId`, `role` or `price` from the request body.\n- Add an automated test: user A requests user B's resource and expects 404.",
+   "fix": "```java\n@GetMapping(\"/api/orders/{orderId}\")\npublic OrderDto getOrder(@PathVariable Long orderId, @AuthenticationPrincipal AppUser me) {\n    Order order = orderRepository.findByIdAndCustomerId(orderId, me.getId())  // ownership in the query\n            .orElseThrow(NotFoundException::new);   // 404, not 403: don't confirm the order exists\n    return mapper.toDto(order);\n}\n```\nSpring Data derives `findByIdAndCustomerId` from the method name (`customer.id` or a `customerId` field).",
+   "interviewTip": "Say \"authentication is not authorisation\", then show the ownership check living inside the query.",
+   "askedAt": [
+    "Razorpay",
+    "CRED",
+    "Paytm",
+    "Swiggy"
+   ]
+  },
+  {
+   "id": "trap-api-design-breaking-changes",
+   "area": "api-design",
+   "title": "What counts as a breaking API change",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "Mobile app v3.2 consumes `GET /v1/orders/{id}`, and you **cannot force everyone to upgrade**. Which change can you ship to `v1` without breaking those users?",
+   "options": [
+    "Rename `amount` to `totalAmount`.",
+    "Add a new optional field `deliveryEta` to the response.",
+    "Change `id` from a number to a string.",
+    "Make the optional request field `couponCode` required."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Renaming `amount` to `totalAmount` is fine as long as the docs are updated.",
+   "whyPeopleGetItWrong": "Inside one codebase, a rename is a refactor: the IDE updates every caller. Across a network, old clients are frozen binaries you cannot update, and mobile users keep old versions for months. Candidates also don't realise that *tightening* things (new required fields, stricter validation, new enum values) breaks clients just like removing things does. They also overlook that clients must be written to ignore unknown fields.",
+   "correct": "**Adding a new optional response field** is backward compatible, provided clients are **tolerant readers** that ignore unknown fields. Spring Boot's auto-configured `ObjectMapper` ignores them, but a plain `new ObjectMapper()` fails on unknown properties.\n\nBreaking changes include: removing or renaming a field; changing a type, format or unit (number → string, paise → rupees); making an input required; stricter validation; changing defaults or meaning; and adding enum values that strict clients `switch` on.\n\nFor a necessary breaking change, use **expand and contract**:\n1. Add the new field and keep the old one, populating both.\n2. Migrate clients and **measure** usage of the old field.\n3. Remove the old field only when usage reaches zero, or after the announced deadline.\n\nFor large changes, ship `/v2` (or a version header) **alongside** v1, announce a timeline with `Deprecation` and `Sunset` headers, and run contract tests (for example Pact) in CI to catch accidental breaks.",
+   "fix": "```text\nExpand and contract: rename amount -> totalAmount\nv1 response today      : {\"id\": 9, \"amount\": 49900}\nStep 1 (expand)        : {\"id\": 9, \"amount\": 49900, \"totalAmount\": 49900}\nStep 2 (migrate)       : new app versions read totalAmount; dashboard tracks old-field reads\nStep 3 (contract)      : remove \"amount\" after usage ~0 or the announced Sunset date\n```",
+   "interviewTip": "List both kinds: \"removing or renaming breaks, but so does tightening\"; that shows real API ownership experience.",
+   "askedAt": [
+    "Atlassian",
+    "Swiggy",
+    "Uber"
+   ]
+  },
+  {
+   "id": "trap-api-design-chatty-n-plus-one",
+   "area": "api-design",
+   "title": "Chatty APIs: N+1 calls from the client",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "The order-history screen calls `GET /orders` (20 orders), then `GET /orders/{id}/items` for each order, then `GET /products/{pid}` for each item to show names and images. The screen takes **3+ seconds on 4G**. What is the problem, and how would you redesign the API?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Make each endpoint faster with caching, or fire all the calls in parallel.",
+   "whyPeopleGetItWrong": "Resource-per-table REST design feels \"clean\" and maps neatly to JPA entities, so the API mirrors the database instead of the screen. Backend developers test on localhost, where a round trip is under 1 ms, and never feel what about 80 calls at 100-300 ms each do on mobile. Parallelising helps less than expected: connections are limited, every call pays auth and serialisation, and each endpoint may hit the database N+1 times again.",
+   "correct": "It is the **N+1 problem at the API layer**: 1 + 20 + roughly 60 requests for one screen. Latency is dominated by round trips, not by server time.\n\nRedesign around the **use case**:\n- **Embed what the screen needs**: `GET /orders?include=items` returns orders with their items, each carrying a product snapshot (name, image, price at purchase time). You need that snapshot anyway: the product's current price is not what the customer paid.\n- **Batch endpoints** for lookups: `GET /products?ids=1,2,3`.\n- A **BFF** (backend-for-frontend) that aggregates server-side, where calls between services are fast and parallel.\n- **GraphQL** with a DataLoader-style batcher, if many clients need different shapes.\n\nGuard the other side too: **sparse fieldsets** (`fields=`) to keep payloads small, a maximum page size, and server-side batch queries (`WHERE id IN (...)` or fetch joins), so the aggregated endpoint does not just move the N+1 into the database.",
+   "fix": "```text\nBefore: GET /orders -> 20 × GET /orders/{id}/items -> 60 × GET /products/{pid}   (81 round trips)\nAfter : GET /orders?include=items&limit=20                                       (1 round trip)\n{\n  \"orders\": [{\n    \"id\": 9001, \"placedAt\": \"2026-10-01T10:00:00Z\", \"total\": 129900,\n    \"items\": [{\"productId\": 55, \"name\": \"USB-C cable\", \"imageUrl\": \"...\", \"unitPrice\": 49900, \"qty\": 1}]\n  }],\n  \"nextCursor\": \"eyJpZCI6OTAwMX0\"\n}\n```",
+   "interviewTip": "Count the round trips out loud (\"81 requests × 150 ms\") and then propose an endpoint shaped like the screen.",
+   "askedAt": [
+    "Swiggy",
+    "Myntra",
+    "Flipkart"
+   ]
+  },
+  {
+   "id": "trap-api-design-rate-limiting",
+   "area": "api-design",
+   "title": "Rate limiting: per-instance counters and wrong status",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Requirement: each API key gets **100 requests per minute**. The service runs **6 instances** behind a load balancer. The candidate's design: an in-memory `ConcurrentHashMap<apiKey, counter>` in each instance, reset every minute; when the limit is exceeded, return `500`. What is wrong?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "An in-memory counter per instance is fine, and the status code doesn't matter as long as the request is blocked.",
+   "whyPeopleGetItWrong": "Candidates design for one JVM because that is how they test locally. They forget the load balancer spreads one client's traffic across instances. Fixed windows look exact until you check the boundary. Status codes feel cosmetic, but clients, SDKs and gateways decide whether and when to retry from them. This is also one of the most popular practical-coding and design prompts in 2026 loops, so interviewers know every weak spot.",
+   "correct": "Problems:\n1. **Per-instance counters**: with 6 instances, the effective limit is up to **600/min**, and it is uneven.\n2. **Fixed window bursts**: 100 requests at 0:59 and 100 at 1:00 means 200 in about 2 seconds.\n3. **Wrong status**: return **429 Too Many Requests** with `Retry-After`, ideally with limit/remaining headers. A `500` tells clients the server is broken and may trigger immediate retries.\n\nBetter:\n- **Shared state** in Redis with atomic operations (a Lua script), implementing a **token bucket** (allows bursts, smooth refill) or a **sliding-window counter**: `prev × (1 − elapsed/60) + current`.\n- Enforce at the **edge** (API gateway) as well as per user, per tenant and globally. Give expensive endpoints lower limits.\n- Decide **fail-open vs fail-closed** when Redis is unavailable (usually fail-open with a local fallback limit), and alert on it.",
+   "fix": "```text\nSliding-window counter (per key, Redis):\n  curr = INCR rl:{key}:{minute}         (+ EXPIRE 120 on first write, inside one Lua script)\n  prev = GET  rl:{key}:{minute-1}\n  estimate = prev * (60 - secondsIntoMinute) / 60 + curr\n  if estimate > 100 -> reject\n\nHTTP/1.1 429 Too Many Requests\nRetry-After: 12\nX-RateLimit-Limit: 100\nX-RateLimit-Remaining: 0\n```",
+   "interviewTip": "State the multi-instance problem first (\"6 instances means 600/min\"); then the algorithm choice and 429 + Retry-After.",
+   "askedAt": [
+    "Stripe",
+    "Razorpay",
+    "Atlassian",
+    "Uber"
+   ]
+  },
+  {
+   "id": "trap-angular-js-var-closure-loop",
+   "area": "angular-js",
+   "title": "Closures in loops: var vs let",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "What does this print?\n\n```js\nfor (var i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i), 0);\n}\n```",
+   "options": [
+    "0 1 2",
+    "3 3 3",
+    "2 2 2",
+    "undefined undefined undefined"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "0 1 2, because each callback captures the value of `i` at the time it was created.",
+   "whyPeopleGetItWrong": "People think a closure captures the **value** at creation time. It captures the **variable** (the binding). With `var` there is only one `i` for the whole function, and the callbacks run after the loop has finished, when `i` is 3. Developers coming from Java expect block scoping everywhere, and the similar-looking `let` version behaves differently, which makes this a favourite quick filter question.",
+   "correct": "It prints **3 3 3**.\n\n- `var` is **function-scoped**: the loop shares one `i`. `setTimeout` callbacks run only after the current synchronous code (the whole loop) completes, so each one reads `i === 3`.\n- `let` is **block-scoped**, and a `for (let ...)` loop creates a **fresh binding per iteration**, so each callback closes over its own `i`, printing 0 1 2.\n- The pre-ES6 fix was an IIFE that passed `i` as a parameter.\n\nWhy it matters in Angular code: the same capture rules apply to callbacks created in loops (event listeners, subscriptions, `setTimeout` inside `forEach` with mutable outer variables). Prefer `const`/`let`, avoid `var`, and keep in mind that a closure sees the variable's **current** value when it runs, not the value when it was created.\n\nFollow-up interviewers like: \"What if it's `setTimeout(console.log, 0, i)`?\" That prints 0 1 2, because `i` is passed as an argument, evaluated immediately.",
+   "fix": "```js\nfor (let i = 0; i < 3; i++) {          // new binding per iteration\n  setTimeout(() => console.log(i), 0); // 0 1 2\n}\n```",
+   "interviewTip": "Say \"closures capture bindings, not values\" and explain per-iteration bindings for `let`.",
+   "askedAt": [
+    "Infosys",
+    "Accenture",
+    "Paytm",
+    "Zoho"
+   ]
+  },
+  {
+   "id": "trap-angular-js-this-in-callbacks",
+   "area": "angular-js",
+   "title": "Losing `this` when passing a method as a callback",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Why does this throw?\n\n```ts\nexport class CartComponent {\n  total = 0;\n  constructor(private api: CartApi) {}\n\n  load() {\n    this.api.getTotal().then(this.onTotal);\n  }\n\n  onTotal(value: number) {\n    this.total = value;   // TypeError: Cannot set properties of undefined (setting 'total')\n  }\n}\n```",
+   "options": [
+    "Promises run outside Angular's zone.",
+    "`this.onTotal` is passed as a plain function reference, so when the promise calls it `this` is `undefined` (class code is strict mode).",
+    "`total` must be declared as a signal to be assignable.",
+    "TypeScript compiles `this` to `window` inside classes."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Promises run outside Angular's zone, so the component's fields are not accessible.",
+   "whyPeopleGetItWrong": "In Java, `this` is fixed to the object, so a method reference always remembers its owner. In JavaScript, a regular function's `this` is decided by **how it is called**, not where it was defined. `this.onTotal` without parentheses passes a bare function. The promise later calls it as a plain function, and class bodies run in strict mode, so `this` is `undefined`. Blaming zones or change detection is the common guess.",
+   "correct": "`.then(this.onTotal)` **detaches** the method from the instance. When the promise invokes it as a plain function, `this` is `undefined` (class code is always strict mode), so assigning `this.total` throws.\n\nFixes:\n- **Arrow wrapper**: `.then(v => this.onTotal(v))`. Arrow functions don't have their own `this`; they use the surrounding one.\n- **Arrow-function class property**: `onTotal = (v: number) => { ... }`, permanently bound to the instance.\n- **`bind`**: `.then(this.onTotal.bind(this))`.\n\nThe same trap appears with `subscribe(this.handle)`, `addEventListener('click', this.onClick)`, and `setTimeout(this.tick, 1000)`. With `setTimeout`, browsers call the callback with `this` = `window`, so instead of a crash you get a **silent** bug that writes to the wrong object.\n\nThe reverse mistake: using an arrow function as an object method that *needs* a dynamic `this`.",
+   "fix": "```ts\nload() {\n  this.api.getTotal().then(v => this.onTotal(v));   // arrow keeps lexical `this`\n}\n\n// or define the handler as an arrow-function property\nonTotal = (value: number) => {\n  this.total = value;\n};\n\n// or bind explicitly: .then(this.onTotal.bind(this))\n```",
+   "interviewTip": "Explain the four `this` rules (call site, method call, `new`, explicit bind) plus \"arrows inherit `this`\" in one breath.",
+   "askedAt": [
+    "Walmart",
+    "Publicis Sapient",
+    "Thoughtworks"
+   ]
+  },
+  {
+   "id": "trap-angular-js-event-loop-order",
+   "area": "angular-js",
+   "title": "Event loop: microtasks vs macrotasks",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "What is the output order?\n\n```js\nconsole.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C'));\n(async () => {\n  console.log('D');\n  await null;\n  console.log('E');\n})();\nconsole.log('F');\n```",
+   "options": [
+    "A B C D E F",
+    "A D F C E B",
+    "A F D B C E",
+    "A D F B C E"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "A B C D E F, in source order, because `setTimeout(..., 0)` runs immediately.",
+   "whyPeopleGetItWrong": "`setTimeout(fn, 0)` *reads* like \"now\", and `async` *reads* like \"runs later in the background\". Both readings are wrong. Candidates also lump all async callbacks together, not knowing there are two queues with different priority. Interviewers use this exact puzzle because the answer shows whether you understand why a promise callback beats a timer, and why Angular's change detection runs when it does.",
+   "correct": "Output: **A D F C E B**.\n\n1. **Synchronous code runs first**: `A`, then the async function's body up to its first `await` (`D`), then `F`.\n2. When the call stack is empty, the **microtask queue is drained completely**: promise callbacks (`C`) and code after an `await` (`E`), in the order they were queued.\n3. Only then does the event loop take the next **macrotask**: timers (`B`), I/O, UI events.\n\nRules worth stating: `await x` suspends the function and resumes it in a microtask, even if `x` is not a promise. `setTimeout(fn, 0)` means \"at the earliest, after the current task and all microtasks\" (browsers clamp nested timers to at least 4 ms). An endless chain of microtasks **starves** rendering and timers.\n\nAngular link: Zone.js patches these async APIs to know when to run change detection. In zoneless Angular, signals and `markForCheck` schedule updates instead.",
+   "fix": null,
+   "interviewTip": "Narrate the three phases (sync → drain microtasks → one macrotask) instead of just giving the order.",
+   "askedAt": [
+    "Flipkart",
+    "Microsoft",
+    "Swiggy",
+    "Paytm"
+   ]
+  },
+  {
+   "id": "trap-angular-js-async-foreach",
+   "area": "angular-js",
+   "title": "`async` callback inside forEach is not awaited",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "A bulk-save helper:\n\n```js\nasync function saveAll(items) {\n  items.forEach(async (item) => {\n    await save(item);\n  });\n  console.log('all saved');\n}\n```\n\nWhat actually happens, and how do you fix it?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "It saves each item one by one and logs 'all saved' after the last save, because of the `await`.",
+   "whyPeopleGetItWrong": "The `await` is right there in the code, so it *looks* sequential. But it is inside the callback, and it only pauses that callback. `forEach` ignores the promise each callback returns and moves on. Candidates also wrap the `forEach` in `try/catch` expecting to catch save errors, which can't work because the rejections happen later. In Node 15+, an unhandled rejection crashes the process by default, which makes this a production bug, not just a style issue.",
+   "correct": "`forEach` fires all callbacks synchronously and returns `undefined`. So:\n- **'all saved' logs before any save finishes**.\n- All saves run **concurrently** with no limit (500 items = 500 simultaneous requests).\n- Rejections are **unhandled**: the caller's `try/catch` and `.catch` never see them.\n\nPick the behaviour you actually want:\n- **Sequential** (order matters, or to protect the backend): `for (const item of items) await save(item);`\n- **Parallel**: `await Promise.all(items.map(save))`. It rejects on the first failure; the other saves keep running.\n- **Parallel with a full report**: `Promise.allSettled`.\n- **Bounded concurrency** for large batches: process in chunks, or use a limiter.\n\nRxJS equivalents: `from(items).pipe(concatMap(save))` for sequential, and `mergeMap(save, 5)` for at most 5 at a time.\n\nThe same trap applies to `map` without `Promise.all`, and to `filter` or `reduce` with async callbacks.",
+   "fix": "```js\n// sequential, in order, stops at the first error\nasync function saveAllSequential(items) {\n  for (const item of items) {\n    await save(item);\n  }\n  console.log('all saved');\n}\n\n// parallel, waits for all, rejects on the first failure\nasync function saveAllParallel(items) {\n  await Promise.all(items.map(item => save(item)));\n  console.log('all saved');\n}\n\n// parallel, report every failure instead of failing fast\nasync function saveAllSettled(items) {\n  const results = await Promise.allSettled(items.map(item => save(item)));\n  return results.filter(r => r.status === 'rejected').length;   // number of failures\n}\n```",
+   "interviewTip": "Ask \"sequential or parallel?\" before fixing; choosing deliberately is the senior signal.",
+   "askedAt": [
+    "Razorpay",
+    "Atlassian",
+    "Postman"
+   ]
+  },
+  {
+   "id": "trap-angular-js-equality-coercion",
+   "area": "angular-js",
+   "title": "`==` vs `===` and coercion surprises",
+   "level": "Basic",
+   "frequency": "Common",
+   "prompt": "Which of these evaluates to `true`?",
+   "options": [
+    "`NaN === NaN`",
+    "`[] == false`",
+    "`null == 0`",
+    "`'5' === 5`"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "`null == 0`, because null is \"empty\" like 0.",
+   "whyPeopleGetItWrong": "Candidates know \"`===` is stricter\" but not the actual coercion rules, so they guess from intuition about \"empty\" values. The rules are not intuitive: objects convert to primitives, booleans convert to numbers, and `null` only loosely equals `undefined`. Interviewers ask it to check whether you rely on habits (always `===`) that you can justify, and whether you know related traps such as `NaN` and object reference comparison.",
+   "correct": "**`[] == false` is `true`**: `false` becomes `0`, `[]` becomes `''` and then `0`, so `0 == 0`.\n\nThe others are false:\n- `NaN === NaN` is false, because NaN is not equal to anything, including itself. Use `Number.isNaN`.\n- `null == 0` is false: under `==`, `null` equals only `null` and `undefined`.\n- `'5' === 5` is false, because strict equality never coerces.\n\nPractical rules:\n- Use `===` and `!==` everywhere. The one idiomatic exception is `x == null`, which checks both `null` and `undefined`.\n- Objects and arrays compare **by reference**: `{} === {}` is false. In Angular this is why mutating an array does not trigger OnPush or `ngOnChanges`, and why `distinctUntilChanged()` on objects needs a comparator.\n- `typeof null === 'object'` is a historic quirk; check `x === null` explicitly.",
+   "fix": "```js\n[] == false          // true  ([] -> '' -> 0, false -> 0)\nnull == 0            // false (null only == undefined)\nnull == undefined    // true  (the one idiomatic use: x == null)\nNaN === NaN          // false -> use Number.isNaN(x)\n'5' === 5            // false (no coercion)\n({}) === ({})        // false: objects compare by reference\ntypeof null          // 'object' (historic bug)\n```",
+   "interviewTip": "Mention the reference-equality consequence for OnPush and `distinctUntilChanged`; it connects trivia to real Angular bugs.",
+   "askedAt": [
+    "TCS",
+    "Infosys",
+    "Zoho"
+   ]
+  },
+  {
+   "id": "trap-angular-js-onpush-mutation",
+   "area": "angular-js",
+   "title": "OnPush not updating after mutation",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "The child uses `OnPush`. The parent adds a todo, but the list on screen does not change:\n\n```ts\n@Component({\n  selector: 'app-todo-list',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  template: `<ul>@for (t of todos; track t.id) { <li>{{ t.title }}</li> }</ul>`,\n})\nexport class TodoListComponent {\n  @Input() todos: Todo[] = [];\n}\n\n// parent component\naddTodo(title: string) {\n  this.todos.push({ id: Date.now(), title });   // the child list does not update\n}\n```\n\nWhy, and what are the correct fixes?",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "OnPush is broken or buggy here; just call `detectChanges()` everywhere or switch back to Default.",
+   "whyPeopleGetItWrong": "With Default change detection, mutation \"just works\", so developers never learn that Angular compares inputs **by reference** (`Object.is`). After turning on OnPush for performance, mutated arrays and objects stop updating, and the reflex is to sprinkle `detectChanges()` around or turn OnPush off. Interviewers probe exactly when an OnPush component is checked, because it is the core of Angular performance questions.",
+   "correct": "`push()` mutates the **same array**, so the child's `@Input` reference is unchanged. OnPush skips the child.\n\nAn OnPush component is checked only when:\n1. an **input reference changes**;\n2. an **event** fires in the component or its children (a template-bound handler);\n3. an **`async` pipe** in its template emits;\n4. a **signal** read in its template changes;\n5. you call **`markForCheck()`** (marks it and its ancestors for the next check).\n\nFixes: use **immutable updates** (`[...list, item]`, `{...obj, field}`), or **signals** (`todos.update(...)`), or expose an observable consumed with the `async` pipe.\n\nA related trap: inside an OnPush component, a `setTimeout` or a manual `subscribe` callback that assigns a plain field will **not** render. Zone.js runs change detection, but the component is not marked dirty. Use a signal, the `async` pipe or `markForCheck()`. In zoneless Angular (stable since v20.2), signals and `markForCheck` are the only triggers.",
+   "fix": "```ts\n// Option 1: immutable update -> new reference, OnPush child sees a changed input\naddTodo(title: string) {\n  this.todos = [...this.todos, { id: Date.now(), title }];\n}\n\n// Option 2: signals (works with zoneless Angular too)\ntodos = signal<Todo[]>([]);\naddTodoWithSignal(title: string) {\n  this.todos.update(list => [...list, { id: Date.now(), title }]);\n}\n// child: todos = input.required<Todo[]>();  template reads todos()\n```",
+   "interviewTip": "List the OnPush triggers from memory; that list is what the interviewer is checking.",
+   "askedAt": [
+    "Publicis Sapient",
+    "Thoughtworks",
+    "Walmart",
+    "Deloitte"
+   ]
+  },
+  {
+   "id": "trap-angular-js-subscription-leaks",
+   "area": "angular-js",
+   "title": "Subscription leaks and nested subscribes",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Review this component code. What are the problems?\n\n```ts\nngOnInit() {\n  this.route.paramMap.subscribe(params => {\n    this.api.getUser(params.get('id')!).subscribe(user => {\n      this.user = user;\n    });\n  });\n\n  interval(5000).subscribe(() => this.refreshNotifications());\n}\n```",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Every subscribe leaks, including the HttpClient call, so add `unsubscribe()` calls for all three in `ngOnDestroy`.",
+   "whyPeopleGetItWrong": "Candidates have heard \"always unsubscribe\" and apply it mechanically, without knowing **which** observables complete on their own. They also nest `subscribe` calls because it mirrors callback-style code, missing that nesting loses cancellation and ordering. The interviewer wants you to spot the *real* leak (the `interval`), explain the race in the nested subscribe, and know that the async pipe and `takeUntilDestroyed` exist.",
+   "correct": "**The real leak is `interval(5000)`**. It never completes, so it keeps calling `refreshNotifications()` after the component is destroyed, and each visit to the page adds **another** interval.\n\n**The nested subscribe is a race**: if the route id changes quickly (user A → user B), both requests run, and if A's response arrives last, the page shows **the wrong user**. There is no cancellation, and error handling is scattered.\n\nWhat does *not* leak: `HttpClient` observables complete after one response, and `ActivatedRoute` observables are cleaned up by the router when the component is destroyed.\n\nFixes:\n- Flatten with **`switchMap`**: a new id cancels the in-flight request.\n- Prefer the **`async` pipe** (or `toSignal`) in the template: it subscribes and unsubscribes for you.\n- For long-lived manual subscriptions, use **`takeUntilDestroyed()`**. Call it with no argument in an injection context (field initialiser or constructor), or pass a `DestroyRef` when calling it in `ngOnInit`.",
+   "fix": "```ts\nprivate route = inject(ActivatedRoute);\nprivate api = inject(UserApi);\nprivate destroyRef = inject(DestroyRef);\n\n// template: @if (user$ | async; as user) { ... }  -> async pipe subscribes AND unsubscribes\nuser$ = this.route.paramMap.pipe(\n  map(params => params.get('id')!),\n  switchMap(id => this.api.getUser(id)),        // a new id cancels the previous request\n);\n\nngOnInit() {\n  interval(5000)\n    .pipe(takeUntilDestroyed(this.destroyRef))  // stops when the component is destroyed\n    .subscribe(() => this.refreshNotifications());\n}\n```",
+   "interviewTip": "Distinguish completing observables (HTTP) from infinite ones (interval, valueChanges, store selects) before saying \"unsubscribe\".",
+   "askedAt": [
+    "Thoughtworks",
+    "Publicis Sapient",
+    "Walmart",
+    "EPAM"
+   ]
+  },
+  {
+   "id": "trap-angular-js-switchmap-vs-mergemap",
+   "area": "angular-js",
+   "title": "Choosing switchMap / mergeMap / concatMap / exhaustMap",
+   "level": "Advanced",
+   "frequency": "Very common",
+   "prompt": "Pick the right flattening operator for each case:\n\n1. Search-as-you-type that calls an API.\n2. Auto-saving form edits, where every save must reach the server in order.\n3. A \"Pay\" button that must ignore extra clicks while a payment request is in flight.",
+   "options": [
+    "mergeMap, mergeMap, mergeMap",
+    "switchMap, concatMap, exhaustMap",
+    "switchMap, switchMap, switchMap",
+    "concatMap, switchMap, mergeMap"
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "Use switchMap everywhere, because cancelling the previous request is always the safest choice.",
+   "whyPeopleGetItWrong": "Many tutorials only teach `switchMap` for search, so it becomes the default for everything. Others reach for `mergeMap` because it \"just works\" in demos where responses come back instantly and in order. The subtle part candidates miss: `switchMap` cancels by **unsubscribing**, which aborts the browser request, but the server may already have processed it. So with saves you silently lose or reorder writes, and with payments you risk duplicate charges.",
+   "correct": "**switchMap, concatMap, exhaustMap.**\n\n- **switchMap**: only the latest result matters. Search, typeahead, loading data for the current route parameter. Old requests are cancelled, so stale responses can't overwrite new ones.\n- **concatMap**: queue and preserve order, none dropped. Saves, sequential writes, ordered uploads.\n- **exhaustMap**: ignore new triggers while one is running. Submit, login and pay buttons, pull-to-refresh.\n- **mergeMap**: run in parallel, order doesn't matter. Independent operations such as deleting several selected items. Pass a concurrency limit (`mergeMap(fn, 4)`).\n\nWhy the wrong choices fail: **mergeMap for search** lets a slow response for \"ja\" arrive after \"java\" and overwrite the newer results. **switchMap for saves** cancels in-flight saves client-side, while the server may or may not have applied them.\n\nFor search, also add `debounceTime`, `distinctUntilChanged`, and `catchError` **inside** the inner observable, because an error in the outer stream completes it and search stops working forever.",
+   "fix": "```ts\nresults$ = this.searchCtrl.valueChanges.pipe(\n  debounceTime(300),\n  map(q => (q ?? '').trim()),\n  distinctUntilChanged(),\n  switchMap(q => q.length < 2\n    ? of([])\n    : this.api.search(q).pipe(catchError(() => of([])))),   // catch INSIDE so the stream survives\n);\n\nsaveClicks$.pipe(concatMap(form => this.api.save(form)));     // ordered, none dropped\npayClicks$.pipe(exhaustMap(() => this.api.pay(this.orderId))); // ignore double-clicks while paying\n```",
+   "interviewTip": "Give one real use case per operator; interviewers remember \"exhaustMap for the pay button\".",
+   "askedAt": [
+    "Walmart",
+    "Publicis Sapient",
+    "Thoughtworks",
+    "Microsoft"
+   ]
+  },
+  {
+   "id": "trap-os-networking-process-vs-thread",
+   "area": "os-networking",
+   "title": "What threads share (and what they don't)",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "Which of these is **shared** between threads of the same process?",
+   "options": [
+    "The call stack",
+    "The program counter and registers",
+    "Heap objects and static fields",
+    "ThreadLocal values"
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "Each thread has its own copy of the process memory, so threads are isolated like processes.",
+   "whyPeopleGetItWrong": "Candidates memorise \"threads are lightweight processes\" and conclude that threads are isolated like processes, only cheaper. Others swing the other way and think *everything*, including local variables, is shared. The precise answer (shared heap, private stack) is what explains race conditions, why local variables are thread-safe, and why one bad thread can crash the whole JVM. Interviewers use it as the entry point to concurrency questions.",
+   "correct": "**Heap objects and static fields** are shared. Threads in a process share one address space: the heap, static data, code, and open files and sockets.\n\nEach thread has its **own stack** (local variables, call frames), **program counter and registers**, and **thread-local storage**. So a local `int` is safe, but the **object a local reference points to** lives on the heap and may be shared. That is where race conditions come from.\n\n**Processes** have separate address spaces: strong isolation (one crashing doesn't kill the other) but communication requires IPC (pipes, sockets, shared memory). Context switches between processes cost more (page tables, TLB).\n\nConsequences worth mentioning:\n- A native crash or `OutOfMemoryError` affects the **whole JVM**. An uncaught exception ends only that thread, which is easy to miss in thread pools: log it, or check the `Future`.\n- Java 21 **virtual threads** are scheduled onto a few carrier threads but still share the heap, so the same synchronisation rules apply.",
+   "fix": null,
+   "interviewTip": "Add \"locals are thread-confined, but the objects they reference may not be\"; it shows you understand where races come from.",
+   "askedAt": [
+    "Amazon",
+    "Goldman Sachs",
+    "JPMorgan",
+    "Oracle"
+   ]
+  },
+  {
+   "id": "trap-os-networking-mutex-vs-semaphore",
+   "area": "os-networking",
+   "title": "Mutex vs semaphore",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "Which statement about mutexes and semaphores is correct?",
+   "options": [
+    "A mutex is just a binary semaphore; they are interchangeable.",
+    "A mutex has an owner (only the locking thread may unlock) and protects a critical section; a semaphore has no owner, holds N permits, and limits concurrency or signals between threads.",
+    "A semaphore with one permit is re-entrant like ReentrantLock.",
+    "Semaphores cannot cause deadlock."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "A mutex is just a binary semaphore; the two are interchangeable.",
+   "whyPeopleGetItWrong": "Textbooks often introduce a mutex as \"a semaphore with value 1\", and that line sticks. It ignores **ownership**: a mutex is locked and unlocked by the same thread, while a semaphore is a counter that any thread can increment. That difference changes what each one is *for* (protecting a critical section vs limiting concurrency or signalling). In Java, misusing `Semaphore` as a lock leads to bugs that no exception reveals.",
+   "correct": "A **mutex has an owner**. Only the thread that locked it can unlock it. It is used for mutual exclusion around a critical section, and is often re-entrant (`ReentrantLock`, `synchronized`). OS mutexes can also support priority inheritance.\n\nA **semaphore has no owner**. It holds N permits; `acquire` takes one (blocking if none are left) and `release` returns one, **from any thread**, even one that never acquired. That makes it right for:\n- **Limiting concurrency**: at most 10 calls to a slow dependency (a bulkhead), or a pool of N connections.\n- **Signalling** between threads: a producer releases, a consumer acquires.\n\nJava pitfalls:\n- `Semaphore(1)` is **not re-entrant**. The same thread acquiring twice blocks itself forever.\n- A stray extra `release()` silently raises the permit count above the intended limit.\n- Unlocking a `ReentrantLock` from a non-owner throws `IllegalMonitorStateException`.\n\nBoth can deadlock if acquired in inconsistent orders.",
+   "fix": "```java\nReentrantLock lock = new ReentrantLock();\nlock.lock();                                      // owned by main thread\nThread other = new Thread(() -> {\n    try {\n        lock.unlock();                            // not the owner\n    } catch (IllegalMonitorStateException e) {\n        System.out.println(\"mutex: non-owner unlock rejected\");\n    }\n});\nother.start(); other.join();\n\nSemaphore permits = new Semaphore(1);\npermits.acquire();                                // main takes the only permit\nThread signaller = new Thread(permits::release);  // a different thread gives it back: allowed\nsignaller.start(); signaller.join();\nSystem.out.println(\"semaphore permits = \" + permits.availablePermits());   // 1\n```\n\n```java\n// Semaphore as a bulkhead: at most 10 concurrent calls to a slow dependency\nprivate final Semaphore inFlight = new Semaphore(10);\n\nQuote fetchQuote(String sku) throws InterruptedException {\n    if (!inFlight.tryAcquire(200, TimeUnit.MILLISECONDS))\n        throw new RejectedExecutionException(\"pricing busy, fail fast\");\n    try {\n        return pricingClient.quote(sku);\n    } finally {\n        inFlight.release();                       // always release in finally\n    }\n}\n```",
+   "interviewTip": "Lead with ownership (\"a mutex has an owner, a semaphore is a counter\"), then give one real use of each.",
+   "askedAt": [
+    "Qualcomm",
+    "Goldman Sachs",
+    "Oracle",
+    "Samsung"
+   ]
+  },
+  {
+   "id": "trap-os-networking-deadlock",
+   "area": "os-networking",
+   "title": "Deadlock: conditions and the practical fix",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Two threads transfer money between the same two accounts in opposite directions. The app occasionally freezes:\n\n```java\nvoid transfer(Account from, Account to, long amount) {\n    synchronized (from) {\n        synchronized (to) {\n            from.debit(amount);\n            to.credit(amount);\n        }\n    }\n}\n// Thread 1: transfer(a, b, 100)    Thread 2: transfer(b, a, 50)\n```\n\nExplain why, and fix it.",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Make `transfer` a `synchronized` method, or add a timeout and hope the threads give up.",
+   "whyPeopleGetItWrong": "Candidates can recite the four Coffman conditions but can't map them to code or pick the one that is cheapest to break. \"Synchronize the method\" locks on `this` (the service), which either does nothing useful or serialises every transfer in the system. Timeouts sound reasonable but trade deadlock for livelock and retry complexity. Interviewers want the specific, standard fix: **a global lock order**.",
+   "correct": "Thread 1 holds `a` and waits for `b`; thread 2 holds `b` and waits for `a`. All four **Coffman conditions** hold:\n1. **mutual exclusion** (monitors are exclusive);\n2. **hold and wait** (holding one lock while requesting another);\n3. **no preemption** (a lock can't be taken away);\n4. **circular wait**.\n\nBreak one:\n- **Lock ordering** (break circular wait): always lock the account with the lower id first. Simple, cheap and the standard answer.\n- `tryLock` with a timeout and backoff (break hold and wait): works, but risks livelock and needs retry logic.\n- One global lock: correct, but it kills concurrency.\n\n**Diagnose** with a thread dump (`jstack <pid>`): the JVM prints \"Found one Java-level deadlock\" with the threads and monitors involved.\n\n**Database analogue**: two transactions updating the same rows in opposite order. InnoDB detects the cycle and rolls one back (error 1213), so update rows in a consistent order (sorted ids) and retry on deadlock errors.",
+   "fix": "```java\nvoid transfer(Account from, Account to, long amount) {\n    Account first  = from.id() < to.id() ? from : to;   // global order: lower id first\n    Account second = from.id() < to.id() ? to : from;\n    synchronized (first) {\n        synchronized (second) {\n            from.debit(amount);\n            to.credit(amount);\n        }\n    }\n}\n```",
+   "interviewTip": "Name the condition you are breaking (\"I break circular wait with lock ordering by id\"), then mention jstack and the InnoDB analogue.",
+   "askedAt": [
+    "Goldman Sachs",
+    "Morgan Stanley",
+    "Amazon",
+    "PhonePe"
+   ]
+  },
+  {
+   "id": "trap-os-networking-time-wait",
+   "area": "os-networking",
+   "title": "TIME_WAIT and ephemeral port exhaustion",
+   "level": "Advanced",
+   "frequency": "Common",
+   "prompt": "A Java service calls a partner API by opening a **new HTTP connection per request** (no pooling) at 2,000 req/s. After a few seconds, calls fail with `Cannot assign requested address`. `ss -s` shows about **28,000 sockets in TIME_WAIT on the calling service's host**. What is happening?",
+   "options": [
+    "The partner server is not closing its connections.",
+    "The side that actively closes keeps the socket in TIME_WAIT (60 s on Linux); the client closes every connection, so its ~28k ephemeral ports run out. Reuse connections with keep-alive and pooling.",
+    "TIME_WAIT means the TCP handshake failed; increase SYN retries.",
+    "The partner's accept backlog is full."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "The partner's server isn't closing connections properly, or TIME_WAIT means the handshake failed.",
+   "whyPeopleGetItWrong": "Most people learned TIME_WAIT as a \"server-side\" state, or as a sign that something is broken. Actually it belongs to **whichever side closes first**, and here that is the client. Candidates also don't connect TIME_WAIT to **ephemeral ports**: each outgoing connection to the same destination needs a unique local port, and closed connections hold theirs for a while. The interviewer wants to hear \"pool and reuse connections\".",
+   "correct": "The side that **actively closes** a TCP connection keeps it in **TIME_WAIT** for 2×MSL (fixed at 60 s on Linux). That serves two purposes: to resend the final ACK if it is lost, and to let delayed packets from the old connection expire so they can't corrupt a new connection with the same address/port tuple.\n\nThe client closes after each request, so each closed connection holds a local port for 60 s. Linux's default ephemeral range (32768-60999) gives about **28k ports**, which allows roughly 470 new connections per second to one destination. At 2,000 req/s the ports run out in seconds.\n\nFixes:\n- **Reuse connections**: HTTP keep-alive with a connection pool (Apache HttpClient, OkHttp, a shared JDK `HttpClient`, WebClient). This is the real fix.\n- Widen `ip_local_port_range`, and enable `net.ipv4.tcp_tw_reuse` for outgoing connections.\n- Never use `tcp_tw_recycle`: it broke clients behind NAT and was removed in Linux 4.12.\n\nRelated: the 3-way handshake exists so **both** sides agree on initial sequence numbers and confirm both directions work.",
+   "fix": null,
+   "interviewTip": "Say \"TIME_WAIT is on the side that closes first\" and \"the fix is connection reuse\", then the numbers.",
+   "askedAt": [
+    "Amazon",
+    "Juspay",
+    "Akamai",
+    "Cloudflare"
+   ]
+  },
+  {
+   "id": "trap-os-networking-tcp-vs-udp",
+   "area": "os-networking",
+   "title": "TCP vs UDP: what each really guarantees",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "Which statement is correct?",
+   "options": [
+    "Once TCP send() returns, the remote application has processed the data.",
+    "TCP preserves message boundaries: two send() calls arrive as two recv() calls.",
+    "TCP gives an ordered, reliable byte stream with no message boundaries; UDP gives independent datagrams that may be lost, duplicated or reordered, with reliability built on top if needed (as QUIC does).",
+    "UDP is always faster, so it is the better default for APIs."
+   ],
+   "answer": 2,
+   "commonWrongAnswer": "TCP guarantees the other application received and processed your data, and each send() arrives as one message.",
+   "whyPeopleGetItWrong": "\"TCP is reliable\" gets stretched into \"TCP guarantees the other app handled my data\". Reliability ends at the peer's **kernel**, not its application. And because typical HTTP or JSON libraries hide framing, many developers have never noticed that TCP is a **byte stream** without message boundaries. On the UDP side, \"faster\" gets misread as \"better for APIs\", ignoring that you would have to rebuild reliability yourself.",
+   "correct": "**TCP** provides an ordered, reliable **byte stream** with flow and congestion control. It does **not** preserve message boundaries: two `send()` calls can arrive in one `recv()`, or one can arrive split across several. Protocols therefore need framing (length prefixes, delimiters, HTTP's `Content-Length` or chunking). When `send()` returns, your bytes are only in the local kernel buffer. Even a TCP ACK only proves the peer's kernel received them; the application may crash before processing. End-to-end guarantees need **application-level acknowledgements and idempotency**.\n\n**UDP** sends independent datagrams: no connection setup, no ordering, no retransmission, and no head-of-line blocking. It suits DNS, voice and video, gaming, and **QUIC**, which builds reliable, multiplexed streams in user space on top of UDP. That is how HTTP/3 avoids TCP's head-of-line blocking, where one lost segment stalls everything behind it.",
+   "fix": null,
+   "interviewTip": "Mention \"byte stream, not messages\" and \"an ACK is not app-level processing\"; both separate you from rote answers.",
+   "askedAt": [
+    "Cisco",
+    "Juniper",
+    "Amazon",
+    "Zoho"
+   ]
+  },
+  {
+   "id": "trap-os-networking-url-flow",
+   "area": "os-networking",
+   "title": "What happens when you type a URL",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "\"What happens when you type `https://shop.example.com/cart` into the browser and press Enter?\" The interviewer will let you talk for a minute, then **drill into two layers of their choice**.",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "DNS gives the IP, the browser sends an HTTP request, and the server returns HTML that the browser shows.",
+   "whyPeopleGetItWrong": "It is such a famous question that candidates give a rehearsed four-line summary. That skips the parts interviewers actually drill into: caching at every layer, the TCP and TLS handshakes (and their round-trip costs), what sits between the internet and the app server, and what the browser does after the first byte. Common factual slips: \"DNS asks the root servers every time\" and \"HTTPS hides which site I'm visiting\".",
+   "correct": "A strong answer walks through the layers and names the round trips:\n\n1. **Browser**: parse the URL, check HSTS (forces https), then the HTTP cache and any service worker.\n2. **DNS**: browser cache → OS cache and hosts file → recursive resolver. Only on a miss does the resolver walk root → `.com` → the authoritative server. TTLs control caching. The answer is often a **CDN edge** IP (GeoDNS or anycast).\n3. **Connection**: TCP handshake (1 RTT) + TLS 1.3 (1 RTT: certificate check, SNI, ALPN picks HTTP/2). HTTP/3 over QUIC merges both into 1 RTT, or 0-RTT on resumption.\n4. **Request path**: CDN → load balancer (often terminates TLS) → gateway or reverse proxy → app server (Tomcat thread, filters, controller) → cache and database.\n5. **Response and render**: status, `Cache-Control`, `Set-Cookie`, compression. The browser builds the DOM and CSSOM, fetches subresources over the **same connection** (HTTP/2 multiplexing vs about 6 connections per host with HTTP/1.1), runs JS, then paints.\n\nPrivacy: HTTPS encrypts the path, headers and body, but the hostname is visible through DNS and SNI unless DoH and ECH are used.",
+   "fix": "```text\nRound trips before the first byte (cold, no caches):\nDNS (recursive miss)  ~1+ RTT to resolver (+ resolver's own lookups)\nTCP handshake         1 RTT   (SYN, SYN-ACK, ACK)\nTLS 1.3               1 RTT   (ClientHello+key share -> ServerHello+cert+Finished)\nHTTP request          1 RTT\n=> ~3-4 RTT. HTTP/3 (QUIC) merges TCP+TLS: ~2 RTT; resumed 0-RTT: ~1 RTT\nWarm: DNS cached + reused keep-alive/HTTP2 connection => 1 RTT\n```",
+   "interviewTip": "Give the one-minute overview, then ask \"which layer should I go deeper on?\"; it shows structure and lets you steer to strengths.",
+   "askedAt": [
+    "Amazon",
+    "Google",
+    "Microsoft",
+    "Zoho"
+   ]
+  },
+  {
+   "id": "trap-os-networking-cors",
+   "area": "os-networking",
+   "title": "CORS is enforced by the browser",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "Your Angular app at `https://app.shop.com` calls `https://api.shop.com/orders` with a JWT in the `Authorization` header. The browser console shows a **CORS error**, but the exact same request works in Postman. Which statement is correct?",
+   "options": [
+    "The API is broken; Postman is hiding the error.",
+    "The browser enforces CORS: the API must return `Access-Control-Allow-Origin: https://app.shop.com` and handle the OPTIONS preflight. CORS does not restrict non-browser clients, so it is not an authentication mechanism.",
+    "CORS protects the API from attackers using curl or scripts.",
+    "Setting `Access-Control-Allow-Origin: *` together with credentials is the simplest correct fix."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "CORS is a server-side security feature that protects the API from unauthorised clients; Postman simply bypasses it.",
+   "whyPeopleGetItWrong": "CORS errors appear when calling the server and are fixed by changing server config, so people assume it is server-side protection. In fact the **browser** enforces it, to protect *users*. It stops a malicious site's JavaScript from reading responses from other origins using the user's session. Postman, curl and servers don't enforce it. Candidates also don't know which requests trigger a preflight, and why Spring Security sometimes rejects it.",
+   "correct": "The **browser** enforces the same-origin policy, where an origin is scheme + host + port, so `app.` and `api.` are different origins. The server must **opt in** with headers. Non-browser clients ignore all of this, so **CORS is not authentication** and doesn't protect your API from scripts.\n\nKey mechanics:\n- **Preflight**: a request with `Authorization`, a JSON `Content-Type`, or methods like PUT/DELETE triggers an automatic `OPTIONS` request first. The server must answer it with the allowed origin, methods and headers. The preflight carries **no credentials**, so if your security filter demands a JWT on `OPTIONS`, CORS fails. In Spring Security, enable `cors()` so preflights are handled before authentication.\n- **Credentials** (cookies): the server must echo the exact origin and send `Access-Control-Allow-Credentials: true`. A `*` origin is not allowed with credentials.\n- Simple requests still **reach the server**; the browser only hides the response. That is why CORS is not CSRF protection.\n- In development, Angular's `proxy.conf.json` avoids cross-origin calls entirely.",
+   "fix": "```text\nPreflight sent by the browser:\nOPTIONS /orders\nOrigin: https://app.shop.com\nAccess-Control-Request-Method: PUT\nAccess-Control-Request-Headers: authorization, content-type\n\nAPI response:\nHTTP/1.1 204 No Content\nAccess-Control-Allow-Origin: https://app.shop.com\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE\nAccess-Control-Allow-Headers: authorization, content-type\nAccess-Control-Allow-Credentials: true      (only if you send cookies)\nAccess-Control-Max-Age: 3600                (cache the preflight)\nVary: Origin\n```",
+   "interviewTip": "Say \"CORS protects users, is enforced by browsers, and is not API security\", then explain preflight and credentials.",
+   "askedAt": [
+    "Thoughtworks",
+    "Publicis Sapient",
+    "Freshworks"
+   ]
+  },
+  {
+   "id": "trap-os-networking-jwt-storage",
+   "area": "os-networking",
+   "title": "Where to store tokens: localStorage vs HttpOnly cookie",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "Your Angular SPA receives a JWT after login. Where should it keep the token, and why?",
+   "options": [
+    "localStorage: it is safe because JWTs are signed.",
+    "No storage is XSS-proof: an HttpOnly, Secure, SameSite cookie keeps the token away from JavaScript but needs CSRF protection; localStorage avoids CSRF but any XSS can read it. A common pattern is a short-lived access token in memory plus a rotating refresh token in an HttpOnly cookie.",
+    "A non-HttpOnly cookie so Angular can read it; cookies are immune to XSS.",
+    "In the URL query string, so every request carries it."
+   ],
+   "answer": 1,
+   "commonWrongAnswer": "localStorage is fine because a JWT is signed, so nobody can misuse it.",
+   "whyPeopleGetItWrong": "\"Signed\" gets confused with \"safe\". A signature stops **tampering**, not **theft**: whoever holds the token *is* the user until it expires. And the payload is only base64url-encoded, readable by anyone. Candidates also present cookies vs localStorage as \"secure vs insecure\" instead of as a trade-off between **XSS exposure** and **CSRF exposure**. Interviewers want the trade-off and the common hybrid pattern.",
+   "correct": "There is no storage that is safe from XSS, only trade-offs:\n\n- **localStorage / sessionStorage**: no CSRF risk (nothing is sent automatically), but **any XSS** can read the token and send it to an attacker, who can then use it from anywhere until it expires.\n- **HttpOnly; Secure; SameSite cookie**: JavaScript can't read it, so XSS can't steal it, but the browser sends it automatically, so you need **CSRF protection**. `SameSite=Lax/Strict` blocks most cross-site sends; add CSRF tokens for state-changing requests if needed.\n\n**Common pattern**: a short-lived access token (5-15 min) kept **in memory**, plus a refresh token in an **HttpOnly, Secure, SameSite=Strict cookie** scoped to the refresh endpoint and **rotated** on every use (reuse means theft, so revoke the token family).\n\nAlso: stateless JWTs are hard to revoke (keep expiry short, or use a denylist by `jti`). Never put secrets or PII in the payload. Fix XSS at the source: Angular escapes interpolation, so avoid `bypassSecurityTrust*` and raw `innerHTML` with untrusted data.",
+   "fix": "```text\nSet-Cookie: refresh_token=8f3c...; HttpOnly; Secure; SameSite=Strict; Path=/api/auth/refresh; Max-Age=1209600\nAccess token: kept in a service field / signal (memory only), sent as Authorization: Bearer <token>\nOn 401 -> POST /api/auth/refresh (cookie sent automatically) -> new access token + rotated refresh cookie\n```",
+   "interviewTip": "Frame it as \"XSS vs CSRF trade-off\" and describe the in-memory access token plus HttpOnly refresh cookie pattern.",
+   "askedAt": [
+    "Razorpay",
+    "CRED",
+    "Okta",
+    "Freshworks"
+   ]
+  },
+  {
+   "id": "trap-behavioral-we-instead-of-i",
+   "area": "behavioral",
+   "title": "Saying \"we\" so the interviewer can't see you",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "\"Tell me about the most challenging project you worked on.\"\n\nCandidate: \"**We** were migrating the claims module to microservices. **We** decided to use Kafka, **we** built the retry flow, and **our team** cut latency in half...\"\n\nThe interviewer follows up: \"What did *you* specifically do?\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Saying \"we\" shows I'm a team player, and claiming individual credit sounds arrogant.",
+   "whyPeopleGetItWrong": "In Indian service companies, work is assigned to teams and credit is collective, so \"we\" feels humble and safe. But the interviewer is hiring **you**, not your team. Every \"we\" forces them to spend follow-up questions extracting your role, and if they can't find it, they assume it was small. At SDE-2 and senior level, the rubric looks for **your decisions, trade-offs and influence**, which \"we\" hides completely.",
+   "correct": "Use **\"we\" for context and \"I\" for actions**. Name exactly what you owned, decided and influenced:\n\n- **Scope**: \"The team of six owned the migration; I owned the payment-reconciliation service end to end.\"\n- **Decisions**: \"I proposed an outbox table instead of publishing to Kafka directly, because we were losing events on pod restarts.\"\n- **Influence**: \"I wrote the design doc, got the architect's sign-off, and paired with two juniors on the consumer.\"\n- **Result you can attribute**: \"Lost events went from roughly 40 a week to zero; reconciliation tickets dropped by 70%.\"\n\nDon't overcorrect by claiming the whole team's work: interviewers probe (\"how did the Kafka cluster get provisioned?\"), and being precise about boundaries builds trust. A quick self-test for every story: if someone else had done your part, what would have been different?",
+   "fix": "```text\nWeak : \"We migrated the module and improved performance.\"\nStrong: \"The team of 6 migrated claims to microservices. I owned reconciliation:\n         I found events were lost on pod restarts, proposed an outbox + poller,\n         wrote the design doc, implemented it, and added a lag alert.\n         Lost events: ~40/week -> 0; manual reconciliation tickets down ~70%.\"\n```",
+   "interviewTip": "Before each story, write down three sentences that start with \"I decided\", \"I built\" or \"I convinced\"; if you can't, choose another story.",
+   "askedAt": [
+    "Amazon",
+    "Flipkart",
+    "Walmart",
+    "Atlassian"
+   ]
+  },
+  {
+   "id": "trap-behavioral-blaming-current-company",
+   "area": "behavioral",
+   "title": "\"Why are you leaving?\" turned into a complaint",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "\"Why do you want to leave your current company?\"\n\nCandidate: \"Honestly, it's a service company: no good work, my manager doesn't value me, the salary is low and there's no learning.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Be brutally honest about everything wrong with the current job; interviewers appreciate honesty.",
+   "whyPeopleGetItWrong": "The frustrations are often real, and candidates believe that venting them counts as honesty. Interviewers hear something else: **will this person talk about us like this in two years?** Complaints also put the focus on what you are running *from*, when the question is a chance to show what you are moving *towards*. Salary as the headline reason invites the follow-up \"so you'd leave us for more money too?\"",
+   "correct": "Answer with **pull, not push**, in 30-45 seconds:\n\n1. **Appreciate what you gained**: \"I learned to ship production Spring Boot services and handle client escalations.\"\n2. **State the gap neutrally, as a fact about the work rather than a complaint about people**: \"Requirements are fixed by the client, so I rarely own a product decision or see how users react after release.\"\n3. **What you want next, specifically**: owning a product area end to end, working at a scale where design choices matter, and measuring the impact of your own changes.\n4. **Why this company fits**: one concrete link (their payments scale, their engineering blog post, the team's domain).\n\nNever criticise your manager, team or employer by name, even if asked directly. Facts like \"service model\" or \"fixed client scope\" are fine; judgements like \"useless\" or \"no good work\" are not. If compensation matters, address it in the salary conversation, not as your reason for leaving.",
+   "fix": "```text\n\"In two years at <company> I built and supported Spring Boot services for a large insurance client and\nhandled production issues directly with the client. In the service model the client fixes the scope,\nso I rarely own product decisions or see metrics after release. I want to own a product area end to end\nand work at a scale where design trade-offs really matter. Your payments platform team does exactly\nthat, and the problems in your engineering blog on idempotent retries are ones I've started solving myself.\"\n```",
+   "interviewTip": "Rehearse the answer until it takes under 45 seconds and contains zero negative adjectives about people.",
+   "askedAt": [
+    "Amazon",
+    "Flipkart",
+    "Swiggy",
+    "Razorpay"
+   ]
+  },
+  {
+   "id": "trap-behavioral-no-measurable-result",
+   "area": "behavioral",
+   "title": "Stories with no structure and no measurable result",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "\"Tell me about a time you improved the performance of a system.\"\n\nThe candidate spends three minutes on background (client, team, tech stack), one minute on what was done, and ends with: \"...and after that it was working fine and the client was happy.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Explaining the background in depth shows understanding, and \"the client was happy\" is a good enough result.",
+   "whyPeopleGetItWrong": "Candidates think context makes the story understandable, so the Situation grows until it eats the answer. Service-company work rarely tracks metrics, so people assume they have no numbers and end vaguely. But a story without an outcome sounds like a story without impact, and interviewers score **actions and results**. Rambling also burns the time the interviewer had planned for follow-up questions, which is where they would have found your best material.",
+   "correct": "Use **STAR with deliberate proportions**: Situation + Task about 20% (two or three sentences), **Action about 60%**, **Result about 20%**. Aim for about two minutes, then let the interviewer dig in.\n\nMake the result **measurable**:\n- Before and after numbers: \"p95 latency 1.8 s → 350 ms\", \"batch job 4 h → 40 min\", \"incidents 6/month → 1\".\n- Business translation: hours saved, cost reduced, SLA met, users unblocked.\n- If you lack exact numbers, give an honest estimate and say how you know: \"from the Grafana dashboard, roughly 60% fewer timeouts\". Never invent precision.\n- End with **what you learned or changed afterwards** (a checklist, an alert, a new standard).\n\nPrepare 6-8 stories in a story bank and write down each one's numbers now, while you still have access to the dashboards and tickets at your current job.",
+   "fix": "```text\nS (2 lines): Claims search API, p95 1.8 s, timing out for 3k agents during peak hours.\nT (1 line) : I was asked to bring p95 under 500 ms without new hardware.\nA (core)   : Profiled with slow-query log -> two full scans + N+1 in JPA.\n             Added a composite index, replaced N+1 with a fetch join, cached reference data (Caffeine, 10 min).\n             Load-tested with JMeter at 2x peak before release; added a p95 alert.\nR (numbers): p95 1.8 s -> 350 ms, timeouts ~0, DB CPU 85% -> 40%. Now I check query plans in code review.\n```",
+   "interviewTip": "Practise with a timer: if the situation part goes past 30 seconds, cut it.",
+   "askedAt": [
+    "Amazon",
+    "Google",
+    "Uber",
+    "Atlassian"
+   ]
+  },
+  {
+   "id": "trap-behavioral-fake-weakness",
+   "area": "behavioral",
+   "title": "The fake weakness (\"I'm a perfectionist\")",
+   "level": "Basic",
+   "frequency": "Very common",
+   "prompt": "\"What is your biggest weakness?\"\n\nCandidate: \"I'm a perfectionist. I work too hard and sometimes forget to take breaks.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Choose a weakness that is secretly a strength, so it can't hurt you.",
+   "whyPeopleGetItWrong": "Candidates treat it as a trick question to survive rather than as a test of **self-awareness and growth**. Every interviewer has heard \"perfectionist\" hundreds of times, and it signals either low self-awareness or evasiveness, which is worse than an honest flaw. The opposite mistake also happens: naming a weakness that is a **core requirement** of the role (\"I'm not good with databases\" for a backend role).",
+   "correct": "Pick a **real, non-fatal** weakness, show **specific actions** you are taking, and give **evidence of progress**:\n\n1. **Real but not core**: speaking up in large design discussions, over-committing on estimates, going deep before checking direction, delegating less than you should.\n2. **Concrete example** of it costing something: \"I stayed quiet in a design review even though I suspected the retry logic would double-post; it did.\"\n3. **Actions**: \"Now I write a one-page note before design meetings and share it in advance; I ask one question in every review.\"\n4. **Evidence**: \"Last quarter my proposal to use an outbox was adopted, and my manager mentioned it in my review.\"\n\nKeep it under a minute, and say it calmly. Interviewers are checking whether you can look at yourself honestly, which is the same skill they need for incident retrospectives and feedback.",
+   "fix": "```text\n\"I tend to go deep into implementation before validating the direction. On a reporting feature I spent\nthree days optimising a query before learning the client wanted a different report. Now I share a short\napproach note or a rough prototype within the first day and confirm scope before optimising. On my last\ntwo features that caught a requirement mismatch early, once saving about a week.\"\n```",
+   "interviewTip": "Choose a weakness you are actively fixing, so the answer ends on progress rather than confession.",
+   "askedAt": [
+    "Infosys",
+    "Amazon",
+    "Deloitte",
+    "Walmart"
+   ]
+  },
+  {
+   "id": "trap-behavioral-failure-story",
+   "area": "behavioral",
+   "title": "No real failure story (or a disguised humblebrag)",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "\"Tell me about a time you made a mistake or failed.\"\n\nCandidate A: \"I can't think of a major failure.\"\nCandidate B: \"My failure was that I worked so hard on the release that I didn't delegate enough.\"\nCandidate C: \"The release failed because QA missed a bug and the client changed requirements.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Avoid admitting real mistakes; choose something minor, or explain why it wasn't really your fault.",
+   "whyPeopleGetItWrong": "Admitting a mistake in an interview feels risky, so people dodge, humblebrag or shift blame. Interviewers read all three as **low ownership**: either you don't notice your mistakes, or you won't own them. Amazon-style rubrics (\"Ownership\", \"Earn Trust\") and senior rubrics explicitly look for how you **respond** to failure. A real story, well handled, scores higher than a perfect record nobody believes.",
+   "correct": "Choose a **genuine mistake with real but recoverable impact** where **you** were the cause, then spend most of the time on the response:\n\n1. **What happened**, owned plainly: \"I ran a schema migration during business hours that locked the orders table for four minutes.\"\n2. **Immediate response**: how you detected it, mitigated it and communicated (rolled back, informed the on-call engineer and the client).\n3. **Root cause**, honestly: \"I tested on a small dataset and didn't check the lock behaviour of `ALTER TABLE` on 20M rows.\"\n4. **Systemic fix**, not just \"I'll be careful\": an online schema-change tool, a migration checklist, production-like data in staging, a review rule.\n5. **Evidence it stuck**: \"Twelve migrations since, no locking incidents; the checklist is now the team standard.\"\n\nAvoid failures that are catastrophic, ethical, or that you would obviously repeat. Keep blame of others out of it, even if they contributed.",
+   "fix": "```text\nMistake : ran ALTER TABLE on a 20M-row table at 11 am -> orders table locked ~4 min, checkout errors\nResponse: spotted the error spike in 2 min, killed the migration, informed on-call + client within 10 min\nCause   : tested only on a tiny dataset; didn't know the ALTER needed a table copy and lock\nFix     : moved to gh-ost/pt-online-schema-change, off-peak window, migration checklist in PR template\nProof   : 12 migrations since, zero locking incidents; checklist adopted by two other teams\n```",
+   "interviewTip": "Spend 20% on the mistake and 80% on detection, mitigation and the systemic fix; that ratio reads as ownership.",
+   "askedAt": [
+    "Amazon",
+    "Microsoft",
+    "Uber",
+    "Flipkart"
+   ]
+  },
+  {
+   "id": "trap-behavioral-project-tech-dump",
+   "area": "behavioral",
+   "title": "\"Walk me through your project\" answered with a tech-stack list",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "\"Walk me through your current project.\"\n\nCandidate: \"It's built with Spring Boot, Angular, MySQL, Kafka, Docker and Jenkins. It has modules for login, dashboard, reports and user management. I worked on the APIs and the UI.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Listing the tech stack and modules shows the breadth of my experience.",
+   "whyPeopleGetItWrong": "The tech stack is the easiest thing to recall, and resumes are written that way, so candidates repeat their resume. But the interviewer can read your resume. They want to know **what problem the system solves, at what scale, what you owned and what was hard**. This question also sets up the 45-minute project deep dive common in 2026 senior loops: a shallow opening gives them nothing to probe, or invites probes you can't answer.",
+   "correct": "Use a two-minute structure that **invites the deep dive you want**:\n\n1. **Business problem and users**: \"An insurance claims platform used by about 3,000 agents across 400 branches; about 50k claims a day.\"\n2. **Architecture in one breath**: \"Angular front end, six Spring Boot services on MySQL, Kafka between claims and payments.\"\n3. **Your ownership**: \"I own the claims-intake and document-validation services.\"\n4. **One hard problem with a trade-off**: \"Duplicate claims from retries. I added idempotency keys and a unique constraint instead of a distributed lock, because...\"\n5. **Measured result**: \"Duplicates dropped from about 200 a week to near zero.\"\n\nThen prepare for the probes: why this design, what fails at 10x load, what you would change, how you debugged the worst incident, and how a request flows end to end. Service-company engineers should describe the **client's product** as the product. That is real production experience.",
+   "fix": "```text\n\"Claims platform for a large insurer: ~3k agents, ~50k claims/day, peak at month end.\nAngular SPA -> API gateway -> 6 Spring Boot services on MySQL; Kafka from claims to payments.\nI own claims intake + document validation.\nHardest problem: duplicate claims when agents retried on slow networks. I added an idempotency key\nper submission + unique constraint, and made the Kafka consumer idempotent.\nResult: duplicates ~200/week -> ~0, and month-end support tickets down ~30%.\nHappy to go deeper into the idempotency design or the month-end scaling.\"\n```",
+   "interviewTip": "End your two-minute walkthrough on the hard problem you solved best, so the deep dive goes where you are strongest.",
+   "askedAt": [
+    "Flipkart",
+    "PhonePe",
+    "Swiggy",
+    "Walmart"
+   ]
+  },
+  {
+   "id": "trap-behavioral-conflict-villain",
+   "area": "behavioral",
+   "title": "Conflict stories with a villain (or no conflict at all)",
+   "level": "Intermediate",
+   "frequency": "Common",
+   "prompt": "\"Tell me about a time you disagreed with your manager or a senior engineer.\"\n\nCandidate: \"My lead wanted to use a shared database between two services, which was obviously wrong. I told him it was a bad idea and escalated to the architect, who agreed with me. In the end we did it my way.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Show that you were right and won the argument, or say you never have conflicts.",
+   "whyPeopleGetItWrong": "Candidates think the question is about **who was right**, so they tell a story where they win and the other person looks foolish. Others avoid conflict entirely (\"I always agree with my team\"), which reads as having no opinions or no backbone. The interviewer is actually evaluating **how** you disagree: respect, data, listening, and whether you can commit to a decision you argued against. Escalating as the first move is a red flag at any level.",
+   "correct": "A strong disagreement story shows:\n\n1. **A real disagreement of substance** (design, priorities, quality vs deadline), not a personality clash.\n2. **Understanding their view first**: \"He wanted the shared database to hit a two-week deadline without a sync mechanism. That was a fair concern.\"\n3. **Data over opinion**: a small prototype, a benchmark, a written comparison of risks, a proposal for a middle path.\n4. **The right forum**: a one-to-one conversation first, then a design review if needed, and escalation only as a last resort, done transparently.\n5. **Commitment either way**: if overruled, you **disagree and commit** and help it succeed, perhaps with safeguards you suggested. If persuaded, say so.\n6. **Relationship and outcome**: what happened, and how you work with that person now.\n\nA story where you were **partly wrong**, or where the compromise beat both original positions, is often the most convincing.",
+   "fix": "```text\nDisagreement: lead wanted a shared DB between orders and billing to hit a deadline\nTheir view  : no time to build events; shared DB = 2 weeks faster\nMy concern  : schema coupling; billing changes would break orders deploys\nWhat I did  : 1:1 first; wrote a half-page risk note; proposed a middle path: shared DB now,\n              but billing reads only through a view + we add an outbox in the next sprint\nOutcome     : lead agreed; deadline met; outbox shipped 3 weeks later, and the view\n              prevented two breaking changes in the meantime. We still review designs together.\n```",
+   "interviewTip": "Describe the other person's position generously; interviewers score how you treat people you disagree with.",
+   "askedAt": [
+    "Amazon",
+    "Atlassian",
+    "Microsoft",
+    "Swiggy"
+   ]
+  },
+  {
+   "id": "trap-behavioral-ctc-anchoring",
+   "area": "behavioral",
+   "title": "Anchoring salary to current CTC too early (India)",
+   "level": "Intermediate",
+   "frequency": "Very common",
+   "prompt": "First recruiter call, before any technical round:\n\n\"What is your current CTC, and what are you expecting?\"\n\nCandidate: \"Current is 6.5 LPA, I'm expecting a 30% hike.\"",
+   "options": null,
+   "answer": null,
+   "commonWrongAnswer": "Quote your current CTC plus a standard percentage hike, because that's how hikes work.",
+   "whyPeopleGetItWrong": "Inside service companies, raises are a percentage of current pay, so candidates carry that model into the switch. Product companies budget by **level and role**, not by your old salary. Quoting \"current + 30%\" can pull you to the bottom of a band, or below it, before anyone has seen how good you are. Candidates also don't prepare, so they give a number on the spot, unaware of how fixed, variable, stock and bonus components change the real figure.",
+   "correct": "In India, current CTC is often asked and sometimes verified with payslips. **Never lie about it**. But anchor your **expectation** to the **role's market range**, not to a percentage:\n\n- **Research before the call**: levels.fyi, AmbitionBox, Glassdoor, LinkedIn and peers at the target company, for the **level** you are interviewing for.\n- **Defer if you can**: \"I'd like to understand the role and level first; I'm confident we'll find a fair number if it's a match.\" Then ask for the band.\n- If pressed, give a **researched range** whose bottom is a number you would happily accept, and say it is based on the role and market.\n- **Compare offers on fixed pay**: separate fixed, variable (often not fully paid), ESOPs or RSUs (vesting schedule), joining bonus (clawback terms) and notice-period buyout.\n- Use **competing offers** honestly as leverage, and negotiate after the offer, politely.\n\nService-to-product switches often land well above a standard 30% when the level is right, so don't cap yourself on the first call.",
+   "fix": "```text\nRecruiter: \"Current and expected CTC?\"\nYou      : \"Current is 6.5 LPA fixed, 7.1 with variable. For expected, I'd like to understand the level\n            and responsibilities first. Could you share the band for this role?\"\nIf pushed: \"Based on my research for SDE-2 backend roles in Bangalore, I'm looking at 18-22 LPA fixed,\n            depending on the overall structure. I'm flexible for the right role.\"\nAlways   : ask for the breakdown (fixed / variable / ESOP vesting / joining bonus clawback / notice buyout)\n```",
+   "interviewTip": "Prepare the deferral sentence and a researched range before the first recruiter call, and practise saying both out loud.",
+   "askedAt": [
+    "Flipkart",
+    "Swiggy",
+    "PhonePe",
+    "Walmart"
+   ]
+  }
+ ]
+}

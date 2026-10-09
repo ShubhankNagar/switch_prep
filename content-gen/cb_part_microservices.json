@@ -1,0 +1,532 @@
+{
+ "id": "microservices",
+ "name": "Microservices & Distributed Systems",
+ "order": 3,
+ "icon": "🧩",
+ "description": "Designing, connecting, securing, observing and deploying Spring-based microservices with Kafka, Resilience4j, Docker and Kubernetes.",
+ "notes": [
+  {
+   "id": "microservices-n01",
+   "title": "Monolith vs Microservices",
+   "content": "## Monolith\nA single deployable unit containing all modules (users, orders, payments) sharing one codebase and usually one database.\n**Pros:** simple to develop, test, deploy and debug; in-process calls are fast; ACID transactions across modules are easy; low operational overhead.\n**Cons:** as it grows — slow builds, risky big-bang deployments, one bug/memory leak can take down everything, scaling means scaling the whole app, tight coupling, hard for many teams to work in parallel, locked into one tech stack.\n\n## Microservices\nAn architecture of small, independently deployable services, each owning a **business capability** and its **own data**, communicating over the network (HTTP/gRPC/messaging).\n**Pros:**\n- Independent deployment and release cadence per team.\n- Independent scaling (scale only the search service on sale day).\n- Fault isolation (with resilience patterns).\n- Technology freedom per service.\n- Smaller codebases, clearer ownership (Conway's law: architecture mirrors team structure).\n**Cons:**\n- Distributed system complexity: network latency/failures, partial failures, retries, timeouts.\n- Data consistency without distributed ACID transactions (sagas, eventual consistency).\n- Operational overhead: CI/CD per service, containers, orchestration, service discovery, centralised logging, tracing, monitoring.\n- Harder testing (contract tests, integration environments) and debugging.\n- Risk of a **distributed monolith** — services that must be deployed together because of tight coupling or shared DBs.\n\n## When to choose what\nStart with a **well-modularised monolith** (\"modular monolith\") for a new product or a small team. Move to microservices when you have clear domain boundaries, multiple teams stepping on each other, very different scaling needs, or deployment bottlenecks. Many Indian product companies (Swiggy, Flipkart, Razorpay) run hundreds of services, but they evolved there.\n\n## Decomposition strategies\n- **By business capability** (Order, Payment, Inventory, Notification).\n- **By subdomain / bounded context** (Domain-Driven Design): each bounded context has its own model and ubiquitous language; \"Customer\" in Billing differs from \"Customer\" in Support.\n- **Strangler Fig pattern** for migrating a monolith: put a gateway/router in front, carve out one capability at a time into a new service, route traffic to it, and retire the old code gradually.\n\n## Key principles\n- **Database per service** — no other service reads your tables directly; share data via APIs or events. Shared DBs create hidden coupling.\n- **Loose coupling, high cohesion.**\n- **Smart endpoints, dumb pipes.**\n- **Design for failure** — timeouts, retries, circuit breakers, fallbacks.\n- **Decentralised governance**, but standardise cross-cutting concerns (logging format, tracing, auth) via shared libraries/starters or a service mesh.\n- **Automation** — CI/CD and infrastructure as code are mandatory, not optional.\n- **Observability** — logs, metrics, traces from day one.\n\n## The 12-factor app (quick recall)\nCodebase in VCS, explicit dependencies, config in environment, backing services as attached resources, separate build/release/run, stateless processes, port binding, scale out via processes, disposability (fast start/graceful shutdown), dev/prod parity, logs as event streams, admin processes as one-off tasks.\n\n## How to talk about your experience\nIf you've only worked on a monolith, say so honestly and explain how you'd split it: identify bounded contexts, extract the least-coupled module first (e.g. notifications), introduce an event bus, and migrate data ownership. Interviewers value trade-off reasoning more than buzzwords."
+  },
+  {
+   "id": "microservices-n02",
+   "title": "Service Discovery, API Gateway and Config Server",
+   "content": "## Service discovery\nIn dynamic environments (autoscaling, containers), service instances' IPs change constantly. Hard-coding URLs doesn't work.\n- **Service registry**: instances register themselves on startup (with heartbeats) and are removed when unhealthy. Examples: Netflix **Eureka**, Consul, Zookeeper, etcd.\n- **Client-side discovery**: the caller queries the registry and load-balances itself (Eureka + Spring Cloud LoadBalancer). Feign/`@LoadBalanced` RestClient resolve `http://order-service/...`.\n- **Server-side discovery**: caller hits a load balancer/router that knows instances (AWS ALB, **Kubernetes Service** + kube-proxy/DNS).\n\nIn Kubernetes you usually don't need Eureka: a `Service` gets a stable DNS name (`order-service.default.svc.cluster.local`) and load-balances to healthy pods.\n\n```java\n@SpringBootApplication @EnableDiscoveryClient   // optional in newer versions\npublic class OrderServiceApp {}\n// application.yml: eureka.client.service-url.defaultZone: http://eureka:8761/eureka\n@Bean @LoadBalanced RestClient.Builder lbBuilder() { return RestClient.builder(); }\n```\n\n## API Gateway\nA single entry point for external clients that routes requests to backend services and handles cross-cutting concerns:\n- Routing and path rewriting (`/api/orders/** -> order-service`)\n- **Authentication** (validate JWT once at the edge) and coarse authorisation\n- **Rate limiting** and throttling (token bucket with Redis)\n- SSL termination, CORS, request/response transformation\n- Load balancing, retries, circuit breaking\n- Aggregation (one call fans out to many services) — \"Backend for Frontend\" (BFF) pattern gives each client type (web, mobile) its own gateway\n- Logging, metrics, correlation IDs\nExamples: **Spring Cloud Gateway** (reactive, Netty), Kong, NGINX, AWS API Gateway, Envoy, Apigee.\n\n```yaml\nspring:\n  cloud:\n    gateway:\n      routes:\n        - id: orders\n          uri: lb://order-service\n          predicates: [ Path=/api/orders/** ]\n          filters:\n            - StripPrefix=1\n            - name: RequestRateLimiter\n              args: { redis-rate-limiter.replenishRate: 10, redis-rate-limiter.burstCapacity: 20 }\n            - name: CircuitBreaker\n              args: { name: ordersCB, fallbackUri: forward:/fallback/orders }\n```\nGateway risks: single point of failure (run multiple replicas behind a load balancer) and becoming a bottleneck or a place where business logic piles up — keep it thin.\n\n**Gateway vs load balancer:** an LB distributes traffic among instances of one service (L4/L7); a gateway is an L7 smart router across many services with API management features.\n\n## Centralised configuration\n**Spring Cloud Config Server** serves configuration from a Git repo (or Vault/DB) to all services by application name and profile.\n```yaml\n# client\nspring:\n  application.name: order-service\n  config.import: \"optional:configserver:http://config-server:8888\"\n```\nBenefits: one place to change config, versioned history in Git, environment-specific overrides, encryption of secrets. Runtime refresh with `@RefreshScope` + `/actuator/refresh`, or broadcast to all instances via **Spring Cloud Bus** (Kafka/RabbitMQ).\n\nIn Kubernetes, **ConfigMaps** and **Secrets** (mounted as env vars or files) often replace Config Server; external secret managers (Vault, AWS Secrets Manager) handle sensitive values.\n\n## Service mesh (awareness)\nA mesh (Istio, Linkerd) injects a sidecar proxy (Envoy) next to each pod to handle mTLS, retries, timeouts, circuit breaking, traffic splitting (canary) and telemetry at the infrastructure level — so application code stays simpler. Trade-off: operational complexity and extra latency."
+  },
+  {
+   "id": "microservices-n03",
+   "title": "Inter-service Communication: REST, Feign, WebClient, gRPC",
+   "content": "## Synchronous vs asynchronous\n| | Synchronous (REST/gRPC) | Asynchronous (Kafka/RabbitMQ) |\n|---|---|---|\n| Coupling | Temporal — callee must be up | Decoupled in time |\n| Response | Immediate | Eventually (or never) |\n| Use for | Queries needing immediate answers (get price, validate user) | Events, notifications, long workflows, fan-out |\n| Failure mode | Cascading failures, latency adds up | Lag, duplicates, ordering issues |\n\nRule of thumb: commands that need an answer now -> sync; facts that happened (\"OrderPlaced\") -> async events. Minimise synchronous call chains (A -> B -> C -> D multiplies latency and failure probability).\n\n## OpenFeign (declarative REST client)\n```java\n@EnableFeignClients\n@SpringBootApplication class App {}\n\n@FeignClient(name = \"inventory-service\", path = \"/api/inventory\",\n             fallbackFactory = InventoryFallbackFactory.class)\npublic interface InventoryClient {\n    @GetMapping(\"/{sku}\") StockDto stock(@PathVariable String sku);\n    @PostMapping(\"/reserve\") ReservationDto reserve(@RequestBody ReserveRequest r);\n}\n```\nIntegrates with service discovery (`name` = service id), load balancing, Resilience4j circuit breakers, request interceptors (to forward JWT/correlation headers), custom error decoders (map 404 to domain exceptions). Configure timeouts:\n```yaml\nspring.cloud.openfeign.client.config.default:\n  connect-timeout: 2000\n  read-timeout: 3000\n```\nNote: Spring now recommends its own **HTTP interface clients** (`@HttpExchange` backed by RestClient/WebClient) for new code; Feign is in maintenance in Spring Cloud.\n\n## WebClient (non-blocking)\n```java\nMono<UserDto> user = webClient.get().uri(\"/users/{id}\", id)\n    .retrieve()\n    .onStatus(HttpStatusCode::is4xxClientError, r -> Mono.error(new NotFoundException()))\n    .bodyToMono(UserDto.class)\n    .timeout(Duration.ofSeconds(2))\n    .retryWhen(Retry.backoff(3, Duration.ofMillis(200)));\n\n// parallel calls\nMono.zip(userMono, ordersMono).map(t -> new Profile(t.getT1(), t.getT2()));\n```\n\n## RestClient (Boot 3.2, synchronous fluent)\n```java\nOrderDto o = restClient.get().uri(\"/orders/{id}\", id).retrieve().body(OrderDto.class);\n```\n\n## gRPC\nHTTP/2 + Protocol Buffers binary serialisation; strongly typed contracts (`.proto`), code generation, bidirectional streaming, much smaller payloads and lower latency than JSON. Great for internal high-throughput service-to-service calls; less convenient for browsers (needs gRPC-Web) and harder to debug by hand.\n\n## Asynchronous messaging overview\n- **Point-to-point queues** (RabbitMQ, SQS): each message consumed by one consumer — work distribution.\n- **Publish-subscribe topics** (Kafka, SNS): each subscriber group gets every event — event-driven architecture.\n- Delivery semantics: at-most-once, **at-least-once** (most common — consumers must be idempotent), exactly-once (Kafka transactions within Kafka).\n\n## API contracts and versioning\nDefine contracts with OpenAPI or `.proto`; use consumer-driven contract tests (Pact, Spring Cloud Contract). Make changes backward compatible: add optional fields, never rename/remove without a new version; consumers should ignore unknown fields (`FAIL_ON_UNKNOWN_PROPERTIES=false` is Boot's default).\n\n## Timeouts are mandatory\nEvery remote call needs connect and read timeouts. Without them, a slow dependency exhausts your thread pool and cascades failure upstream. Set timeouts shorter than your caller's timeout (timeout budget), and combine with retries (only for idempotent operations, with exponential backoff and jitter) and circuit breakers.\n\n## Propagating context\nForward `Authorization` (or exchange tokens), correlation/trace IDs (`traceparent`), and tenant headers via Feign `RequestInterceptor` or `ClientHttpRequestInterceptor`. Micrometer Tracing does trace propagation automatically."
+  },
+  {
+   "id": "microservices-n04",
+   "title": "Apache Kafka for Event-Driven Microservices",
+   "content": "## Core concepts\n- **Topic**: named stream of records; split into **partitions** (ordered, append-only logs). Ordering is guaranteed **only within a partition**.\n- **Producer**: writes records (key, value, headers). Records with the same **key** go to the same partition (hash(key) % partitions) -> per-key ordering (e.g. all events for orderId 42 in order).\n- **Broker**: Kafka server storing partitions. A cluster has many brokers. Since Kafka 3.3+/4.0, **KRaft** replaces ZooKeeper for metadata.\n- **Replication**: each partition has a leader and followers (replication factor, typically 3). **ISR** = in-sync replicas.\n- **Consumer group**: consumers sharing a `group.id` split partitions among themselves; each partition is consumed by exactly one consumer in the group. Max useful parallelism = number of partitions. Different groups each get all messages (pub-sub).\n- **Offset**: position of a record in a partition. Consumers commit offsets (stored in the `__consumer_offsets` topic) to resume after restart.\n- **Retention**: records are kept for a configured time/size regardless of consumption (default 7 days) — enables replay. **Log compaction** keeps the latest value per key.\n- **Rebalance**: when consumers join/leave, partitions are reassigned (cooperative sticky assignor reduces disruption).\n\n## Spring Kafka example\n```java\n// Producer\n@Service @RequiredArgsConstructor\npublic class OrderEventPublisher {\n    private final KafkaTemplate<String, OrderPlaced> kafka;\n    public void publish(OrderPlaced e) {\n        kafka.send(\"orders.placed\", e.orderId().toString(), e)\n             .whenComplete((res, ex) -> { if (ex != null) log.error(\"send failed\", ex); });\n    }\n}\n// Consumer\n@KafkaListener(topics = \"orders.placed\", groupId = \"inventory-service\", concurrency = \"3\")\npublic void onOrder(OrderPlaced e, Acknowledgment ack) {\n    if (processed.exists(e.eventId())) { ack.acknowledge(); return; }   // idempotency\n    inventory.reserve(e);\n    ack.acknowledge();                                                  // manual commit after processing\n}\n```\n```yaml\nspring.kafka:\n  producer:\n    acks: all\n    properties: { enable.idempotence: true }\n    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer\n  consumer:\n    enable-auto-commit: false\n    auto-offset-reset: earliest\n  listener.ack-mode: manual\n```\n\n## Delivery guarantees\n- **Producer**: `acks=0` (fire and forget), `acks=1` (leader wrote), `acks=all` (all ISR wrote; with `min.insync.replicas=2` for durability). `enable.idempotence=true` prevents duplicates from producer retries.\n- **Consumer**: commit **after** processing = at-least-once (duplicates possible on crash -> make handlers idempotent, e.g. store processed event IDs, use upserts). Commit before processing = at-most-once (possible loss).\n- **Exactly-once**: Kafka transactions (`transactional.id`) for read-process-write within Kafka. With external DBs you still rely on idempotency or the outbox pattern.\n\n## Error handling\n- Retry with backoff: `DefaultErrorHandler` with `FixedBackOff`/`ExponentialBackOff`.\n- **Dead Letter Topic (DLT)**: after retries, publish to `orders.placed.DLT` for inspection/replay (`DeadLetterPublishingRecoverer`). Non-blocking retries via `@RetryableTopic` (retry topics with delays).\n- Poison pills (undeserialisable messages): use `ErrorHandlingDeserializer`.\n\n## Kafka vs RabbitMQ\n| Kafka | RabbitMQ |\n|---|---|\n| Distributed log; consumers pull; messages retained & replayable | Broker pushes; messages removed after ack |\n| Very high throughput (millions/sec), horizontal scaling via partitions | Lower throughput, rich routing (exchanges: direct, topic, fanout, headers) |\n| Ordering per partition | Ordering per queue |\n| Event streaming, event sourcing, log aggregation, CDC | Task queues, RPC, complex routing, priority queues |\n\n## Why is Kafka fast?\nSequential disk I/O (append-only), OS page cache, zero-copy (`sendfile`) from disk to network, batching and compression, partitioned parallelism.\n\n## Common interview scenarios\n- Consumer lag growing -> add partitions + consumers, optimise processing, batch.\n- Need ordering per customer -> use customerId as key.\n- Duplicate processing -> idempotent consumer with dedup table/unique constraint.\n- Changing partition count changes key-to-partition mapping — plan partitions upfront."
+  },
+  {
+   "id": "microservices-n05",
+   "title": "Resilience Patterns with Resilience4j",
+   "content": "In a distributed system, a slow or failing dependency can exhaust threads and cascade failures across services. Resilience patterns contain the damage. **Resilience4j** is the standard library in Spring Boot (Hystrix is retired).\n\n## Timeouts\nThe first line of defence. Every remote call must have connect/read timeouts. `TimeLimiter` in Resilience4j bounds async calls.\n\n## Retry\nRetry transient failures (network blips, 503) — but:\n- Only **idempotent** operations (or with idempotency keys).\n- **Exponential backoff with jitter** to avoid synchronized retry storms.\n- Limit attempts; don't retry on 4xx validation errors.\n- Retries multiply load: 3 layers x 3 retries = 27 calls. Retry at one layer.\n```yaml\nresilience4j.retry.instances.inventory:\n  max-attempts: 3\n  wait-duration: 200ms\n  enable-exponential-backoff: true\n  exponential-backoff-multiplier: 2\n  retry-exceptions: [java.io.IOException, org.springframework.web.client.ResourceAccessException]\n  ignore-exceptions: [com.app.BusinessException]\n```\n\n## Circuit breaker\nStops calling a failing service so it can recover and your threads aren't wasted.\n- **CLOSED**: calls pass through; failures are recorded in a sliding window (count-based or time-based).\n- When failure rate (or slow-call rate) exceeds a threshold (e.g. 50% of last 20 calls) -> **OPEN**: calls fail fast immediately (go to fallback) for `wait-duration-in-open-state`.\n- Then **HALF_OPEN**: a limited number of trial calls are allowed; if they succeed -> CLOSED, else back to OPEN.\n```yaml\nresilience4j.circuitbreaker.instances.inventory:\n  sliding-window-type: COUNT_BASED\n  sliding-window-size: 20\n  minimum-number-of-calls: 10\n  failure-rate-threshold: 50\n  slow-call-duration-threshold: 2s\n  slow-call-rate-threshold: 60\n  wait-duration-in-open-state: 30s\n  permitted-number-of-calls-in-half-open-state: 3\n```\n```java\n@CircuitBreaker(name = \"inventory\", fallbackMethod = \"stockFallback\")\n@Retry(name = \"inventory\")\npublic StockDto stock(String sku) { return inventoryClient.stock(sku); }\n\nprivate StockDto stockFallback(String sku, Throwable t) {\n    log.warn(\"inventory down for {}: {}\", sku, t.toString());\n    return StockDto.unknown(sku);        // cached value / default / degrade gracefully\n}\n```\nAnnotation order (default aspect order): Retry wraps CircuitBreaker wraps RateLimiter wraps TimeLimiter wraps Bulkhead — so each retry attempt is counted by the breaker.\n\n## Bulkhead\nIsolate resources so one slow dependency can't consume all threads (like watertight compartments in a ship).\n- **Semaphore bulkhead**: limit concurrent calls (`max-concurrent-calls: 20`).\n- **Thread-pool bulkhead**: separate thread pool per dependency.\n\n## Rate limiter\nLimit how many calls per period you make (protect a partner API with quotas) or accept (protect yourself). `limit-for-period: 100`, `limit-refresh-period: 1s`. At the edge, the gateway's Redis rate limiter (token bucket) protects services from clients.\n\n## Fallback strategies\nReturn cached/stale data, a default, a reduced response (show product page without recommendations), queue the request for later, or a clear error. Fallbacks must be cheap and not call another fragile service.\n\n## Other patterns\n- **Fail fast** and **graceful degradation**.\n- **Idempotency keys** so retries are safe.\n- **Load shedding** — reject excess requests early (429/503).\n- **Health checks** and readiness probes so LBs stop sending traffic to unhealthy instances.\n- **Chaos engineering** to verify resilience (Chaos Monkey for Spring Boot).\n\n## Observability of resilience\nResilience4j exports Micrometer metrics (`resilience4j_circuitbreaker_state`, failure rates, calls) and Actuator endpoints (`/actuator/circuitbreakers`). Alert when breakers open."
+  },
+  {
+   "id": "microservices-n06",
+   "title": "Distributed Transactions: Saga, Outbox, 2PC and Idempotency",
+   "content": "With database-per-service, a business operation spanning services (place order -> reserve stock -> charge payment) can't use one ACID transaction.\n\n## Two-Phase Commit (2PC)\nA coordinator asks all participants to **prepare** (vote), then tells all to **commit** or **abort**. Gives atomicity but: blocking (participants hold locks while waiting), coordinator is a single point of failure, poor performance and availability, and not supported by most NoSQL stores/message brokers. Generally avoided in microservices (CAP: favours consistency over availability).\n\n## Saga pattern\nA sequence of **local transactions**; each publishes an event/message triggering the next step. If a step fails, previously completed steps are undone by **compensating transactions** (semantic undo: refund payment, release stock — not a DB rollback).\n\n### Choreography\nServices react to each other's events; no central controller.\n```\nOrderService: create order (PENDING) -> emit OrderCreated\nInventoryService: on OrderCreated reserve stock -> emit StockReserved | StockFailed\nPaymentService: on StockReserved charge -> emit PaymentCompleted | PaymentFailed\nInventoryService: on PaymentFailed release stock\nOrderService: on PaymentCompleted -> CONFIRMED; on *Failed -> CANCELLED\n```\nPros: loose coupling, simple for few steps. Cons: hard to see/track the overall flow, risk of cyclic dependencies, harder to debug as steps grow.\n\n### Orchestration\nA central **orchestrator** (saga coordinator) tells each service what to do and handles failures/compensation. State machine persisted in the orchestrator's DB. Tools: Temporal, Camunda/Zeebe, Netflix Conductor, AWS Step Functions, or a hand-written state machine.\nPros: clear flow, easier monitoring, timeouts and retries in one place. Cons: orchestrator can become a \"god service\"; extra component.\n\nSaga properties: **eventual consistency**, intermediate states visible (order PENDING) — design UI/semantics for it. Lack of isolation -> use semantic locks (status flags), commutative updates, re-reading values.\n\n## Transactional Outbox pattern\nProblem (dual write): saving to the DB and publishing to Kafka are two separate operations; if the app crashes between them, data and events diverge.\n```java\n@Transactional\npublic void placeOrder(Order o) {\n    orderRepo.save(o);\n    outboxRepo.save(new OutboxEvent(\"Order\", o.getId(), \"OrderPlaced\", toJson(o))); // same DB tx\n}\n```\nA separate relay reads unpublished outbox rows and publishes them to Kafka, then marks them sent:\n- **Polling publisher** (scheduled job, `SELECT ... FOR UPDATE SKIP LOCKED`), or\n- **Change Data Capture** with **Debezium** reading the MySQL binlog — lower latency, no polling load.\nThis gives at-least-once publishing, so consumers must be idempotent.\n\n**Inbox pattern** on the consumer side: store processed message IDs in the same transaction as the business change to deduplicate.\n\n## Idempotency\nRetries and at-least-once delivery make duplicates inevitable. Techniques:\n- Idempotency key from client (`Idempotency-Key` header) stored with the response; repeated requests return the stored response.\n- Unique constraints (e.g. unique `(order_id, event_type)`), upserts (`INSERT ... ON DUPLICATE KEY UPDATE`).\n- Processed-event table keyed by event ID.\n- Conditional updates (`update ... where status = 'PENDING'`).\n\n## Event sourcing and CQRS (awareness)\n- **Event sourcing**: store state as an append-only sequence of events; current state = replaying events. Full audit trail, temporal queries; but complex (schema evolution, snapshots).\n- **CQRS**: separate write model (commands) from read models (queries), often updated via events into denormalised views (Elasticsearch, Redis). Useful when read and write needs differ widely.\n\n## CAP and PACELC\nIn the presence of a network **P**artition, a distributed system must choose **C**onsistency or **A**vailability. PACELC adds: **E**lse (normal operation) trade **L**atency vs **C**onsistency. Microservices with sagas choose availability + eventual consistency for most flows, but use strong consistency where money/inventory demands it (within a single service's DB)."
+  },
+  {
+   "id": "microservices-n07",
+   "title": "Observability: Logging, Metrics and Distributed Tracing",
+   "content": "Observability = being able to answer \"what's wrong and where?\" from outside. Three pillars: **logs, metrics, traces**.\n\n## Centralised logging\nEach pod's logs are ephemeral and scattered. Ship them to a central store:\n- **ELK/EFK**: Elasticsearch + Logstash/Fluentd/Fluent Bit + Kibana.\n- **Grafana Loki**, Splunk, Datadog, CloudWatch.\nBest practices:\n- Structured JSON logs (Boot 3.4: `logging.structured.format.console=ecs` or `logstash`).\n- Include `traceId`, `spanId`, service name, user/tenant id in every line (MDC).\n- Correct levels: ERROR (needs action), WARN, INFO (business events), DEBUG (off in prod).\n- Never log secrets/PII (passwords, card numbers, tokens). Mask them.\n- Log to stdout in containers; let the platform collect.\n\n## Metrics\nNumeric time-series for dashboards and alerts.\n- **Micrometer** is the metrics facade in Spring Boot (like SLF4J for metrics). Actuator exposes `/actuator/prometheus`.\n- **Prometheus** scrapes metrics; **Grafana** visualises; **Alertmanager** alerts.\n- Golden signals (Google SRE): **latency, traffic, errors, saturation**. RED method for services: Rate, Errors, Duration. USE method for resources: Utilisation, Saturation, Errors.\n- Built-in metrics: `http_server_requests_seconds` (with percentiles), JVM memory/GC/threads, HikariCP pool, Kafka consumer lag, Resilience4j states.\n```java\nCounter.builder(\"orders.placed\").tag(\"channel\", \"app\").register(registry).increment();\n@Timed(value = \"payment.charge\", percentiles = {0.5, 0.95, 0.99})\npublic PaymentResult charge(...) {...}\n```\nMonitor p95/p99 latency, not just averages. Define **SLIs/SLOs** (e.g. 99.9% of requests < 300ms) and alert on error budget burn.\n\n## Distributed tracing\nA single user request may touch 10 services. Tracing records the full path.\n- **Trace**: the whole request journey, with a unique `traceId`.\n- **Span**: one unit of work (an HTTP call, a DB query), with `spanId`, parent id, timings, tags.\n- Context propagates via headers (W3C `traceparent`, or B3) across HTTP and Kafka.\n- Spring Boot 3: **Micrometer Tracing** with OpenTelemetry or Brave bridge; export to **Zipkin**, Jaeger, Grafana Tempo, or vendors (Datadog, New Relic). (Spring Cloud Sleuth was the Boot 2 solution.)\n```yaml\nmanagement.tracing.sampling.probability: 0.1   # sample 10% in prod\nmanagement.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans\n```\n- **OpenTelemetry** is the vendor-neutral standard for traces, metrics and logs; the OTel Java agent can instrument apps without code changes.\n\n## Health checks\n- **Liveness**: is the process alive? If failing, Kubernetes restarts the pod. Shouldn't depend on external systems.\n- **Readiness**: can it serve traffic now (DB reachable, warmed up)? If failing, removed from Service endpoints.\n- Actuator: `/actuator/health/liveness`, `/actuator/health/readiness`.\n\n## Debugging a slow request in production (sample answer)\n1. Check dashboards: which endpoint's p99 rose, error rate, saturation (CPU, pool usage, GC).\n2. Find a slow trace by traceId -> see which span (service/DB query/external call) takes time.\n3. Jump to logs filtered by that traceId.\n4. Drill in: slow query log/EXPLAIN, thread dump for contention, heap/GC for memory issues, connection pool waits.\n5. Mitigate (scale, roll back, toggle feature flag), then fix root cause and add an alert/test.\n\n## Alerting\nAlert on symptoms users feel (error rate, latency SLO burn), not every CPU spike. Use runbooks and on-call rotations (PagerDuty/Opsgenie)."
+  },
+  {
+   "id": "microservices-n08",
+   "title": "Docker Essentials for Java Developers",
+   "content": "## Why containers\nA container packages the app with its runtime and dependencies into an image that runs the same everywhere (\"works on my machine\" solved). Containers share the host kernel (namespaces for isolation, cgroups for resource limits), so they're much lighter and faster to start than VMs, which each run a full guest OS.\n\n## Key concepts\n- **Image**: read-only template built from a Dockerfile, composed of **layers** (each instruction creates a layer; layers are cached and shared).\n- **Container**: a running instance of an image with a writable layer.\n- **Registry**: stores images (Docker Hub, AWS ECR, GCR, Harbor).\n- **Volume**: persistent storage outside the container lifecycle.\n- **Network**: containers on the same user-defined network resolve each other by name.\n\n## Dockerfile for Spring Boot (multi-stage)\n```dockerfile\n# ---- build stage ----\nFROM eclipse-temurin:21-jdk AS build\nWORKDIR /app\nCOPY mvnw pom.xml ./\nCOPY .mvn .mvn\nRUN ./mvnw dependency:go-offline          # cached layer unless pom changes\nCOPY src src\nRUN ./mvnw package -DskipTests\nRUN java -Djarmode=tools -jar target/app.jar extract --layers --launcher --destination extracted\n\n# ---- runtime stage ----\nFROM eclipse-temurin:21-jre\nWORKDIR /app\nRUN useradd -r -u 1001 appuser\nCOPY --from=build /app/extracted/dependencies/ ./\nCOPY --from=build /app/extracted/spring-boot-loader/ ./\nCOPY --from=build /app/extracted/snapshot-dependencies/ ./\nCOPY --from=build /app/extracted/application/ ./\nUSER appuser\nEXPOSE 8080\nENTRYPOINT [\"java\", \"-XX:MaxRAMPercentage=75\", \"org.springframework.boot.loader.launch.JarLauncher\"]\n```\nBest practices:\n- **Multi-stage builds** — final image has only the JRE + app, not Maven/JDK (smaller, more secure).\n- Order instructions from least to most frequently changing to maximise layer caching; Spring Boot **layered jars** separate dependencies from app code.\n- Small base images (JRE, distroless, Alpine with care); pin versions.\n- Run as **non-root**; `.dockerignore` to exclude `target/`, `.git`.\n- JVM is container-aware (Java 10+): use `-XX:MaxRAMPercentage` instead of fixed `-Xmx`.\n- One process per container; log to stdout.\n- Alternatively `./mvnw spring-boot:build-image` builds an optimised OCI image with Cloud Native Buildpacks, or use Jib — no Dockerfile needed.\n\n## Essential commands\n```bash\ndocker build -t order-service:1.0 .\ndocker run -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=dev --name orders order-service:1.0\ndocker ps / docker logs -f orders / docker exec -it orders sh\ndocker stop orders && docker rm orders\ndocker images / docker rmi / docker system prune\ndocker push registry.example.com/order-service:1.0\n```\n`CMD` vs `ENTRYPOINT`: ENTRYPOINT defines the executable; CMD provides default arguments (overridable at `docker run`). `COPY` vs `ADD`: prefer COPY; ADD also extracts archives/fetches URLs.\n\n## Docker Compose (local multi-container setup)\n```yaml\nservices:\n  mysql:\n    image: mysql:8.4\n    environment: { MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: orders }\n    ports: [\"3306:3306\"]\n    volumes: [mysql-data:/var/lib/mysql]\n    healthcheck: { test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"], interval: 10s }\n  app:\n    build: .\n    ports: [\"8080:8080\"]\n    environment:\n      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/orders\n    depends_on:\n      mysql: { condition: service_healthy }\nvolumes:\n  mysql-data:\n```\nSpring Boot 3.1+ can start `compose.yaml` services automatically in dev (`spring-boot-docker-compose`)."
+  },
+  {
+   "id": "microservices-n09",
+   "title": "Kubernetes Basics",
+   "content": "Kubernetes (K8s) orchestrates containers across a cluster: scheduling, scaling, self-healing, service discovery, rolling updates, config and secrets.\n\n## Architecture\n- **Control plane**: API server (all interaction goes through it), etcd (cluster state store), scheduler (places pods on nodes), controller manager (reconciliation loops to reach desired state).\n- **Worker nodes**: kubelet (runs pods), container runtime (containerd), kube-proxy (service networking).\n- Declarative model: you describe **desired state** in YAML; controllers continuously reconcile actual state to match.\n\n## Core objects\n| Object | Purpose |\n|---|---|\n| **Pod** | Smallest deployable unit — one or more containers sharing network/storage. Ephemeral. |\n| **ReplicaSet** | Keeps N pod replicas running. |\n| **Deployment** | Manages ReplicaSets; rolling updates and rollbacks for stateless apps. |\n| **Service** | Stable virtual IP/DNS name load-balancing to pods selected by labels. Types: ClusterIP (internal), NodePort, LoadBalancer (cloud LB), Headless. |\n| **Ingress** / Gateway API | HTTP(S) routing from outside to services by host/path; TLS termination (NGINX ingress controller). |\n| **ConfigMap / Secret** | Non-sensitive config / sensitive data (base64 — enable encryption at rest or use external secret managers). |\n| **StatefulSet** | Stable identities and persistent volumes for stateful apps (DBs, Kafka). |\n| **DaemonSet** | One pod per node (log agents, monitoring). |\n| **Job / CronJob** | Run-to-completion tasks / scheduled tasks. |\n| **HPA** | Horizontal Pod Autoscaler — scales replicas on CPU/memory/custom metrics. |\n| **Namespace** | Logical isolation (dev, qa, team-a). |\n| PV / PVC | Persistent storage. |\n\n## Deployment example\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata: { name: order-service }\nspec:\n  replicas: 3\n  selector: { matchLabels: { app: order-service } }\n  strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }\n  template:\n    metadata: { labels: { app: order-service } }\n    spec:\n      containers:\n        - name: app\n          image: registry/order-service:1.4.2\n          ports: [{ containerPort: 8080 }]\n          envFrom: [{ configMapRef: { name: order-config } }, { secretRef: { name: order-secrets } }]\n          resources:\n            requests: { cpu: \"500m\", memory: \"768Mi\" }\n            limits:   { memory: \"1Gi\" }\n          readinessProbe: { httpGet: { path: /actuator/health/readiness, port: 8080 }, periodSeconds: 5 }\n          livenessProbe:  { httpGet: { path: /actuator/health/liveness,  port: 8080 }, initialDelaySeconds: 30 }\n---\napiVersion: v1\nkind: Service\nmetadata: { name: order-service }\nspec:\n  selector: { app: order-service }\n  ports: [{ port: 80, targetPort: 8080 }]\n```\n\n## Important behaviours\n- **Requests** are used for scheduling; **limits** cap usage. Exceeding a memory limit -> OOMKilled; CPU limit -> throttling.\n- **Probes**: readiness controls traffic, liveness restarts stuck containers, startup probe protects slow-starting JVMs.\n- **Rolling update**: new pods start, become ready, old ones terminate — zero downtime if readiness is correct. `kubectl rollout undo` to roll back.\n- **Graceful shutdown**: on termination K8s sends SIGTERM, waits `terminationGracePeriodSeconds` (30s), then SIGKILL. Enable `server.shutdown=graceful` in Spring Boot so in-flight requests complete.\n- **Self-healing**: crashed pods restart; pods on failed nodes reschedule.\n\n## kubectl essentials\n```bash\nkubectl get pods -n orders -o wide\nkubectl describe pod <pod>            # events: ImagePullBackOff, OOMKilled, probe failures\nkubectl logs -f <pod> [-c container] [--previous]\nkubectl exec -it <pod> -- sh\nkubectl apply -f deploy.yaml\nkubectl rollout status deploy/order-service ; kubectl rollout undo deploy/order-service\nkubectl scale deploy/order-service --replicas=5\nkubectl port-forward svc/order-service 8080:80\n```\nCommon errors: **CrashLoopBackOff** (app keeps crashing — check logs/--previous), **ImagePullBackOff** (wrong image/registry auth), **OOMKilled** (raise memory or fix leak/heap settings), Pending (insufficient resources).\n\n## Packaging\n**Helm** charts template K8s manifests per environment; **Kustomize** overlays. GitOps with **Argo CD**/Flux syncs cluster state from Git."
+  },
+  {
+   "id": "microservices-n10",
+   "title": "CI/CD and Deployment Strategies",
+   "content": "## Continuous Integration\nEvery push/PR triggers an automated pipeline: compile, unit tests, static analysis, build artifact. Goal: catch integration problems early, keep `main` always releasable.\n\n## Continuous Delivery vs Deployment\n- **Continuous Delivery**: every change that passes the pipeline is *deployable*; release to prod needs a manual approval.\n- **Continuous Deployment**: every passing change goes to production automatically.\n\n## Typical pipeline for a Spring Boot microservice\n1. **Checkout** and set up JDK, cache Maven/Gradle dependencies.\n2. **Build & unit test**: `./mvnw verify` (JUnit, Mockito), coverage with JaCoCo (enforce thresholds).\n3. **Static analysis & security**: SonarQube (code smells, bugs, coverage gate), dependency vulnerability scan (OWASP Dependency-Check, Snyk, GitHub Dependabot), secret scanning.\n4. **Integration tests** with Testcontainers; contract tests.\n5. **Build image** (Dockerfile/Jib/buildpacks), tag with git SHA/semantic version, scan the image (Trivy), push to registry.\n6. **Deploy to dev/staging** (Helm upgrade or update GitOps repo -> Argo CD syncs).\n7. **Smoke/E2E/performance tests** (Postman/Newman, k6/JMeter/Gatling).\n8. **Approval** -> **production deploy** with a safe strategy.\n9. **Post-deploy verification**: monitor error rate/latency; automatic rollback on SLO breach.\n\n## GitHub Actions example\n```yaml\nname: ci\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: '21', cache: maven }\n      - run: ./mvnw -B verify\n      - run: docker build -t ghcr.io/acme/order-service:${{ github.sha }} .\n```\nOther tools: Jenkins (Jenkinsfile, very common in Indian service companies), GitLab CI, Azure DevOps, AWS CodePipeline, Argo CD/Flux for GitOps.\n\n## Deployment strategies\n| Strategy | How | Pros / Cons |\n|---|---|---|\n| **Recreate** | Stop old, start new | Simple; downtime |\n| **Rolling update** | Replace instances gradually | No downtime, K8s default; both versions run together briefly — must be backward compatible |\n| **Blue-Green** | Two identical environments; switch traffic from blue (old) to green (new) at once | Instant rollback by switching back; double resources |\n| **Canary** | Send a small % of traffic (1% -> 10% -> 50% -> 100%) to the new version while monitoring | Limits blast radius; needs traffic splitting (Istio, Argo Rollouts, ingress weights) and good metrics |\n| **Feature flags** | Deploy code dark; enable per user/percentage at runtime (LaunchDarkly, Unleash, Togglz) | Decouples deploy from release; flag debt |\n| Shadow / dark launch | Mirror production traffic to new version without returning its responses | Safe testing under real load |\n\n## Database migrations in CD\nUse **Flyway** or **Liquibase**, versioned scripts run at startup or as a pipeline step. With rolling/blue-green deployments both versions hit the same DB, so use the **expand-and-contract** pattern: (1) add new column (nullable) and write to both, (2) backfill, (3) switch reads, (4) remove old column in a later release. Never rename/drop in one step.\n\n## Branching\nTrunk-based development (short-lived branches, frequent merges, feature flags) is favoured by product companies; GitFlow (develop/release/hotfix branches) is heavier. Use PR reviews, required checks, and semantic versioning for libraries.\n\n## Rollback plan\nKeep previous image tags, `helm rollback` / `kubectl rollout undo`, backward-compatible DB changes, and feature flags as kill switches."
+  }
+ ],
+ "qa": [
+  {
+   "id": "microservices-001",
+   "q": "What are microservices? What are their advantages and disadvantages compared to a monolith?",
+   "a": "Microservices are small, independently deployable services, each owning a business capability and its own data, communicating via APIs or events.\n\n**Advantages:** independent deployments per team, independent scaling, fault isolation, technology choice per service, smaller codebases and clear ownership.\n\n**Disadvantages:** distributed-system complexity (network failures, latency), no simple ACID transactions across services (sagas, eventual consistency), heavy operational needs (CI/CD per service, Kubernetes, centralised logging, tracing), harder end-to-end testing and debugging, and the risk of a distributed monolith.\n\nA monolith is simpler and faster for small teams and early products; a modular monolith is a good starting point, splitting later along proven domain boundaries.",
+   "level": "Basic",
+   "tags": [
+    "architecture"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-002",
+   "q": "How would you decompose a monolith into microservices?",
+   "a": "1. **Identify bounded contexts** using DDD — business capabilities like Catalog, Order, Payment, Inventory, Notification. Look at team ownership and data cohesion.\n2. **Modularise first** inside the monolith: enforce package/module boundaries, remove cross-module DB joins.\n3. Apply the **Strangler Fig pattern**: put an API gateway/router in front; extract the least coupled, highest-value module first (often notifications or search); route its traffic to the new service.\n4. **Split the data**: the new service owns its tables; others access it via APIs/events. Use CDC/dual-write carefully during migration.\n5. Introduce async events (Kafka) to decouple.\n6. Add observability, CI/CD, and resilience from the start.\n7. Repeat incrementally; avoid a big-bang rewrite.",
+   "level": "Intermediate",
+   "tags": [
+    "architecture"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-003",
+   "q": "What is the database-per-service pattern? How do you handle queries that need data from multiple services?",
+   "a": "Each service owns its schema; no other service reads or writes its tables directly. This enables independent evolution, deployment and scaling, and avoids hidden coupling through shared tables.\n\nFor cross-service queries:\n- **API composition**: an aggregator/BFF calls multiple services and joins results in memory (simple, but latency and partial failure).\n- **CQRS read model**: services publish events; a query service builds a denormalised view (e.g. Elasticsearch or a reporting DB) optimised for the query.\n- **Data replication via events**: a service keeps a local read-only copy of the fields it needs (e.g. Order keeps customer name) updated from events.\n- For analytics, stream data into a warehouse (CDC to BigQuery/Snowflake).",
+   "level": "Intermediate",
+   "tags": [
+    "architecture",
+    "data"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-004",
+   "q": "What is service discovery? Client-side vs server-side discovery?",
+   "a": "Service discovery lets services find the network locations of other services whose instances change dynamically (autoscaling, restarts).\n\n- **Service registry** (Eureka, Consul): instances register on startup and send heartbeats; unhealthy ones are evicted.\n- **Client-side discovery**: the caller fetches instances from the registry and load-balances itself (Spring Cloud LoadBalancer with `lb://order-service`, Feign). Fewer hops, but discovery logic lives in each client.\n- **Server-side discovery**: the caller sends requests to a router/load balancer that queries the registry (AWS ALB, Kubernetes Service). Clients stay simple.\n\nIn Kubernetes, the built-in Service + DNS (`order-service.namespace.svc`) handles discovery and load balancing, so Eureka is usually unnecessary.",
+   "level": "Basic",
+   "tags": [
+    "service-discovery"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-005",
+   "q": "What is an API Gateway and why is it needed? What's the difference from a load balancer?",
+   "a": "An API Gateway is the single entry point for clients. It routes requests to backend services and centralises cross-cutting concerns: authentication (JWT validation), rate limiting, SSL termination, CORS, request/response transformation, aggregation, caching, logging/metrics, and circuit breaking. It hides internal service topology from clients and enables the Backend-for-Frontend pattern.\n\nExamples: Spring Cloud Gateway, Kong, NGINX, AWS API Gateway, Envoy.\n\nA **load balancer** distributes traffic across instances of the same service (L4/L7), focused on availability. A **gateway** is an L7 smart router across many services with API-management features. Typically: cloud LB -> gateway (multiple replicas) -> services. Keep the gateway thin — no business logic.",
+   "level": "Basic",
+   "tags": [
+    "api-gateway"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-006",
+   "q": "REST vs messaging (Kafka) for inter-service communication — how do you choose?",
+   "a": "Use **synchronous REST/gRPC** when the caller needs an immediate answer to continue (validate a coupon, fetch price, check stock for display). Downsides: temporal coupling (callee must be up), latency adds up in chains, cascading failures.\n\nUse **asynchronous messaging** for events and workflows where the caller doesn't need to wait: OrderPlaced -> inventory, notifications, analytics, loyalty points. Benefits: decoupling in time, buffering load spikes, easy fan-out to many consumers, replay (Kafka). Downsides: eventual consistency, duplicates/ordering to handle, harder debugging, broker to operate.\n\nMost systems use both: sync for queries, async for state-change propagation. Avoid long synchronous call chains.",
+   "level": "Intermediate",
+   "tags": [
+    "communication",
+    "kafka"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-007",
+   "q": "What is Feign client? How do you configure timeouts and error handling?",
+   "a": "OpenFeign is a declarative HTTP client: you write an annotated interface and Spring generates the implementation, integrated with service discovery and load balancing.\n```java\n@FeignClient(name = \"payment-service\", fallbackFactory = PaymentFallbackFactory.class)\npublic interface PaymentClient {\n    @PostMapping(\"/api/payments\") PaymentDto charge(@RequestBody ChargeRequest r);\n}\n```\nConfigure timeouts per client:\n```yaml\nspring.cloud.openfeign.client.config.payment-service:\n  connect-timeout: 2000\n  read-timeout: 5000\n```\nError handling: a custom `ErrorDecoder` maps HTTP status codes to domain exceptions (404 -> `NotFoundException`, 503 -> retryable). Add a `RequestInterceptor` to forward JWT/correlation headers. Combine with Resilience4j circuit breaker and fallbacks. Spring now recommends `@HttpExchange` interface clients for new projects.",
+   "level": "Intermediate",
+   "tags": [
+    "feign",
+    "communication"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-008",
+   "q": "Explain Kafka architecture: topics, partitions, consumer groups and offsets.",
+   "a": "- **Topic**: a named stream of events, split into **partitions** — ordered, append-only logs distributed across **brokers**. Each partition has a leader and replicas (replication factor, usually 3).\n- **Producer** writes records; the record **key** determines the partition (`hash(key) % n`), so events for the same key stay ordered.\n- **Consumer group**: consumers with the same `group.id` share partitions; each partition is read by only one consumer in the group, so parallelism is limited by partition count. Different groups each receive all events.\n- **Offset**: a record's position in a partition. Consumers commit offsets so they can resume after restarts/rebalances.\n- Messages are **retained** for a configured period regardless of consumption, allowing replay.\n- Metadata is managed by KRaft (ZooKeeper removed in Kafka 4.0).",
+   "level": "Intermediate",
+   "tags": [
+    "kafka"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-009",
+   "q": "How does Kafka guarantee message ordering? What happens if you need global ordering?",
+   "a": "Kafka guarantees order **only within a partition**. To keep related events in order, use the same **message key** (e.g. `orderId`, `customerId`) so they go to the same partition, and process each partition sequentially in one consumer thread.\n\nProducer settings matter: with retries, `max.in.flight.requests.per.connection > 1` could reorder messages unless `enable.idempotence=true` (default in modern clients), which preserves order up to 5 in-flight requests.\n\nGlobal ordering across all events requires a **single partition**, which limits throughput to one consumer — usually you don't need it; per-entity ordering is enough. Increasing partition count later changes key-to-partition mapping, temporarily breaking ordering for existing keys.",
+   "level": "Intermediate",
+   "tags": [
+    "kafka"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-010",
+   "q": "What delivery semantics does Kafka offer? How do you avoid duplicate processing?",
+   "a": "- **At-most-once**: commit offset before processing; a crash loses messages.\n- **At-least-once** (most common): process then commit; a crash after processing but before commit causes reprocessing -> duplicates.\n- **Exactly-once**: idempotent producer (`enable.idempotence=true`) + transactions (`transactional.id`, consumer `isolation.level=read_committed`) for read-process-write pipelines within Kafka.\n\nProducer durability: `acks=all` with `min.insync.replicas=2`.\n\nTo handle duplicates with external side effects (DB writes, emails), make consumers **idempotent**: store processed event IDs (inbox table with a unique constraint) in the same DB transaction as the business change, use upserts/conditional updates, or idempotency keys with downstream APIs.",
+   "level": "Advanced",
+   "tags": [
+    "kafka"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-011",
+   "q": "How do you handle failures and poison messages in a Kafka consumer?",
+   "a": "- **Retry with backoff** for transient errors: Spring Kafka `DefaultErrorHandler` with `ExponentialBackOff`. Blocking retries hold up the partition, so keep them short.\n- **Non-blocking retries**: `@RetryableTopic` sends failed records to retry topics with increasing delays (`orders-retry-1`, `-retry-2`), letting the main topic continue.\n- **Dead Letter Topic**: after max retries, publish to `orders.DLT` with error headers (`DeadLetterPublishingRecoverer`); alert, inspect, fix, and replay.\n- **Don't retry** non-transient errors (validation) — send straight to DLT.\n- **Poison pills** (undeserialisable payloads): wrap deserializers in `ErrorHandlingDeserializer` so they don't crash the consumer in a loop.\n- Monitor consumer lag and DLT size.",
+   "level": "Advanced",
+   "tags": [
+    "kafka",
+    "resilience"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-012",
+   "q": "Kafka vs RabbitMQ?",
+   "a": "| Kafka | RabbitMQ |\n|---|---|\n| Distributed commit log; consumers **pull** and track offsets | Message broker; **pushes** to consumers, deletes after ack |\n| Messages retained for days -> replay, multiple independent consumer groups | Messages gone after consumption |\n| Very high throughput, scales via partitions | Moderate throughput, lower latency for small volumes |\n| Ordering per partition | Ordering per queue |\n| Simple routing (topics/keys) | Rich routing: direct, topic, fanout, headers exchanges; priorities; TTL; delayed messages |\n| Event streaming, event sourcing, CDC, log/metrics pipelines | Task queues, work distribution, RPC, complex routing |\n\nChoose Kafka for event-driven architectures and high-volume streams; RabbitMQ for traditional job queues and flexible routing.",
+   "level": "Intermediate",
+   "tags": [
+    "kafka",
+    "messaging"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-013",
+   "q": "What is the circuit breaker pattern? Explain its states.",
+   "a": "A circuit breaker wraps calls to a remote dependency and stops calling it when it's failing, so you fail fast instead of tying up threads and the dependency gets time to recover.\n\nStates (Resilience4j):\n- **CLOSED** — normal; calls pass; outcomes recorded in a sliding window.\n- **OPEN** — failure or slow-call rate exceeded the threshold (e.g. 50% of last 20 calls); calls are rejected immediately (`CallNotPermittedException`) and the fallback runs, for a configured wait duration.\n- **HALF_OPEN** — after the wait, a few trial calls are allowed; success -> CLOSED, failure -> OPEN.\n\n```java\n@CircuitBreaker(name = \"inventory\", fallbackMethod = \"fallback\")\npublic Stock check(String sku) { return client.stock(sku); }\nStock fallback(String sku, Throwable t) { return Stock.unknown(sku); }\n```\nFallbacks: cached data, default response, or graceful degradation.",
+   "level": "Intermediate",
+   "tags": [
+    "resilience",
+    "resilience4j"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-014",
+   "q": "What are retry, bulkhead and rate limiter patterns? How do they work together?",
+   "a": "- **Retry**: re-attempt transient failures with exponential backoff + jitter; only for idempotent operations; cap attempts and don't retry 4xx.\n- **Bulkhead**: limit concurrent calls (semaphore) or give each dependency its own thread pool so one slow service can't exhaust all threads.\n- **Rate limiter**: cap calls per time window, to respect a partner's quota or protect your service.\n- **Time limiter**: bound how long a call may take.\n\nTogether: the time limiter bounds each attempt, the circuit breaker records outcomes and fails fast when the dependency is unhealthy, retry wraps the breaker for transient blips, and the bulkhead caps concurrency. In Resilience4j's default aspect order, Retry is outermost: Retry(CircuitBreaker(RateLimiter(TimeLimiter(Bulkhead(call))))). Avoid retrying at every layer — retries multiply load (retry storms).",
+   "level": "Intermediate",
+   "tags": [
+    "resilience"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-015",
+   "q": "How do you handle distributed transactions in microservices?",
+   "a": "Avoid distributed ACID (2PC/XA) — it's blocking, slow, and the coordinator is a single point of failure; most brokers and NoSQL stores don't support it.\n\nInstead:\n- **Saga pattern**: break the operation into local transactions per service; each step publishes an event/command; failures trigger **compensating transactions** (refund, release stock). Implemented via choreography (events) or orchestration (central coordinator like Temporal/Camunda).\n- **Transactional outbox**: write the business change and the outgoing event in the same local DB transaction; a relay (poller or Debezium CDC) publishes to Kafka — fixes the dual-write problem.\n- **Idempotent consumers** for at-least-once delivery.\n- Accept **eventual consistency** and model intermediate states (`PENDING`, `PAYMENT_FAILED`).\nKeep strongly consistent invariants inside a single service boundary where possible.",
+   "level": "Advanced",
+   "tags": [
+    "saga",
+    "transactions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-016",
+   "q": "Explain the Saga pattern: choreography vs orchestration with an e-commerce example.",
+   "a": "Order flow: create order -> reserve inventory -> charge payment -> confirm.\n\n**Choreography**: no central controller.\nOrderService saves order `PENDING`, emits `OrderCreated` -> InventoryService reserves, emits `StockReserved` -> PaymentService charges, emits `PaymentCompleted` -> OrderService marks `CONFIRMED`. If payment fails, `PaymentFailed` -> Inventory releases stock and Order is `CANCELLED`.\nPros: loose coupling, simple for 2-4 steps. Cons: flow is implicit and hard to trace; cyclic event dependencies.\n\n**Orchestration**: an `OrderSagaOrchestrator` sends commands (`ReserveStock`, `ChargePayment`) and handles replies, persisting saga state; on failure it issues compensations (`ReleaseStock`).\nPros: explicit flow, centralised timeouts/retries/monitoring. Cons: an extra component that can become too smart.\n\nCompensations must be idempotent and retryable; sagas lack isolation, so use status flags (semantic locks).",
+   "level": "Advanced",
+   "tags": [
+    "saga"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-017",
+   "q": "What is the Transactional Outbox pattern and why is it needed?",
+   "a": "Problem: a service must update its DB **and** publish an event. Doing both separately (dual write) is unsafe — if the app crashes after the DB commit but before `kafka.send`, the event is lost; if you send first and the DB commit fails, you publish a lie.\n\nSolution: in the **same local transaction**, insert the business row and an `outbox` row (aggregate id, event type, payload). A separate relay publishes outbox rows to Kafka and marks them sent:\n- **Polling publisher**: scheduled job reading unsent rows (`FOR UPDATE SKIP LOCKED`).\n- **CDC**: Debezium tails the MySQL binlog and streams outbox inserts to Kafka (Outbox Event Router).\n\nThis guarantees **at-least-once** publishing, so consumers must be idempotent (inbox table / dedupe by event id). Clean up old outbox rows periodically.",
+   "level": "Advanced",
+   "tags": [
+    "outbox",
+    "kafka"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-018",
+   "q": "What is idempotency and how do you implement an idempotent payment API?",
+   "a": "An operation is idempotent if performing it multiple times has the same effect as once. Networks fail and clients/gateways retry, so non-idempotent POSTs (payments, orders) can be duplicated.\n\nImplementation:\n1. Client generates a unique `Idempotency-Key` (UUID) per logical operation and sends it in a header.\n2. Server checks a store (DB table with a unique key or Redis `SETNX` with TTL):\n   - Key absent -> insert key with status `IN_PROGRESS`, process, store the response with status `DONE`.\n   - Key present and `DONE` -> return the stored response without reprocessing.\n   - Key present and `IN_PROGRESS` -> return 409/202 (or wait).\n3. Validate that the same key isn't reused with a different payload (store a request hash).\n4. Downstream calls (to a payment gateway) also pass idempotency keys.\nA unique DB constraint is the final safety net against races.",
+   "level": "Advanced",
+   "tags": [
+    "idempotency",
+    "api-design"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-019",
+   "q": "What is Spring Cloud Config Server? How do you refresh configuration without restart?",
+   "a": "Config Server centralises externalised configuration for all services, typically backed by a Git repo (also Vault, JDBC). Clients fetch config by `application name` + `profile` + `label` (branch) at startup via `spring.config.import=configserver:http://config:8888`. Benefits: single source of truth, versioning/audit via Git, per-environment overrides, encrypted secrets (`{cipher}`).\n\nRefresh at runtime:\n- Annotate beans with `@RefreshScope` (and `@ConfigurationProperties` beans rebind automatically).\n- Call `POST /actuator/refresh` on an instance to reload.\n- For all instances, use **Spring Cloud Bus** (Kafka/RabbitMQ) and `/actuator/busrefresh`, often triggered by a Git webhook.\nIn Kubernetes, ConfigMaps/Secrets with Spring Cloud Kubernetes or a rolling restart are common alternatives.",
+   "level": "Intermediate",
+   "tags": [
+    "config"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-020",
+   "q": "What is distributed tracing and how do you implement it in Spring Boot 3?",
+   "a": "Distributed tracing follows a request across services. A **trace** (unique `traceId`) consists of **spans** (each unit of work: an HTTP call, DB query, Kafka publish) with timings and parent-child relationships. Trace context is propagated via headers (W3C `traceparent`).\n\nSpring Boot 3: add Actuator + **Micrometer Tracing** with a bridge (OpenTelemetry or Brave) + an exporter (Zipkin, Jaeger, Tempo, or OTLP to a vendor):\n```xml\n<dependency><groupId>io.micrometer</groupId><artifactId>micrometer-tracing-bridge-otel</artifactId></dependency>\n<dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-exporter-zipkin</artifactId></dependency>\n```\n```yaml\nmanagement.tracing.sampling.probability: 0.1\n```\nRestClient/WebClient/Kafka templates built from Spring's auto-configured builders propagate context automatically, and `traceId`/`spanId` are added to logs via MDC. (Spring Cloud Sleuth was the Boot 2 equivalent.) Use it to find which service/span causes latency.",
+   "level": "Intermediate",
+   "tags": [
+    "observability",
+    "tracing"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-021",
+   "q": "How do you implement centralised logging and monitoring for microservices?",
+   "a": "**Logging**: services write structured JSON logs to stdout with `traceId`, service name and level; an agent (Fluent Bit/Filebeat) ships them to Elasticsearch/Loki; Kibana/Grafana for search. Correlate with trace IDs, mask PII.\n\n**Metrics**: Micrometer + Actuator expose `/actuator/prometheus`; Prometheus scrapes; Grafana dashboards for golden signals (latency p95/p99, traffic, errors, saturation), JVM, connection pools, Kafka lag, circuit breaker states. Alertmanager/PagerDuty alerts on SLO breaches.\n\n**Tracing**: Micrometer Tracing/OpenTelemetry -> Zipkin/Jaeger/Tempo.\n\n**Health**: Actuator liveness/readiness for Kubernetes probes.\n\nTogether these let you go from an alert -> dashboard -> slow trace -> logs for that trace -> root cause.",
+   "level": "Intermediate",
+   "tags": [
+    "observability"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-022",
+   "q": "What is the difference between Docker image and container? VM vs container?",
+   "a": "- **Image**: an immutable, layered template (filesystem + metadata) built from a Dockerfile and stored in a registry.\n- **Container**: a running instance of an image with its own writable layer, process namespace, network and resource limits. Many containers can run from one image.\n\n**VM vs container**: a VM virtualises hardware and runs a full guest OS on a hypervisor — strong isolation but GBs in size and minutes to boot. A container shares the host kernel, isolating processes with namespaces and limiting resources with cgroups — MBs in size, starts in seconds, higher density. Isolation is weaker than VMs, so run as non-root, use minimal images and scan them.",
+   "level": "Basic",
+   "tags": [
+    "docker"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-023",
+   "q": "How do you write an optimised Dockerfile for a Spring Boot application?",
+   "a": "```dockerfile\nFROM eclipse-temurin:21-jdk AS build\nWORKDIR /app\nCOPY pom.xml mvnw ./\nCOPY .mvn .mvn\nRUN ./mvnw dependency:go-offline\nCOPY src src\nRUN ./mvnw package -DskipTests\n\nFROM eclipse-temurin:21-jre\nWORKDIR /app\nRUN useradd -r appuser\nCOPY --from=build /app/target/*.jar app.jar\nUSER appuser\nEXPOSE 8080\nENTRYPOINT [\"java\",\"-XX:MaxRAMPercentage=75\",\"-jar\",\"app.jar\"]\n```\nPractices: **multi-stage** (no JDK/Maven in final image), copy `pom.xml` before `src` for layer caching, Spring Boot **layered jars** to cache dependencies separately, minimal JRE/distroless base, pinned versions, non-root user, `.dockerignore`, container-aware heap (`MaxRAMPercentage`), exec-form ENTRYPOINT so the JVM receives SIGTERM for graceful shutdown. Alternatives: `spring-boot:build-image` (buildpacks) or Jib.",
+   "level": "Intermediate",
+   "tags": [
+    "docker"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-024",
+   "q": "Explain core Kubernetes objects: Pod, Deployment, Service, Ingress, ConfigMap, Secret.",
+   "a": "- **Pod**: smallest deployable unit; one or more containers sharing an IP and volumes. Ephemeral.\n- **Deployment**: declares desired replicas and pod template; manages ReplicaSets for rolling updates and rollbacks of stateless apps.\n- **Service**: stable DNS name/virtual IP that load-balances to pods matching a label selector (ClusterIP internal, NodePort, LoadBalancer external).\n- **Ingress**: L7 HTTP routing from outside the cluster to Services by host/path, with TLS (needs an ingress controller like NGINX).\n- **ConfigMap**: non-sensitive configuration injected as env vars or files.\n- **Secret**: sensitive data (passwords, keys), base64-encoded — enable encryption at rest or use external secret managers.\nAlso: StatefulSet (databases), HPA (autoscaling), Job/CronJob, Namespace.",
+   "level": "Basic",
+   "tags": [
+    "kubernetes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-025",
+   "q": "What are liveness, readiness and startup probes?",
+   "a": "- **Liveness probe**: \"Is the container alive?\" If it fails repeatedly, kubelet **restarts** the container. Should check only the app itself (not the DB), otherwise a DB outage restarts all pods.\n- **Readiness probe**: \"Can it serve traffic now?\" If failing, the pod is **removed from Service endpoints** but not restarted. Use for warm-up, dependency availability, or during graceful shutdown.\n- **Startup probe**: protects slow-starting apps (JVM warm-up); liveness/readiness checks are disabled until it succeeds.\n\nSpring Boot Actuator provides `/actuator/health/liveness` and `/actuator/health/readiness` (auto-enabled on Kubernetes). Combined with `server.shutdown=graceful`, they enable zero-downtime rolling deployments.",
+   "level": "Intermediate",
+   "tags": [
+    "kubernetes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-026",
+   "q": "How does Kubernetes autoscaling work? What are requests and limits?",
+   "a": "- **Requests**: resources guaranteed to a container; the scheduler places pods on nodes with enough unreserved capacity.\n- **Limits**: hard caps. Exceeding memory limit -> container **OOMKilled**; exceeding CPU limit -> throttled. Many teams set memory limit = request and omit CPU limits to avoid throttling.\n\n**HPA (Horizontal Pod Autoscaler)** adjusts replica count to keep a metric near target — e.g. average CPU at 70% of requests, or custom metrics (requests/sec, Kafka lag via KEDA).\n**VPA** adjusts requests/limits. **Cluster Autoscaler/Karpenter** adds nodes when pods are pending.\n\nFor JVM apps, set heap via `-XX:MaxRAMPercentage=75` so heap + metaspace + threads fit under the memory limit, and account for slow JVM warm-up when scaling.",
+   "level": "Intermediate",
+   "tags": [
+    "kubernetes"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-027",
+   "q": "A pod is in CrashLoopBackOff. How do you debug it?",
+   "a": "CrashLoopBackOff means the container starts, exits, and Kubernetes keeps restarting it with increasing backoff.\n\nSteps:\n1. `kubectl describe pod <pod>` — check events, exit code, last state (`OOMKilled` = exit 137, probe failures, missing ConfigMap/Secret).\n2. `kubectl logs <pod> --previous` — logs from the crashed container (Spring startup exception, e.g. can't connect to DB, missing property, port conflict).\n3. Verify env vars/secrets/config, image tag, and command/entrypoint.\n4. Check probes: an aggressive liveness probe can kill a slow-starting JVM — add a startup probe or increase `initialDelaySeconds`.\n5. Check resources: memory limit too low for heap -> raise limit or tune `MaxRAMPercentage`.\n6. Reproduce locally with the same image (`docker run` with same env).",
+   "level": "Intermediate",
+   "tags": [
+    "kubernetes",
+    "debugging"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-028",
+   "q": "What is CI/CD? Describe a pipeline you would set up for a Spring Boot microservice.",
+   "a": "**CI**: every commit is built and tested automatically. **CD**: every change that passes is deployable (delivery) or deployed automatically (deployment).\n\nPipeline (Jenkins/GitHub Actions/GitLab):\n1. Checkout, set up JDK, cache dependencies.\n2. `mvn verify` — compile, unit tests, JaCoCo coverage gate.\n3. SonarQube quality gate; dependency (OWASP/Snyk) and secret scanning.\n4. Integration tests with Testcontainers; contract tests.\n5. Build Docker image tagged with the commit SHA; scan with Trivy; push to ECR/registry.\n6. Deploy to staging via Helm/Argo CD; run smoke and API tests.\n7. Manual approval (or automatic) -> production with rolling/canary strategy.\n8. Monitor metrics; automatic rollback on errors.\nFlyway migrations run as part of deployment using expand-and-contract.",
+   "level": "Intermediate",
+   "tags": [
+    "cicd"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-029",
+   "q": "Explain blue-green, canary and rolling deployments.",
+   "a": "- **Rolling**: replace instances gradually (Kubernetes default). No downtime, no extra full environment; old and new versions run simultaneously, so changes must be backward compatible. Rollback is another rollout.\n- **Blue-Green**: run two identical environments; deploy to idle **green**, test it, then switch the router from **blue** to green instantly. Rollback = switch back. Costs double resources; DB schema must work for both.\n- **Canary**: route a small percentage of real traffic (1-5%) to the new version, watch error rates/latency, then progressively increase to 100%; abort automatically if metrics degrade. Needs traffic splitting (Istio, Argo Rollouts, weighted ingress) and good observability.\n- **Feature flags** complement these by decoupling deployment from release.",
+   "level": "Intermediate",
+   "tags": [
+    "cicd",
+    "deployment"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-030",
+   "q": "What is eventual consistency? How do you explain it to a product manager?",
+   "a": "In eventual consistency, after an update, different parts of the system may temporarily show different values, but if no new updates occur, all copies converge to the same value — usually within milliseconds to seconds.\n\nIt arises when services own separate databases and propagate changes asynchronously (events), or with replicated databases/caches. It trades immediate consistency for availability, scalability and decoupling (CAP theorem).\n\nPM explanation: \"When a customer places an order, the order is saved immediately and shows as 'Processing'. Inventory and loyalty points update a second or two later. If payment fails, the order is automatically cancelled and stock released.\" Design the UX with intermediate states, and keep strongly consistent operations (wallet balance) within one service's transaction.",
+   "level": "Intermediate",
+   "tags": [
+    "data",
+    "architecture"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-031",
+   "q": "What is the CAP theorem?",
+   "a": "In a distributed data store, when a **network partition** (P) occurs, you can guarantee either **Consistency** (every read sees the latest write or gets an error) or **Availability** (every request gets a non-error response, possibly stale) — not both. Partitions are unavoidable in distributed systems, so the real choice is CP vs AP during a partition.\n\n- **CP**: ZooKeeper/etcd, HBase, MongoDB with majority writes, traditional RDBMS clusters with synchronous replication — may reject requests to stay consistent.\n- **AP**: Cassandra, DynamoDB (default), Couchbase — stay available and reconcile later.\n\n**PACELC** extends it: Else (no partition), choose between Latency and Consistency. For microservices: use strong consistency for money/inventory within a service; accept eventual consistency across services.",
+   "level": "Intermediate",
+   "tags": [
+    "distributed-systems"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-032",
+   "q": "How do you secure communication between microservices?",
+   "a": "- **Edge authentication**: the API gateway validates user JWTs (from an identity provider like Keycloak/Auth0/Cognito) and forwards them or a derived token.\n- **Service-level authorisation**: each service is an OAuth2 resource server validating the JWT signature, issuer, audience and scopes — zero trust, don't rely solely on the gateway.\n- **Service-to-service identity**: OAuth2 **client credentials** tokens, or **mTLS** (mutual TLS) — often handled by a service mesh (Istio/Linkerd) that issues and rotates certificates automatically.\n- **Network policies** in Kubernetes to restrict which pods can talk.\n- **Secrets** in Vault/Kubernetes Secrets/cloud secret managers, never in code.\n- TLS everywhere, input validation, rate limiting, and audit logging.",
+   "level": "Intermediate",
+   "tags": [
+    "security"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-033",
+   "q": "How would you implement rate limiting in a distributed system?",
+   "a": "Algorithms:\n- **Token bucket**: tokens refill at a fixed rate up to a capacity; each request consumes one. Allows bursts. Most common.\n- **Leaky bucket**: processes at a constant rate; smooths traffic.\n- **Fixed window counter**: count per minute window — simple but bursty at boundaries.\n- **Sliding window log/counter**: more accurate.\n\nDistributed implementation: keep counters in **Redis** so all gateway instances share state — atomic `INCR` + `EXPIRE` or a Lua script implementing token bucket (Spring Cloud Gateway's `RequestRateLimiter` uses Redis). Key by user id, API key, or IP. Return **429 Too Many Requests** with `Retry-After` and `X-RateLimit-*` headers.\n\nApply at the gateway for clients; use Resilience4j `RateLimiter` client-side to respect partner API quotas.",
+   "level": "Advanced",
+   "tags": [
+    "rate-limiting",
+    "api-gateway"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-034",
+   "q": "What is the Strangler Fig pattern?",
+   "a": "A strategy for incrementally migrating a legacy monolith to a new architecture without a risky big-bang rewrite. Named after a fig vine that gradually envelops a tree.\n\nSteps:\n1. Put a facade (API gateway/reverse proxy) in front of the monolith; all traffic flows through it.\n2. Build a new service for one capability (e.g. notifications).\n3. Route that capability's endpoints to the new service; the rest still go to the monolith.\n4. Migrate data ownership (sync via CDC/events during transition).\n5. Repeat until the monolith is empty or small enough, then retire it.\n\nBenefits: continuous delivery of value, low risk, easy rollback by re-routing. Watch out for long-lived dual-write periods and shared database coupling.",
+   "level": "Intermediate",
+   "tags": [
+    "architecture",
+    "migration"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-035",
+   "q": "What is CQRS and event sourcing? When would you use them?",
+   "a": "- **CQRS (Command Query Responsibility Segregation)**: separate the write model (commands, validation, transactions on a normalised DB) from read models (queries served from denormalised stores like Elasticsearch, Redis or materialised views). Read models are updated from events. Use when read and write loads/shapes differ greatly — e.g. product search over a catalog, dashboards. Cost: eventual consistency and more moving parts.\n- **Event sourcing**: instead of storing current state, store an append-only log of domain events (`MoneyDeposited`, `MoneyWithdrawn`); current state = replay (with snapshots for speed). Gives a full audit trail and time travel; natural fit for ledgers/banking. Cost: complexity, event schema evolution, harder queries (usually needs CQRS).\nDon't use either for simple CRUD services.",
+   "level": "Advanced",
+   "tags": [
+    "cqrs",
+    "architecture"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-036",
+   "q": "What is a service mesh? Do you need one?",
+   "a": "A service mesh (Istio, Linkerd, Consul Connect) adds a **sidecar proxy** (often Envoy) to every pod, intercepting all network traffic. A control plane configures proxies to provide:\n- mTLS encryption and service identity automatically\n- Retries, timeouts, circuit breaking at the network layer\n- Traffic shifting (canary, A/B), fault injection\n- Uniform metrics and tracing without code changes\n- Fine-grained access policies\n\nYou need one when you have many services in multiple languages and want consistent security/traffic policies without library code. For a few Spring Boot services, Resilience4j + Micrometer + Kubernetes NetworkPolicies are often enough; a mesh adds operational complexity, resource overhead and latency. Ambient (sidecar-less) modes reduce overhead.",
+   "level": "Intermediate",
+   "tags": [
+    "service-mesh",
+    "kubernetes"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-037",
+   "q": "How do you handle versioning and backward compatibility of APIs and events between services?",
+   "a": "- **Additive changes only**: add optional fields; never remove/rename or change types in place. Consumers ignore unknown fields (tolerant reader).\n- **Version when breaking**: `/v2/` endpoints or new event types (`OrderPlacedV2`), run both until consumers migrate, then deprecate.\n- **Schema registry** (Confluent/Apicurio) with Avro/Protobuf for Kafka events enforces compatibility rules (backward/forward) at publish time.\n- **Consumer-driven contract tests** (Pact, Spring Cloud Contract) in CI catch breaking changes before deployment.\n- **Expand-and-contract** for DB schemas.\n- Communicate deprecation timelines and monitor usage of old versions before removal.",
+   "level": "Advanced",
+   "tags": [
+    "api-design",
+    "kafka"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-038",
+   "q": "How do you make a microservice handle a sudden 10x traffic spike (e.g. a flash sale)?",
+   "a": "- **Horizontal scaling**: stateless services + HPA; pre-scale before known events (warm JVMs).\n- **Caching**: CDN for static content, Redis for hot product/price data, local Caffeine for reference data.\n- **Queue-based load levelling**: accept orders quickly into Kafka and process asynchronously at a sustainable rate.\n- **Rate limiting and load shedding** at the gateway; virtual waiting rooms.\n- **Protect the database**: read replicas, connection pool limits, avoid N+1, indexes; atomic inventory decrements (`UPDATE ... WHERE qty > 0`) or Redis counters with Lua for stock.\n- **Resilience**: timeouts, circuit breakers, bulkheads; degrade non-critical features (recommendations off).\n- **Load test** beforehand (k6/Gatling) and monitor saturation dashboards during the event.",
+   "level": "Advanced",
+   "tags": [
+    "scalability",
+    "scenario"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "microservices-039",
+   "q": "What is the Backend-for-Frontend (BFF) pattern and API composition?",
+   "a": "**API composition**: a component (gateway, aggregator service) calls several services and combines their responses into one, e.g. an order-details page needing order, customer, shipment and payment data. Call downstream services **in parallel** (CompletableFuture/WebClient `Mono.zip`), set timeouts, and return partial results with fallbacks if a non-critical service fails.\n\n**BFF**: a separate backend per client type (web, mobile, partner API), each shaping data for its UI — mobile gets compact payloads and fewer round trips, web gets richer data. Each BFF is owned by the frontend team that uses it. It prevents a one-size-fits-all gateway from bloating with client-specific logic.\n\nTrade-offs: more services to maintain and possible duplicated logic across BFFs; keep business rules in domain services, not in the BFF.",
+   "level": "Intermediate",
+   "tags": [
+    "api-gateway",
+    "architecture"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "microservices-040",
+   "q": "How do you achieve graceful shutdown and zero-downtime deployments for a Spring Boot service?",
+   "a": "1. `server.shutdown=graceful` and `spring.lifecycle.timeout-per-shutdown-phase=30s`: on SIGTERM, Tomcat stops accepting new requests and lets in-flight requests finish.\n2. Readiness probe flips to OUT_OF_SERVICE during shutdown so Kubernetes removes the pod from Service endpoints. A small `preStop` sleep (5-10s) covers the endpoint propagation delay.\n3. Use exec-form `ENTRYPOINT` so the JVM (PID 1) actually receives SIGTERM.\n4. Kafka consumers: stop polling, finish the current batch and commit offsets (Spring Kafka handles this on context close).\n5. Rolling update with `maxUnavailable: 0` and correct readiness probes so new pods take traffic only when ready.\n6. Backward-compatible APIs and DB migrations (expand-and-contract), because old and new versions run together during the rollout.",
+   "level": "Intermediate",
+   "tags": [
+    "kubernetes",
+    "deployment"
+   ],
+   "frequent": true
+  }
+ ],
+ "sources": [
+  {
+   "title": "Microservices.io - Pattern Language (Chris Richardson)",
+   "url": "https://microservices.io/patterns/index.html"
+  },
+  {
+   "title": "Martin Fowler - Microservices",
+   "url": "https://martinfowler.com/articles/microservices.html"
+  },
+  {
+   "title": "Spring Cloud Documentation",
+   "url": "https://spring.io/projects/spring-cloud"
+  },
+  {
+   "title": "Resilience4j Documentation",
+   "url": "https://resilience4j.readme.io/docs"
+  },
+  {
+   "title": "Apache Kafka Documentation",
+   "url": "https://kafka.apache.org/documentation/"
+  },
+  {
+   "title": "Spring for Apache Kafka Reference",
+   "url": "https://docs.spring.io/spring-kafka/reference/"
+  },
+  {
+   "title": "Micrometer Tracing Documentation",
+   "url": "https://docs.micrometer.io/tracing/reference/"
+  },
+  {
+   "title": "Kubernetes Documentation - Concepts",
+   "url": "https://kubernetes.io/docs/concepts/"
+  },
+  {
+   "title": "Docker Docs - Dockerfile best practices",
+   "url": "https://docs.docker.com/build/building/best-practices/"
+  },
+  {
+   "title": "Debezium - Outbox Event Router",
+   "url": "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html"
+  },
+  {
+   "title": "The Twelve-Factor App",
+   "url": "https://12factor.net/"
+  },
+  {
+   "title": "GeeksforGeeks - Microservices Interview Questions",
+   "url": "https://www.geeksforgeeks.org/system-design/microservices-interview-questions/"
+  }
+ ]
+}

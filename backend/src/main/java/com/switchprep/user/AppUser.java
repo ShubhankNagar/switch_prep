@@ -1,0 +1,53 @@
+package com.switchprep.user;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.Instant;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "app_user")
+public class AppUser {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @Column(nullable = false)
+    private String passwordHash;
+
+    @Column(length = 100)
+    private String displayName;
+
+    /** Day 1 of the 60-day plan. */
+    private LocalDate startDate;
+
+    @Column(nullable = false)
+    private Instant createdAt = Instant.now();
+
+    protected AppUser() {
+    }
+
+    public AppUser(String username, String passwordHash, String displayName) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.displayName = displayName;
+        this.startDate = LocalDate.now();
+    }
+
+    public Long getId() { return id; }
+    public String getUsername() { return username; }
+    public String getPasswordHash() { return passwordHash; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public Instant getCreatedAt() { return createdAt; }
+}

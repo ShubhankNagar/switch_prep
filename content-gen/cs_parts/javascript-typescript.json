@@ -1,0 +1,471 @@
+{
+ "id": "javascript-typescript",
+ "name": "JavaScript & TypeScript",
+ "order": 6,
+ "icon": "🟨",
+ "description": "Core JavaScript internals (closures, this, prototypes, event loop, promises) and TypeScript's type system, with output-prediction practice.",
+ "notes": [
+  {
+   "id": "js-n01",
+   "title": "Scope, Hoisting & the Temporal Dead Zone",
+   "content": "### Scope types\n- **Global scope** – declared outside any function/block.\n- **Function scope** – `var` is scoped to the nearest function.\n- **Block scope** – `let` and `const` are scoped to the nearest `{ }` (if, for, try…).\n- **Lexical scope** – a function can access variables from where it was **defined**, not where it is called.\n\n```js\nfunction outer() {\n  var a = 1;\n  if (true) { var b = 2; let c = 3; }\n  console.log(a, b); // 1 2\n  console.log(c);    // ReferenceError: c is not defined\n}\n```\n\n### var vs let vs const\n| | var | let | const |\n|---|---|---|---|\n| Scope | Function | Block | Block |\n| Hoisted | Yes, initialised to `undefined` | Yes, but uninitialised (TDZ) | Yes, TDZ |\n| Re-declare in same scope | Allowed | Error | Error |\n| Re-assign | Yes | Yes | No (but object contents can mutate) |\n| Creates property on `window` (global) | Yes | No | No |\n\n```js\nconst user = { name: 'Raj' };\nuser.name = 'Ravi';   // fine – binding is constant, object is not\nuser = {};            // TypeError\nObject.freeze(user);  // shallow immutability\n```\n\n### Hoisting\nDuring the **creation phase** of an execution context, the engine registers declarations before running code. It looks like declarations \"move to the top\".\n\n```js\nconsole.log(x);   // undefined (var hoisted + initialised)\nvar x = 5;\n\nconsole.log(y);   // ReferenceError: Cannot access 'y' before initialization\nlet y = 5;\n\ngreet();          // \"hi\" – function declarations are fully hoisted\nfunction greet() { console.log('hi'); }\n\nsayBye();         // TypeError: sayBye is not a function (var hoisted as undefined)\nvar sayBye = function () { console.log('bye'); };\n```\n\n### Temporal Dead Zone (TDZ)\nThe period between entering a scope and the line where a `let`/`const`/`class` is declared. Accessing the variable there throws `ReferenceError`. TDZ exists to catch bugs where you use a variable before it is meaningful.\n\n```js\nlet a = 'outer';\n{\n  console.log(a); // ReferenceError – inner `a` is in TDZ, it shadows outer\n  let a = 'inner';\n}\n```\n\n### Classic loop question\n```js\nfor (var i = 0; i < 3; i++) setTimeout(() => console.log(i));   // 3 3 3\nfor (let j = 0; j < 3; j++) setTimeout(() => console.log(j));   // 0 1 2\n```\n`var` creates one shared `i`; by the time callbacks run the loop has finished (i = 3). `let` creates a **new binding per iteration**, so each callback closes over its own `j`. Pre-ES6 fix: an IIFE `(function(k){ setTimeout(() => console.log(k)); })(i)`.\n\n### Execution context & call stack\nEach function call creates an execution context (variable environment, scope chain, `this`) pushed onto the **call stack**. Too-deep recursion → `RangeError: Maximum call stack size exceeded`.\n\n### Strict mode\n`'use strict'` (automatic in ES modules and classes): assigning to undeclared variables throws, `this` in plain functions is `undefined` instead of `window`, duplicate parameter names are errors. TypeScript output and Angular code are strict-mode modules."
+  },
+  {
+   "id": "js-n02",
+   "title": "Closures",
+   "content": "A **closure** is a function bundled together with references to its surrounding (lexical) variables. The inner function keeps access to those variables **even after the outer function has returned**.\n\n```js\nfunction makeCounter() {\n  let count = 0;                 // private state\n  return {\n    inc: () => ++count,\n    get: () => count\n  };\n}\nconst c = makeCounter();\nc.inc(); c.inc();\nconsole.log(c.get()); // 2\nconsole.log(c.count); // undefined – truly private\n```\nThe variable `count` lives on because the returned functions reference it; garbage collection can't free it.\n\n### Practical uses\n1. **Data privacy / module pattern** (before ES modules and `#private` fields).\n2. **Function factories** – `const add5 = makeAdder(5)`.\n3. **Memoisation**:\n```js\nfunction memoize(fn) {\n  const cache = new Map();\n  return (n) => cache.has(n) ? cache.get(n) : (cache.set(n, fn(n)), cache.get(n));\n}\n```\n4. **Debounce / throttle** – the timer id is held in a closure:\n```js\nfunction debounce(fn, delay) {\n  let timer;\n  return function (...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn.apply(this, args), delay);\n  };\n}\nconst onSearch = debounce(q => api.search(q), 300);\n```\n5. **Once**:\n```js\nfunction once(fn) { let done = false, result; return (...a) => done ? result : (done = true, result = fn(...a)); }\n```\n6. Event handlers and callbacks capturing loop variables, React hooks, Angular `effect` callbacks, currying.\n\n### Currying\n```js\nconst curry = fn => function c(...args) {\n  return args.length >= fn.length ? fn(...args) : (...more) => c(...args, ...more);\n};\nconst sum3 = curry((a, b, c) => a + b + c);\nsum3(1)(2)(3); // 6\nsum3(1, 2)(3); // 6\n```\nInfinite curry: `sum(1)(2)(3)()` → keep accumulating until called with no args.\n\n### Pitfalls\n- **Memory leaks** – closures holding large objects (DOM nodes, big arrays) prevent GC; e.g. an event listener never removed.\n- **Stale closures** – a callback captures an old value (common with `var` loops or React state).\n\n### Interview script\n\"A closure is when a function remembers the variables from the scope where it was created. Every function in JS forms a closure. I've used it for debounce on a search input and for keeping private state in a factory function.\"\n\nThen be ready to **write debounce, throttle, memoize, or once** on the spot — these are top machine-coding warm-ups in Indian product-company frontend/full-stack rounds.\n\nThrottle for completeness:\n```js\nfunction throttle(fn, limit) {\n  let last = 0;\n  return (...args) => {\n    const now = Date.now();\n    if (now - last >= limit) { last = now; fn(...args); }\n  };\n}\n```"
+  },
+  {
+   "id": "js-n03",
+   "title": "The `this` Keyword, call/apply/bind & Arrow Functions",
+   "content": "`this` is determined by **how a function is called**, not where it is defined (except arrow functions). Learn the rules in priority order:\n\n1. **`new` binding** – `new Foo()` → `this` is the newly created object.\n2. **Explicit binding** – `fn.call(obj, a, b)`, `fn.apply(obj, [a, b])`, `fn.bind(obj)` → `this` is `obj`.\n3. **Implicit binding** – `obj.method()` → `this` is `obj` (the object left of the dot).\n4. **Default binding** – plain `fn()` → `undefined` in strict mode, global object (`window`) in sloppy mode.\n\n**Arrow functions** have no own `this`; they capture `this` from the enclosing lexical scope, and `call/apply/bind` can't change it.\n\n```js\nconst user = {\n  name: 'Raj',\n  regular() { return this.name; },\n  arrow: () => this?.name,           // `this` of module scope -> undefined\n  delayed() { setTimeout(() => console.log(this.name), 0); } // arrow captures user\n};\nuser.regular();  // 'Raj'\nuser.arrow();    // undefined\nconst f = user.regular;\nf();             // undefined (strict) – lost implicit binding\n```\n\n### Losing `this` — the classic bug\n```js\nclass Timer {\n  seconds = 0;\n  start() { setInterval(this.tick, 1000); }   // `this` inside tick is undefined\n  tick() { this.seconds++; }\n}\n```\nFixes: `setInterval(() => this.tick(), 1000)`, `setInterval(this.tick.bind(this), 1000)`, or define `tick = () => { this.seconds++; }` as an arrow class field.\n\n### call vs apply vs bind\n```js\nfunction intro(greet, punct) { return `${greet}, I am ${this.name}${punct}`; }\nconst p = { name: 'Asha' };\nintro.call(p, 'Hi', '!');      // args individually, invokes now\nintro.apply(p, ['Hi', '!']);   // args as array, invokes now\nconst bound = intro.bind(p, 'Hello'); // returns new function, partially applied\nbound('.');                    // 'Hello, I am Asha.'\n```\n\n### Polyfill for bind (frequently asked)\n```js\nFunction.prototype.myBind = function (ctx, ...preset) {\n  const fn = this;\n  return function (...later) { return fn.apply(ctx, [...preset, ...later]); };\n};\n```\n\n### Arrow vs regular function differences\n| Arrow | Regular |\n|---|---|\n| Lexical `this` | Dynamic `this` |\n| No `arguments` object | Has `arguments` |\n| Can't be used with `new` | Can be a constructor |\n| No `prototype` property | Has `prototype` |\n| Implicit return for expressions | Needs `return` |\n\nDon't use arrow functions as **object methods** that need `this` or for prototype methods; do use them for callbacks.\n\n### `this` in event handlers\n`button.addEventListener('click', function () { this })` → `this` is the button. With an arrow function, `this` is the outer scope.\n\n### `globalThis`\nStandard way to reference the global object in any environment (window in browser, global in Node)."
+  },
+  {
+   "id": "js-n04",
+   "title": "Prototypes, Inheritance & Classes",
+   "content": "JavaScript uses **prototypal inheritance**: objects inherit directly from other objects via an internal link `[[Prototype]]` (accessible via `Object.getPrototypeOf(obj)` or the legacy `__proto__`).\n\nWhen you access `obj.prop`, the engine looks on `obj`, then its prototype, then the prototype's prototype… until `null`. This is the **prototype chain**.\n\n```js\nconst animal = { eats: true, walk() { return 'walking'; } };\nconst dog = Object.create(animal);   // dog.[[Prototype]] = animal\ndog.barks = true;\ndog.walk();          // 'walking' (found on prototype)\ndog.hasOwnProperty('eats'); // false\n```\n\n### Constructor functions and `prototype`\nEvery regular function has a `prototype` property. Objects created with `new F()` get `F.prototype` as their `[[Prototype]]`.\n```js\nfunction Person(name) { this.name = name; }\nPerson.prototype.greet = function () { return 'Hi ' + this.name; };\nconst p = new Person('Raj');\np.greet();                                    // 'Hi Raj'\nObject.getPrototypeOf(p) === Person.prototype // true\nPerson.prototype.constructor === Person       // true\n```\nMethods on the prototype are **shared** by all instances (memory-efficient), unlike methods assigned in the constructor.\n\n### What `new` does\n1. Creates an empty object.\n2. Sets its `[[Prototype]]` to `F.prototype`.\n3. Calls `F` with `this` = the new object.\n4. Returns the object (unless `F` returns another object).\n\n```js\nfunction myNew(F, ...args) {\n  const obj = Object.create(F.prototype);\n  const res = F.apply(obj, args);\n  return res !== null && typeof res === 'object' ? res : obj;\n}\n```\n\n### ES6 classes – syntactic sugar\n```js\nclass Employee {\n  #salary;                          // truly private field\n  static count = 0;\n  constructor(name, salary) { this.name = name; this.#salary = salary; Employee.count++; }\n  get annual() { return this.#salary * 12; }\n  describe() { return `${this.name} earns ${this.annual}`; }\n}\nclass Manager extends Employee {\n  constructor(name, salary, reports) { super(name, salary); this.reports = reports; }\n  describe() { return super.describe() + ` and manages ${this.reports}`; }\n}\n```\nUnder the hood `Manager.prototype.__proto__ === Employee.prototype`. Differences from functions: classes are **not hoisted** usably (TDZ), always strict mode, must be called with `new`, methods are non-enumerable.\n\n### Useful checks\n- `obj instanceof C` – is `C.prototype` anywhere in obj's chain?\n- `Object.hasOwn(obj, 'k')` – own property only.\n- `for...in` iterates inherited enumerable props too; `Object.keys` only own.\n\n### Prototype pollution & extending built-ins\nAvoid modifying `Object.prototype` or `Array.prototype` in apps (except polyfills in interviews). Merging untrusted JSON into objects can lead to **prototype pollution** (`__proto__` keys) — a known security issue.\n\n### Interview polyfill example\n```js\nArray.prototype.myMap = function (cb, thisArg) {\n  const out = [];\n  for (let i = 0; i < this.length; i++) if (i in this) out[i] = cb.call(thisArg, this[i], i, this);\n  return out;\n};\n```\nBe ready for `myFilter`, `myReduce` (handle missing initial value) and `Promise.all` polyfills."
+  },
+  {
+   "id": "js-n05",
+   "title": "Event Loop, Call Stack, Microtasks & Macrotasks",
+   "content": "JavaScript runs on a **single thread**: one call stack, one thing at a time. Async behaviour comes from the **runtime** (browser/Node) plus the **event loop**.\n\n### Components\n- **Call stack** – where function frames execute.\n- **Web APIs / Node APIs** – timers, network, DOM events run outside the JS thread.\n- **Macrotask (task) queue** – callbacks from `setTimeout`, `setInterval`, I/O, UI events, `MessageChannel`.\n- **Microtask queue** – promise reactions (`.then/.catch/.finally`), `await` continuations, `queueMicrotask`, `MutationObserver`.\n\n### The loop algorithm (browser)\n1. Run the current script / one macrotask to completion (until the stack is empty).\n2. **Drain the entire microtask queue** (microtasks added during this step also run).\n3. Render if needed (requestAnimationFrame callbacks, style, layout, paint).\n4. Take the next macrotask; repeat.\n\nSo **all microtasks run before the next macrotask**. An infinite chain of microtasks can starve rendering.\n\n### Classic output question\n```js\nconsole.log('1');\nsetTimeout(() => console.log('2'), 0);\nPromise.resolve().then(() => console.log('3'));\nqueueMicrotask(() => console.log('4'));\n(async () => {\n  console.log('5');\n  await null;\n  console.log('6');\n})();\nconsole.log('7');\n```\nOutput: **1 5 7 3 4 6 2**\n- Sync: 1, 5 (async function body runs synchronously until first `await`), 7.\n- Microtasks in order queued: 3, 4, 6.\n- Macrotask: 2.\n\n### setTimeout(fn, 0)\nNot \"run immediately\" — it means \"run after at least 0 ms, as a macrotask after the current stack and all microtasks\". Browsers clamp nested timers to ≥4 ms.\n\n### Node.js specifics\nNode's loop has phases: timers → pending callbacks → poll (I/O) → check (`setImmediate`) → close callbacks. `process.nextTick` callbacks run **before** promise microtasks. Order of `setTimeout(0)` vs `setImmediate` in the main module is non-deterministic, but inside an I/O callback `setImmediate` runs first.\n\n```js\nsetTimeout(() => console.log('timeout'));\nsetImmediate(() => console.log('immediate'));\nprocess.nextTick(() => console.log('nextTick'));\nPromise.resolve().then(() => console.log('promise'));\n// nextTick, promise, then timeout/immediate (order may vary)\n```\n\n### Why it matters\n- Long synchronous work (big loops, JSON parsing of MBs) **blocks** the UI — split work, use Web Workers.\n- Understanding microtasks explains why Angular's Zone.js / change detection or a promise resolves before a timeout.\n- Explains \"why does my `console.log` after an API call print `undefined`\" – the callback hasn't run yet.\n\n### Blocking demo\n```js\nsetTimeout(() => console.log('timer'), 0);\nconst end = Date.now() + 2000;\nwhile (Date.now() < end) {}   // blocks 2s\nconsole.log('loop done');     // 'loop done' then 'timer'\n```"
+  },
+  {
+   "id": "js-n06",
+   "title": "Promises & Async/Await",
+   "content": "A **Promise** represents a value that will be available later. States: **pending → fulfilled** (resolved with a value) or **rejected** (with a reason). Once settled it never changes.\n\n```js\nconst wait = ms => new Promise(resolve => setTimeout(resolve, ms));\n\nfetchUser(1)\n  .then(user => fetchOrders(user.id))   // return a promise to chain\n  .then(orders => console.log(orders))\n  .catch(err => console.error(err))     // catches any error above\n  .finally(() => hideSpinner());\n```\n- `.then` always returns a **new promise**; returning a value resolves it, throwing rejects it.\n- The executor function runs **synchronously**; callbacks run as microtasks.\n- An unhandled rejection triggers `unhandledrejection` (browser) / crashes Node by default.\n\n### Combinators\n| Method | Resolves when | Rejects when |\n|---|---|---|\n| `Promise.all(ps)` | all fulfil → array of values in order | **first** rejection (fail-fast) |\n| `Promise.allSettled(ps)` | all settle → `[{status, value/reason}]` | never |\n| `Promise.race(ps)` | first to settle (either way) | first settles with rejection |\n| `Promise.any(ps)` | first to **fulfil** | all reject → `AggregateError` |\n\nTimeout pattern: `Promise.race([fetch(url), wait(5000).then(() => { throw new Error('timeout'); })])`. Better: `AbortController` with `AbortSignal.timeout(5000)`.\n\n### async/await\nSyntactic sugar over promises; makes async code read top-to-bottom.\n```js\nasync function loadDashboard(id) {\n  try {\n    const user = await fetchUser(id);\n    const [orders, wallet] = await Promise.all([fetchOrders(id), fetchWallet(id)]); // parallel\n    return { user, orders, wallet };\n  } catch (e) {\n    console.error(e);\n    throw e;\n  }\n}\n```\n- An `async` function **always returns a promise**.\n- `await` pauses only that function; the rest of the program continues. Code after `await` runs as a microtask.\n- **Sequential vs parallel trap:** `await a(); await b();` runs one after another. Start both first (`const pa = a(), pb = b(); await pa; await pb;`) or use `Promise.all`.\n- `forEach` doesn't wait for async callbacks; use `for...of` with `await` (sequential) or `Promise.all(arr.map(async ...))` (parallel).\n- Top-level `await` works in ES modules.\n\n### Promise.all polyfill (frequently asked)\n```js\nfunction promiseAll(promises) {\n  return new Promise((resolve, reject) => {\n    const results = []; let done = 0;\n    if (promises.length === 0) return resolve(results);\n    promises.forEach((p, i) => {\n      Promise.resolve(p).then(v => {\n        results[i] = v;\n        if (++done === promises.length) resolve(results);\n      }, reject);\n    });\n  });\n}\n```\n\n### Retry with exponential backoff\n```js\nasync function retry(fn, times = 3, delay = 500) {\n  try { return await fn(); }\n  catch (e) { if (times <= 1) throw e; await wait(delay); return retry(fn, times - 1, delay * 2); }\n}\n```\n\n### Callback hell → promises\nPromises solved nesting (pyramid of doom) and inversion of control; async/await further improved readability and try/catch error handling."
+  },
+  {
+   "id": "js-n07",
+   "title": "ES6+ Features Every Interviewer Expects",
+   "content": "### Destructuring, spread & rest\n```js\nconst { name, address: { city } = {}, role = 'dev' } = user;   // nested + default\nconst [first, , third, ...others] = [1, 2, 3, 4, 5];\nconst merged = { ...defaults, ...overrides };   // shallow copy/merge\nconst copy = [...arr];\nfunction sum(...nums) { return nums.reduce((a, b) => a + b, 0); }  // rest params\n[a, b] = [b, a];   // swap\n```\nSpread makes a **shallow** copy — nested objects are shared. Deep copy: `structuredClone(obj)` (handles Dates, Maps, cycles; not functions) or `JSON.parse(JSON.stringify(obj))` (loses Dates/undefined/functions).\n\n### Template literals, default params, enhanced object literals\n```js\nconst msg = `Hello ${user.name}, you have ${count} orders`;\nfunction greet(name = 'Guest') {}\nconst key = 'id';\nconst obj = { name, [key + '1']: 5, greet() {} };\n```\n\n### Optional chaining & nullish coalescing\n```js\nconst pin = user?.address?.pin ?? 'N/A';\nuser.getAge?.();\nconst port = config.port ?? 8080;   // only null/undefined fall back\nconst port2 = config.port || 8080;  // 0 or '' also fall back (bug-prone)\n```\nLogical assignment: `a ||= b`, `a &&= b`, `a ??= b`.\n\n### Modules\n```js\nexport const PI = 3.14; export default function area(r) {}\nimport area, { PI } from './math.js';\nconst mod = await import('./heavy.js');   // dynamic import -> code splitting\n```\nES modules are static (tree-shakable), strict, and singleton per URL; CommonJS (`require`) is dynamic and synchronous.\n\n### Collections\n- `Map` – any key type, insertion-ordered, `size`; better than objects for frequent add/remove.\n- `Set` – unique values: `[...new Set(arr)]` to dedupe.\n- `WeakMap`/`WeakSet` – keys are objects held weakly (no memory leak), not iterable. Used for private data/caches keyed by DOM nodes.\n\n### Iterators & generators\n```js\nfunction* idGen() { let i = 1; while (true) yield i++; }\nconst g = idGen(); g.next().value; // 1\n```\nAnything with `[Symbol.iterator]` works with `for...of`, spread and destructuring. `for...in` iterates keys (including inherited), `for...of` iterates values.\n\n### Symbols, BigInt, other additions\n- `Symbol('id')` – unique property keys.\n- `BigInt` – `123n` for integers beyond 2^53 − 1 (IDs from Java `long`!).\n- Array methods: `includes`, `flat`, `flatMap`, `at(-1)`, `findLast`, non-mutating `toSorted`, `toReversed`, `with` (ES2023), `Object.groupBy` (ES2024).\n- `Object.entries/fromEntries`, `Object.freeze`, `String.padStart`, `replaceAll`.\n- `Promise.allSettled`, `Promise.any`, `Promise.withResolvers` (ES2024).\n- Private class fields `#x`, static blocks, `structuredClone`.\n\n### Equality & type coercion quick hits\n- `===` strict (no coercion), `==` coerces (`'5' == 5` true, `null == undefined` true, `NaN !== NaN`).\n- Falsy values: `false, 0, -0, 0n, '', null, undefined, NaN`. Everything else truthy (including `[]`, `{}`, `'0'`).\n- `typeof null === 'object'` (historic bug), `typeof []==='object'` → use `Array.isArray`.\n- `0.1 + 0.2 !== 0.3` (IEEE-754 floating point) – use integers (paise) for money.\n\n### Shallow vs deep equality\nObjects compare by reference: `{} === {}` is false."
+  },
+  {
+   "id": "js-n08",
+   "title": "TypeScript: Types, Generics & Utility Types",
+   "content": "TypeScript is a **statically typed superset of JavaScript** that compiles to JS. Types are erased at runtime — they exist only to catch errors at compile time and improve tooling.\n\n### Basic & special types\n```ts\nlet id: number = 1; let name: string = 'Raj'; let ok: boolean = true;\nlet ids: number[] = [1, 2]; let pair: [string, number] = ['a', 1];  // tuple\nlet anything: any;      // opt out of checking (avoid)\nlet safe: unknown;      // must narrow before use (prefer over any)\nfunction fail(): never { throw new Error(); }  // never returns\nfunction log(): void {}\n```\n\n### interface vs type\n```ts\ninterface User { id: number; name: string; email?: string; readonly createdAt: Date; }\ninterface Admin extends User { permissions: string[]; }\ntype Status = 'ACTIVE' | 'BLOCKED';            // union of literals\ntype Point = { x: number } & { y: number };     // intersection\n```\n- `interface` – object shapes, can be **extended and declaration-merged**; good for public APIs/classes (`implements`).\n- `type` – can alias anything: unions, tuples, primitives, mapped/conditional types.\nIn practice: interfaces for object models, types for unions/compositions.\n\n### Narrowing & type guards\n```ts\nfunction format(v: string | number) {\n  if (typeof v === 'string') return v.toUpperCase();\n  return v.toFixed(2);\n}\ntype Shape = { kind: 'circle'; r: number } | { kind: 'square'; side: number };\nfunction area(s: Shape) {\n  switch (s.kind) {               // discriminated union\n    case 'circle': return Math.PI * s.r ** 2;\n    case 'square': return s.side ** 2;\n    default: const _exhaustive: never = s; return _exhaustive;\n  }\n}\nfunction isUser(x: unknown): x is User { return typeof x === 'object' && x !== null && 'id' in x; }\n```\nOther guards: `instanceof`, `in`, truthiness, equality.\n\n### Generics\nReusable, type-safe code (like Java generics, but structural and erased).\n```ts\nfunction first<T>(arr: T[]): T | undefined { return arr[0]; }\ninterface ApiResponse<T> { data: T; status: number; }\nfunction getProp<T, K extends keyof T>(obj: T, key: K): T[K] { return obj[key]; }\nclass Repo<T extends { id: number }> { private items: T[] = []; findById(id: number) { return this.items.find(i => i.id === id); } }\n```\n\n### Utility types (very frequently asked)\n| Utility | Meaning |\n|---|---|\n| `Partial<T>` | all props optional (PATCH payloads) |\n| `Required<T>` | all props required |\n| `Readonly<T>` | all props readonly |\n| `Pick<T, 'a'\\|'b'>` | only selected props |\n| `Omit<T, 'password'>` | remove props (DTOs) |\n| `Record<K, V>` | object with keys K and values V |\n| `Exclude<U, X>` / `Extract<U, X>` | filter union members |\n| `NonNullable<T>` | remove null/undefined |\n| `ReturnType<F>` / `Parameters<F>` | function types |\n| `Awaited<T>` | unwrap Promise type |\n\n```ts\ntype UserUpdate = Partial<Omit<User, 'id' | 'createdAt'>>;\nconst byRole: Record<Status, User[]> = { ACTIVE: [], BLOCKED: [] };\n```\n\n### Advanced: keyof, typeof, mapped & conditional types\n```ts\ntype Keys = keyof User;                         // 'id' | 'name' | ...\nconst config = { apiUrl: '', retries: 3 }; type Config = typeof config;\ntype MyPartial<T> = { [K in keyof T]?: T[K] };  // mapped type\ntype IsString<T> = T extends string ? true : false;  // conditional\ntype ElementType<T> = T extends (infer U)[] ? U : T; // infer\n```\n\n### Other must-knows\n- **Enums** (numeric/string) vs union of string literals (`'A' | 'B'` – lighter, no runtime code); `as const` objects.\n- **Type assertion** `x as User` (no runtime check) vs non-null assertion `x!`.\n- `strict` mode flags: `strictNullChecks`, `noImplicitAny`.\n- Access modifiers `public/private/protected` (compile-time only) vs JS `#private` (runtime).\n- **Structural typing**: compatibility is by shape, not by name (unlike Java's nominal typing).\n- `satisfies` operator (TS 4.9): validate a value against a type while keeping its narrow inferred type.\n- Decorators (used by Angular `@Component`) – TS 5 supports standard decorators."
+  }
+ ],
+ "qa": [
+  {
+   "id": "js-001",
+   "q": "What is a closure? Give a practical example.",
+   "a": "A closure is a function that **remembers variables from its lexical scope** even after the outer function has finished executing.\n\n```js\nfunction createBankAccount(initial) {\n  let balance = initial;                // private\n  return {\n    deposit: amt => (balance += amt),\n    getBalance: () => balance\n  };\n}\nconst acc = createBankAccount(100);\nacc.deposit(50);\nacc.getBalance(); // 150\nacc.balance;      // undefined\n```\nPractical uses: data privacy, function factories, memoisation, **debounce/throttle** (the timer id lives in a closure), event handlers, currying. Downside: closures can keep large objects alive and cause memory leaks if references (e.g. listeners) aren't cleaned up.",
+   "level": "Basic",
+   "tags": [
+    "closures"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-002",
+   "q": "Predict the output and explain how to fix it.\n\n```js\nfor (var i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i), 100);\n}\n```",
+   "a": "Output: **`3 3 3`**.\n\n`var` is function-scoped, so there is **one** `i` shared by all three callbacks. The callbacks run after the loop finishes (they're macrotasks), when `i` is already 3.\n\nFixes:\n```js\n// 1. let creates a new binding per iteration\nfor (let i = 0; i < 3; i++) setTimeout(() => console.log(i), 100);   // 0 1 2\n\n// 2. IIFE captures the current value (pre-ES6)\nfor (var i = 0; i < 3; i++) ((j) => setTimeout(() => console.log(j), 100))(i);\n\n// 3. setTimeout's extra args\nfor (var i = 0; i < 3; i++) setTimeout(console.log, 100, i);\n```",
+   "level": "Basic",
+   "tags": [
+    "closures",
+    "output",
+    "scope"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-003",
+   "q": "Explain hoisting with var, let, const and functions.",
+   "a": "Hoisting is JavaScript registering declarations during the creation phase of a scope, before executing code.\n\n- `var` – hoisted and initialised to `undefined`. Using it early gives `undefined`.\n- `let`/`const`/`class` – hoisted but **not initialised**; accessing before the declaration line throws `ReferenceError` (Temporal Dead Zone).\n- **Function declarations** – fully hoisted (name + body), callable before definition.\n- **Function expressions / arrow functions** – follow the variable rule (`var` → `undefined`, so calling gives `TypeError: not a function`).\n\n```js\nconsole.log(a); var a = 1;      // undefined\nconsole.log(b); let b = 2;      // ReferenceError\nhello();                        // works\nfunction hello() {}\nbye();                          // TypeError\nvar bye = () => {};\n```",
+   "level": "Basic",
+   "tags": [
+    "hoisting",
+    "scope"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-004",
+   "q": "Predict the output:\n\n```js\nconsole.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C')).then(() => console.log('D'));\nconsole.log('E');\n```",
+   "a": "Output: **A E C D B**\n\n1. Synchronous code runs first: `A`, `E`.\n2. After the stack is empty, the **microtask queue** drains completely: `C` runs, its `.then` queues `D` as another microtask, which also runs before any macrotask.\n3. Then the **macrotask** from `setTimeout`: `B`.\n\nRule: sync → all microtasks (promises, `queueMicrotask`, await continuations) → next macrotask (`setTimeout`, I/O, events) → microtasks again → …",
+   "level": "Intermediate",
+   "tags": [
+    "event-loop",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-005",
+   "q": "Explain the event loop in JavaScript.",
+   "a": "JavaScript has a single call stack. Long-running operations (timers, network, events) are handled by the runtime's APIs; their callbacks are queued and the **event loop** pushes them onto the stack when it is empty.\n\nLoop iteration (browser):\n1. Execute one macrotask (initial script, timer callback, event handler) until the stack is empty.\n2. Drain **all microtasks** (promise callbacks, `await` continuations, `queueMicrotask`, MutationObserver).\n3. Render if needed (rAF, layout, paint).\n4. Pick the next macrotask.\n\nImplications: `setTimeout(fn, 0)` runs after pending promises; heavy synchronous code freezes the UI; infinite microtask chains starve rendering. In Node, `process.nextTick` runs even before promise microtasks, and the loop has phases (timers, poll, check for `setImmediate`).",
+   "level": "Intermediate",
+   "tags": [
+    "event-loop"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-006",
+   "q": "Predict the output:\n\n```js\nasync function f() {\n  console.log(1);\n  await null;\n  console.log(2);\n}\nconsole.log(3);\nf();\nconsole.log(4);\n```",
+   "a": "Output: **3 1 4 2**\n\n- `3` – synchronous.\n- Calling `f()` runs its body **synchronously until the first `await`** → `1`.\n- `await null` suspends `f`; the rest (`console.log(2)`) is scheduled as a microtask. Control returns to the caller.\n- `4` – synchronous.\n- Stack empty → microtask runs → `2`.\n\nKey point: `async` doesn't make the whole function asynchronous — only the part after each `await`.",
+   "level": "Intermediate",
+   "tags": [
+    "async-await",
+    "event-loop",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-007",
+   "q": "What are the different ways `this` is bound? Predict the output.\n\n```js\nconst obj = {\n  name: 'Raj',\n  a() { return this.name; },\n  b: () => this?.name,\n  c() { return [1].map(function () { return this?.name; }); },\n  d() { return [1].map(() => this.name); }\n};\nconsole.log(obj.a(), obj.b(), obj.c(), obj.d());\n```",
+   "a": "Output (module/strict mode): **`Raj undefined [undefined] ['Raj']`**\n\n- `a()` – implicit binding: `this` = `obj`.\n- `b` – arrow function, takes `this` from module scope (`undefined`).\n- `c()` – the inner regular function is called by `map` without a receiver → default binding → `undefined` (strict).\n- `d()` – inner arrow inherits `this` from `d`, which is `obj`.\n\nBinding rules by priority: `new` > explicit (`call/apply/bind`) > implicit (`obj.fn()`) > default (`undefined`/global). Arrow functions ignore all of them and use lexical `this`.",
+   "level": "Intermediate",
+   "tags": [
+    "this",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-008",
+   "q": "What is the difference between call, apply and bind? Write a bind polyfill.",
+   "a": "All three set `this` explicitly:\n- `fn.call(ctx, a, b)` – invokes immediately, args listed.\n- `fn.apply(ctx, [a, b])` – invokes immediately, args as array.\n- `fn.bind(ctx, a)` – returns a **new function** with `this` (and optionally some args) fixed; invoke later.\n\n```js\nFunction.prototype.myBind = function (ctx, ...preset) {\n  const fn = this;\n  if (typeof fn !== 'function') throw new TypeError('Not callable');\n  return function bound(...args) {\n    // support `new bound()` – ignore ctx when used as constructor\n    return this instanceof bound ? new fn(...preset, ...args) : fn.apply(ctx, [...preset, ...args]);\n  };\n};\n```\nUse cases: borrowing methods (`Array.prototype.slice.call(arguments)`), `Math.max.apply(null, arr)` (now `Math.max(...arr)`), fixing `this` for callbacks.",
+   "level": "Intermediate",
+   "tags": [
+    "this",
+    "polyfill"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-009",
+   "q": "Arrow functions vs regular functions — what are the differences?",
+   "a": "1. **`this`** – arrows use lexical `this` from the surrounding scope; regular functions get `this` from the call site.\n2. **`arguments`** – arrows don't have their own `arguments`; use rest params `(...args)`.\n3. **Constructors** – arrows can't be used with `new` and have no `prototype`.\n4. **Syntax** – concise body with implicit return: `x => x * 2`; returning an object needs parentheses: `() => ({ a: 1 })`.\n5. Arrows can't be generators, and `call/apply/bind` can't change their `this`.\n\nWhen to use: arrows for callbacks (`map`, `setTimeout`, promise chains) where you want the outer `this`. Regular functions/methods for object methods, prototype methods, constructors, and DOM handlers that need `this` = element.",
+   "level": "Basic",
+   "tags": [
+    "functions",
+    "this"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-010",
+   "q": "Explain prototypal inheritance and the prototype chain.",
+   "a": "Every object has an internal `[[Prototype]]` link to another object (or `null`). When a property isn't found on the object, JS looks up this chain until it finds it or reaches `null`.\n\n```js\nfunction Animal(name) { this.name = name; }\nAnimal.prototype.speak = function () { return `${this.name} makes a sound`; };\nfunction Dog(name) { Animal.call(this, name); }\nDog.prototype = Object.create(Animal.prototype);\nDog.prototype.constructor = Dog;\n\nconst d = new Dog('Tommy');\nd.speak(); // found on Animal.prototype\n// chain: d -> Dog.prototype -> Animal.prototype -> Object.prototype -> null\n```\nES6 `class Dog extends Animal` builds the same chain with cleaner syntax. Difference from Java: inheritance is between **objects at runtime**, not classes at compile time, and you can change prototypes dynamically.\n\n`__proto__` is an instance's link; `prototype` is a property of constructor functions used for instances created with `new`.",
+   "level": "Intermediate",
+   "tags": [
+    "prototypes",
+    "inheritance"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-011",
+   "q": "What is the difference between == and ===? Predict: `[] == false`, `null == 0`, `NaN === NaN`.",
+   "a": "`===` compares type and value with **no coercion**. `==` performs **type coercion** using the abstract equality algorithm.\n\n- `[] == false` → **true**. `false` → 0; `[]` → `''` → 0; `0 == 0`.\n- `null == 0` → **false**. `null` only loosely equals `undefined` (and itself).\n- `null == undefined` → **true**; `null === undefined` → false.\n- `NaN === NaN` → **false**. NaN is not equal to anything; use `Number.isNaN(x)` or `Object.is(x, NaN)`.\n- `'1' == 1` → true; `'1' === 1` → false.\n- `Object.is(0, -0)` → false, though `0 === -0` is true.\n\nAlways use `===` (ESLint `eqeqeq`), except `x == null` as a shorthand for null-or-undefined.",
+   "level": "Basic",
+   "tags": [
+    "coercion",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-012",
+   "q": "Predict the output:\n\n```js\nvar x = 1;\nfunction foo() {\n  console.log(x);\n  var x = 2;\n  console.log(x);\n}\nfoo();\nlet y = 1;\n{\n  console.log(y);\n  let y = 2;\n}\n```",
+   "a": "Output: **`undefined`**, **`2`**, then **`ReferenceError: Cannot access 'y' before initialization`**.\n\n- Inside `foo`, `var x` is hoisted to the top of the function and initialised to `undefined`. It **shadows** the global `x`, so the first log prints `undefined`, not `1`. After assignment, `2`.\n- In the block, `let y` is also hoisted to the top of the block but sits in the **Temporal Dead Zone** until its declaration line. Because the inner `y` shadows the outer one for the whole block, `console.log(y)` throws instead of printing `1`.\n\nLesson: declarations are scoped to their whole function/block, not from the line they appear on. Use `let`/`const` and declare at the top to avoid surprises.",
+   "level": "Intermediate",
+   "tags": [
+    "hoisting",
+    "tdz",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-013",
+   "q": "What is the difference between null, undefined and undeclared?",
+   "a": "- **undefined** – a variable is declared but not assigned; missing object property; function with no return; missing argument. `typeof undefined === 'undefined'`.\n- **null** – an intentional \"no value\" assigned by the programmer. `typeof null === 'object'` (a long-standing language bug).\n- **undeclared** – the variable was never declared in any accessible scope; reading it throws `ReferenceError` (in strict mode, assigning to it also throws). `typeof undeclaredVar` safely returns `'undefined'`.\n\n```js\nlet a;            // undefined\nlet b = null;     // null\nconsole.log(c);   // ReferenceError: c is not defined\nnull == undefined  // true\nnull === undefined // false\n```\nDefault parameters and `??` treat both null and undefined as \"missing\" (default params only for `undefined`).",
+   "level": "Basic",
+   "tags": [
+    "basics"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-014",
+   "q": "What are Promises? Explain Promise.all, allSettled, race and any.",
+   "a": "A Promise is an object representing the eventual result of an async operation: **pending**, **fulfilled** or **rejected**.\n\n- **`Promise.all([...])`** – fulfils with an array of all results (in input order) when all succeed; **rejects immediately** on the first failure. Use for dependent-on-all parallel calls.\n- **`Promise.allSettled([...])`** – waits for all; returns `{status:'fulfilled', value}` / `{status:'rejected', reason}` for each. Use when partial failure is acceptable (dashboard widgets).\n- **`Promise.race([...])`** – settles with the first promise to settle (success or failure). Use for timeouts.\n- **`Promise.any([...])`** – fulfils with the first **success**; rejects with `AggregateError` if all fail. Use for fastest mirror/CDN.\n\n```js\nconst [user, orders] = await Promise.all([getUser(id), getOrders(id)]);\n```",
+   "level": "Intermediate",
+   "tags": [
+    "promises"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-015",
+   "q": "Implement Promise.all from scratch.",
+   "a": "```js\nfunction promiseAll(iterable) {\n  return new Promise((resolve, reject) => {\n    const items = Array.from(iterable);\n    const results = new Array(items.length);\n    let remaining = items.length;\n    if (remaining === 0) return resolve(results);\n\n    items.forEach((item, index) => {\n      Promise.resolve(item)            // handle non-promise values\n        .then(value => {\n          results[index] = value;      // preserve order, not completion order\n          if (--remaining === 0) resolve(results);\n        })\n        .catch(reject);                // first rejection wins\n    });\n  });\n}\n\npromiseAll([1, Promise.resolve(2), new Promise(r => setTimeout(r, 100, 3))])\n  .then(console.log); // [1, 2, 3]\n```\nKey points interviewers check: order preserved by index, empty input resolves immediately, non-promises wrapped with `Promise.resolve`, fail-fast rejection.",
+   "level": "Advanced",
+   "tags": [
+    "promises",
+    "polyfill"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-016",
+   "q": "What is async/await? How do you run awaits in parallel?",
+   "a": "`async/await` is syntax over promises. An `async` function always returns a promise; `await` pauses the function until the promise settles and returns its value (or throws its rejection, catchable with `try/catch`).\n\n**Sequential (slow if independent):**\n```js\nconst user = await getUser();      // 300ms\nconst products = await getProducts(); // 300ms  → total 600ms\n```\n**Parallel:**\n```js\nconst [user, products] = await Promise.all([getUser(), getProducts()]); // ~300ms\n```\n**Loops:**\n```js\nfor (const id of ids) await save(id);                 // sequential, ordered\nawait Promise.all(ids.map(id => save(id)));           // parallel\nids.forEach(async id => await save(id));              // BUG: forEach doesn't wait\n```\nFor bounded concurrency (e.g. 5 at a time), process in chunks or use a small pool helper.",
+   "level": "Intermediate",
+   "tags": [
+    "async-await",
+    "promises"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-017",
+   "q": "Implement a debounce function. How is it different from throttle?",
+   "a": "**Debounce** delays execution until the event has stopped firing for `delay` ms (search input, window resize end). **Throttle** executes at most once per interval during continuous firing (scroll, mousemove, button spam).\n\n```js\nfunction debounce(fn, delay = 300) {\n  let timer;\n  return function (...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn.apply(this, args), delay);\n  };\n}\n\nfunction throttle(fn, interval = 200) {\n  let last = 0;\n  return function (...args) {\n    const now = Date.now();\n    if (now - last >= interval) { last = now; fn.apply(this, args); }\n  };\n}\n\ninput.addEventListener('input', debounce(e => search(e.target.value), 400));\nwindow.addEventListener('scroll', throttle(updateProgress, 100));\n```\nBoth rely on closures to keep `timer`/`last` between calls. In Angular you'd use RxJS `debounceTime`/`throttleTime`.",
+   "level": "Intermediate",
+   "tags": [
+    "closures",
+    "machine-coding"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-018",
+   "q": "Shallow copy vs deep copy in JavaScript — how do you do each?",
+   "a": "A **shallow copy** duplicates top-level properties; nested objects are still **shared references**. A **deep copy** recursively copies everything.\n\n```js\nconst user = { name: 'Raj', address: { city: 'Pune' } };\nconst shallow = { ...user };            // or Object.assign({}, user)\nshallow.address.city = 'Bangalore';\nconsole.log(user.address.city);          // 'Bangalore' – shared!\n\nconst deep = structuredClone(user);      // modern, handles Date, Map, Set, cycles\ndeep.address.city = 'Delhi';             // original unaffected\n```\nOptions for deep copy:\n- `structuredClone` – best built-in (not functions/DOM nodes/class prototypes).\n- `JSON.parse(JSON.stringify(x))` – loses `undefined`, functions, Dates (become strings), Infinity; fails on cycles.\n- Lodash `cloneDeep` or a custom recursive function.\n\nArrays: `[...arr]`, `arr.slice()` are shallow.",
+   "level": "Basic",
+   "tags": [
+    "objects",
+    "es6"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-019",
+   "q": "Predict the output:\n\n```js\nconst a = { x: 1 };\nconst b = a;\nb.x = 2;\nlet c = 5;\nlet d = c;\nd = 10;\nconsole.log(a.x, c);\nfunction change(o) { o.x = 3; o = { x: 4 }; }\nchange(a);\nconsole.log(a.x);\n```",
+   "a": "Output: **`2 5`** then **`3`**\n\n- Objects are assigned by **reference**: `b` and `a` point to the same object, so `b.x = 2` changes `a.x`.\n- Primitives are copied by **value**: changing `d` doesn't affect `c`.\n- In `change(o)`, `o` receives a copy of the **reference** (JS is pass-by-value, where the value is a reference — \"call by sharing\"). `o.x = 3` mutates the shared object. `o = { x: 4 }` only reassigns the local parameter, so the caller's `a` is unaffected.\n\nThis is the same as Java's behaviour with object references.",
+   "level": "Basic",
+   "tags": [
+    "output",
+    "references"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-020",
+   "q": "What are map, filter and reduce? Implement a reduce polyfill.",
+   "a": "- `map(cb)` – returns a new array of transformed values (same length).\n- `filter(cb)` – returns a new array of elements where `cb` returns truthy.\n- `reduce(cb, init)` – folds the array into a single value.\n\n```js\nconst orders = [{ amt: 500, paid: true }, { amt: 300, paid: false }, { amt: 200, paid: true }];\nconst paidTotal = orders.filter(o => o.paid).map(o => o.amt).reduce((s, a) => s + a, 0); // 700\n\nArray.prototype.myReduce = function (cb, initial) {\n  let i = 0, acc = initial;\n  if (arguments.length < 2) {\n    while (i < this.length && !(i in this)) i++;          // skip holes\n    if (i >= this.length) throw new TypeError('Reduce of empty array with no initial value');\n    acc = this[i++];\n  }\n  for (; i < this.length; i++) if (i in this) acc = cb(acc, this[i], i, this);\n  return acc;\n};\n```\nNone of them mutate the original array; `forEach` returns `undefined`.",
+   "level": "Intermediate",
+   "tags": [
+    "arrays",
+    "polyfill"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-021",
+   "q": "What is event delegation and event bubbling/capturing?",
+   "a": "DOM events propagate in three phases: **capturing** (window → target), **target**, then **bubbling** (target → window). `addEventListener(type, fn, true)` or `{ capture: true }` listens during capture; default is bubbling.\n\n**Event delegation** – attach one listener to a common ancestor and use `event.target` to handle events from many (even dynamically added) children.\n\n```js\ndocument.querySelector('#todo-list').addEventListener('click', e => {\n  const btn = e.target.closest('button.delete');\n  if (btn) removeTodo(btn.dataset.id);\n});\n```\nBenefits: fewer listeners (memory), works for elements added later. Use `e.stopPropagation()` to stop bubbling and `e.preventDefault()` to cancel default action (form submit, link navigation) — they're different things. Some events (`focus`, `blur`) don't bubble; use `focusin`/`focusout`.",
+   "level": "Intermediate",
+   "tags": [
+    "dom",
+    "events"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-022",
+   "q": "What is currying? Implement sum(1)(2)(3)() .",
+   "a": "**Currying** transforms `f(a, b, c)` into `f(a)(b)(c)` — each call takes one (or some) argument and returns a function waiting for the rest. It enables partial application and function reuse.\n\n```js\n// fixed arity\nconst add = a => b => c => a + b + c;\nadd(1)(2)(3); // 6\n\n// infinite: sum(1)(2)(3)() -> 6\nfunction sum(a) {\n  return function next(b) {\n    if (b === undefined) return a;\n    a += b;\n    return next;\n  };\n}\nsum(1)(2)(3)(); // 6\n\n// generic curry\nconst curry = fn => function c(...args) {\n  return args.length >= fn.length ? fn.apply(this, args) : (...more) => c.apply(this, [...args, ...more]);\n};\n```\nReal use: `const logError = log('ERROR'); logError('DB down');`.",
+   "level": "Intermediate",
+   "tags": [
+    "closures",
+    "functional"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-023",
+   "q": "What are generators and iterators?",
+   "a": "An **iterator** is an object with a `next()` method returning `{ value, done }`. An **iterable** has a `[Symbol.iterator]()` method returning an iterator — arrays, strings, Maps, Sets are iterables, enabling `for...of`, spread and destructuring.\n\nA **generator** function (`function*`) produces an iterator whose execution can **pause at `yield`** and resume on the next `next()` call.\n\n```js\nfunction* range(start, end, step = 1) {\n  for (let i = start; i < end; i += step) yield i;\n}\n[...range(0, 10, 3)]; // [0, 3, 6, 9]\n\nconst it = range(0, 2);\nit.next(); // { value: 0, done: false }\nit.next(); // { value: 1, done: false }\nit.next(); // { value: undefined, done: true }\n```\nUses: lazy/infinite sequences, custom iterables, pagination (`async function*` with `for await...of`), and historically the basis of async/await and Redux-Saga.",
+   "level": "Advanced",
+   "tags": [
+    "es6",
+    "generators"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-024",
+   "q": "What is the difference between Map and Object, Set and Array, WeakMap and Map?",
+   "a": "**Map vs Object**\n- Map keys can be **any type** (objects, functions); object keys are strings/symbols.\n- Map preserves insertion order and has `size`; iterable directly.\n- Map is optimised for frequent additions/removals; no prototype key collisions (`'toString'`).\n- Objects are better for fixed-shape records and JSON.\n\n**Set vs Array** – Set stores **unique** values with O(1) average `has`; Array allows duplicates and has O(n) `includes`. Dedupe: `[...new Set(arr)]`.\n\n**WeakMap vs Map** – WeakMap keys must be objects and are held **weakly**: if nothing else references the key, it's garbage-collected along with its value. Not iterable, no `size`. Use for caching metadata about DOM nodes/objects without causing memory leaks.",
+   "level": "Intermediate",
+   "tags": [
+    "es6",
+    "collections"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-025",
+   "q": "What is the difference between `interface` and `type` in TypeScript?",
+   "a": "Both describe object shapes and are mostly interchangeable, but:\n\n| interface | type |\n|---|---|\n| Only object/function shapes | Any type: unions, tuples, primitives, mapped/conditional |\n| `extends` for inheritance | `&` intersection |\n| **Declaration merging** (two `interface X` merge) | Cannot be re-declared |\n| Classes can `implements` it | Classes can implement object-like types too |\n| Better error messages for large hierarchies | Needed for `type Status = 'A' \\| 'B'` |\n\n```ts\ninterface Animal { name: string }\ninterface Animal { age: number }      // merged: { name; age }\ntype Id = string | number;            // only possible with type\ntype Admin = User & { perms: string[] };\n```\nConvention: `interface` for object models/public contracts (DTOs, service APIs), `type` for unions, utility compositions and function types.",
+   "level": "Basic",
+   "tags": [
+    "typescript"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-026",
+   "q": "What are generics in TypeScript? Give an example with constraints.",
+   "a": "Generics let you write reusable components that work with many types while keeping type safety — the type is a parameter.\n\n```ts\nfunction identity<T>(value: T): T { return value; }\n\ninterface Page<T> { content: T[]; totalElements: number; number: number; } // mirrors Spring Data Page\ngetOrders(): Observable<Page<Order>> { return this.http.get<Page<Order>>('/api/orders'); }\n\n// constraint: T must have an id\nfunction findById<T extends { id: number }>(items: T[], id: number): T | undefined {\n  return items.find(i => i.id === id);\n}\n\n// keyof constraint\nfunction pluck<T, K extends keyof T>(items: T[], key: K): T[K][] {\n  return items.map(i => i[key]);\n}\npluck(users, 'email');   // string[]\npluck(users, 'emial');   // compile error\n```\nUnlike Java, TS generics are purely compile-time (erased) and structural; default type params are allowed: `<T = string>`.",
+   "level": "Intermediate",
+   "tags": [
+    "typescript",
+    "generics"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-027",
+   "q": "Explain TypeScript utility types: Partial, Pick, Omit, Record, Readonly.",
+   "a": "Built-in mapped types that transform existing types:\n\n```ts\ninterface User { id: number; name: string; email: string; password: string; }\n\ntype UserPatch   = Partial<User>;                   // all optional – PATCH body\ntype UserCard    = Pick<User, 'id' | 'name'>;        // subset\ntype PublicUser  = Omit<User, 'password'>;           // remove sensitive field\ntype RoleMap     = Record<'ADMIN' | 'USER', User[]>; // keyed dictionary\ntype FrozenUser  = Readonly<User>;                   // can't reassign props\ntype Full        = Required<Partial<User>>;          // all required again\n```\nOthers: `Exclude<'a'|'b', 'a'>` → `'b'`, `Extract`, `NonNullable<T>`, `ReturnType<typeof fn>`, `Parameters<typeof fn>`, `Awaited<Promise<X>>`.\n\nImplementing one shows depth:\n```ts\ntype MyPartial<T> = { [K in keyof T]?: T[K] };\ntype MyPick<T, K extends keyof T> = { [P in K]: T[P] };\n```",
+   "level": "Intermediate",
+   "tags": [
+    "typescript",
+    "utility-types"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-028",
+   "q": "What is the difference between `any`, `unknown` and `never`?",
+   "a": "- **`any`** – disables type checking; you can do anything with it, and it silently spreads. Avoid except when migrating JS.\n- **`unknown`** – the type-safe counterpart: any value can be assigned to it, but you must **narrow** before using it. Ideal for `JSON.parse` results, `catch (e)` blocks, external input.\n- **`never`** – the type with no values: functions that never return (throw/infinite loop), impossible branches, exhaustiveness checks.\n\n```ts\nfunction parse(json: string): unknown { return JSON.parse(json); }\nconst data = parse('{\"id\":1}');\ndata.id;                                   // error\nif (typeof data === 'object' && data && 'id' in data) console.log(data.id); // ok\n\ntype Status = 'OPEN' | 'CLOSED';\nfunction label(s: Status) {\n  switch (s) { case 'OPEN': return 'Open'; case 'CLOSED': return 'Closed';\n    default: const x: never = s; throw new Error(x); } // errors if a new status is added\n}\n```",
+   "level": "Intermediate",
+   "tags": [
+    "typescript"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-029",
+   "q": "What are type guards and discriminated unions in TypeScript?",
+   "a": "A **type guard** is a runtime check that lets TypeScript narrow a type within a block: `typeof`, `instanceof`, `in`, equality, truthiness, or a **user-defined guard** returning `x is T`.\n\n```ts\nfunction isApiError(e: unknown): e is { status: number; message: string } {\n  return typeof e === 'object' && e !== null && 'status' in e;\n}\n```\nA **discriminated union** is a union of object types sharing a literal \"tag\" property; checking the tag narrows the type:\n\n```ts\ntype Payment =\n  | { method: 'UPI'; vpa: string }\n  | { method: 'CARD'; last4: string; network: 'VISA' | 'RUPAY' }\n  | { method: 'COD' };\n\nfunction describe(p: Payment) {\n  switch (p.method) {\n    case 'UPI':  return `UPI ${p.vpa}`;\n    case 'CARD': return `${p.network} ****${p.last4}`;\n    case 'COD':  return 'Cash on delivery';\n  }\n}\n```\nGreat for modelling state machines (loading/success/error) and API responses safely.",
+   "level": "Advanced",
+   "tags": [
+    "typescript",
+    "narrowing"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-030",
+   "q": "What is the difference between enum and a union of string literals in TypeScript?",
+   "a": "```ts\nenum Role { Admin = 'ADMIN', User = 'USER' }      // generates a runtime object\ntype RoleU = 'ADMIN' | 'USER';                     // compile-time only, zero JS\nconst ROLES = { Admin: 'ADMIN', User: 'USER' } as const;\ntype RoleC = typeof ROLES[keyof typeof ROLES];     // 'ADMIN' | 'USER'\n```\n- **Enums** create runtime JavaScript code (an object, with reverse mapping for numeric enums), can be iterated, and are nominal-ish (you must use `Role.Admin`, not `'ADMIN'`). Numeric enums are unsafe (`let r: NumEnum = 42` compiles in older TS).\n- **String literal unions** emit no code, work directly with JSON values from APIs, and give great autocomplete.\n- **`as const` objects** give both a runtime object and a union type.\n\nMany teams prefer unions or `as const` objects; `const enum` inlines values but has issues with isolated module builds (esbuild/Vite).",
+   "level": "Intermediate",
+   "tags": [
+    "typescript",
+    "enums"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-031",
+   "q": "What does the `?.`, `??` and `!` operators do in TypeScript/JavaScript?",
+   "a": "- **Optional chaining `?.`** – stops and returns `undefined` if the left side is `null`/`undefined`: `user?.address?.city`, `fn?.()`, `arr?.[0]`.\n- **Nullish coalescing `??`** – returns right side only if left is `null` or `undefined` (unlike `||`, which also replaces `0`, `''`, `false`):\n```js\nconst qty = input.qty ?? 1;     // 0 stays 0\nconst qty2 = input.qty || 1;    // 0 becomes 1 (bug)\n```\n- **Non-null assertion `!` (TS only)** – tells the compiler \"trust me, this isn't null\": `document.getElementById('app')!`. No runtime check — if wrong, you get a runtime error. Prefer narrowing.\n- Related: definite assignment `name!: string;` in classes (common with Angular `@ViewChild`), and `??=`.",
+   "level": "Basic",
+   "tags": [
+    "typescript",
+    "es6"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-032",
+   "q": "Predict the output:\n\n```js\nconsole.log(typeof null, typeof [], typeof function(){}, typeof NaN);\nconsole.log([1,2,3] + [4,5]);\nconsole.log('5' - 2, '5' + 2, true + 1);\nconsole.log(0.1 + 0.2 === 0.3);\n```",
+   "a": "Output:\n```\nobject object function number\n1,2,34,5\n3 52 2\nfalse\n```\n- `typeof null` is `'object'` (historic bug); arrays are objects (use `Array.isArray`); functions report `'function'`; `NaN` is of type number.\n- `+` with arrays converts them to strings: `'1,2,3' + '4,5'` = `'1,2,34,5'`.\n- `-` forces numeric conversion: `'5' - 2 = 3`. `+` with a string concatenates: `'52'`. `true` → 1, so `2`.\n- Floating-point (IEEE-754) can't represent 0.1/0.2 exactly; sum is `0.30000000000000004`. Compare with `Math.abs(a - b) < Number.EPSILON`, or keep money in paise as integers.",
+   "level": "Intermediate",
+   "tags": [
+    "coercion",
+    "output"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "js-033",
+   "q": "What are ES modules vs CommonJS?",
+   "a": "| ES Modules (ESM) | CommonJS (CJS) |\n|---|---|\n| `import` / `export` | `require()` / `module.exports` |\n| **Static** structure – analysed at build time → tree-shaking | Dynamic – can `require` conditionally |\n| Async loading, supports top-level `await` | Synchronous loading |\n| Live bindings (imports reflect updated exports) | Copies of exported values at require time |\n| Strict mode by default | Not strict by default |\n| Standard in browsers and modern Node (`\"type\": \"module\"`, `.mjs`) | Node's original system (`.cjs`) |\n\nDynamic `import('./x.js')` returns a promise and enables code splitting — Angular's `loadComponent` uses it. Bundlers (esbuild, Vite, webpack) rely on ESM's static imports to remove unused code.",
+   "level": "Intermediate",
+   "tags": [
+    "modules",
+    "es6"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-034",
+   "q": "What is the difference between `for...in`, `for...of` and `forEach`?",
+   "a": "- **`for...in`** – iterates **enumerable property keys** (strings) of an object, including **inherited** ones. Meant for objects; avoid for arrays (order and inherited props issues).\n- **`for...of`** – iterates **values** of any iterable (arrays, strings, Maps, Sets, generators). Supports `break`, `continue`, and `await` inside async functions.\n- **`forEach`** – array method calling a callback for each element. Can't `break` (except by throwing), ignores returned promises (doesn't wait for `async` callbacks), returns `undefined`.\n\n```js\nconst arr = ['a', 'b'];\nfor (const i in arr) console.log(i);    // '0' '1'\nfor (const v of arr) console.log(v);    // 'a' 'b'\nfor (const [k, v] of Object.entries({ x: 1 })) console.log(k, v); // x 1\n```",
+   "level": "Basic",
+   "tags": [
+    "loops",
+    "basics"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "js-035",
+   "q": "How does garbage collection work in JavaScript and what causes memory leaks?",
+   "a": "JS engines (V8) use **automatic garbage collection** based on **reachability**: objects reachable from roots (global object, current call stack, closures in use) are kept; unreachable ones are freed. V8 uses a generational collector (young generation \"scavenge\" + old generation **mark-and-sweep/mark-compact**), so cyclic references are not a problem by themselves.\n\nCommon leaks in front-end apps:\n1. **Forgotten event listeners / subscriptions** (`addEventListener` without remove, RxJS without unsubscribe).\n2. **Timers** (`setInterval`) never cleared.\n3. **Closures** holding large data unintentionally.\n4. **Detached DOM nodes** still referenced from JS.\n5. **Global variables** / caches that grow unbounded (use `WeakMap` or LRU).\n\nDetect with Chrome DevTools → Memory → heap snapshots (compare before/after navigation) and the Performance monitor.",
+   "level": "Advanced",
+   "tags": [
+    "memory",
+    "performance"
+   ],
+   "frequent": false
+  }
+ ],
+ "sources": [
+  {
+   "title": "MDN - Closures",
+   "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures"
+  },
+  {
+   "title": "MDN - The event loop / microtask guide",
+   "url": "https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide"
+  },
+  {
+   "title": "MDN - Inheritance and the prototype chain",
+   "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain"
+  },
+  {
+   "title": "MDN - Using promises",
+   "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises"
+  },
+  {
+   "title": "TypeScript Handbook",
+   "url": "https://www.typescriptlang.org/docs/handbook/intro.html"
+  },
+  {
+   "title": "TypeScript - Utility Types",
+   "url": "https://www.typescriptlang.org/docs/handbook/utility-types.html"
+  },
+  {
+   "title": "javascript.info - The Modern JavaScript Tutorial",
+   "url": "https://javascript.info/"
+  },
+  {
+   "title": "GeeksforGeeks - JavaScript Interview Questions",
+   "url": "https://www.geeksforgeeks.org/javascript-interview-questions/"
+  },
+  {
+   "title": "InterviewBit - TypeScript Interview Questions",
+   "url": "https://www.interviewbit.com/typescript-interview-questions/"
+  }
+ ]
+}

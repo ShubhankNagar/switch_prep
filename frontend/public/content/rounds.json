@@ -1,0 +1,1295 @@
+{
+ "trends": "**What changed between 2025 and 2027**\n\n1. **AI split the loop into AI-off and AI-on rounds.** Live algorithm rounds stay AI-off almost everywhere, and\n   interviewers now interrupt with \"why this structure?\" to check the reasoning is yours. At the same time, Meta\n   (since October 2025) replaced one of its two coding rounds with an AI-enabled round, Google is piloting an\n   AI-assisted code-comprehension round in 2026, and Canva expects candidates to use AI. Take-homes now come with a live walkthrough.\n2. **\"Real work\" formats grew fast.** Debug-this-code, code review, and practical coding with changing requirements\n   and tests are replacing some puzzle rounds. All ten Stripe experiences in one 2026 analysis were practical work.\n3. **DSA didn't die. It became the gate.** In the same analysis, LinkedIn (8/8), Google (7/9) and Amazon (6/8)\n   still asked classic DSA. In India, Flipkart, Uber, Swiggy, Amazon, PhonePe and Goldman Sachs loops in 2025-26 all\n   included an OA or a DSA round. Problems are mostly medium, and *explaining* counts as much as solving.\n4. **System design moved down to SDE-2.** Flipkart, Uber, Razorpay and Amazon SDE-2 loops in 2025-26 all had a\n   high-level design round, with prompts about payments, failures and retries rather than \"design Twitter\".\n5. **Depth rounds decide the level.** Resume and project deep dives, hiring manager rounds and behavioral rounds can\n   downlevel a strong coder: Atlassian and Amazon both do it. India's machine-coding round (Flipkart, PhonePe,\n   Razorpay, Uber, Swiggy) is still the main filter for SDE-2.\n6. **The market got stricter.** Fewer openings and more applicants mean borderline rounds fail more often. With\n   offer dropout high, companies probe notice periods and joining intent harder than before.\n\n**What this means for Raj: priorities, in order**\n\n1. **DSA fluency in Java for OAs and live rounds (about 25% of prep time).** Mediums across about 15 patterns,\n   solved out loud. Don't grind hards: a few per pattern is enough.\n2. **Machine coding plus concurrency (about 20%).** This is the round that separates SDE-2 offers at Indian product\n   companies, and a Java developer can get very good at it. Build one system a week, timed, and always answer\n   \"what if two threads do this?\".\n3. **System design with failure paths (about 20%).** One design a week. Lead with idempotency, retries,\n   consistency and observability, and use stories from your own Spring Boot and MySQL work for depth.\n4. **Your own stack, deep (about 15%).** Spring transactions and proxies, JPA fetching, InnoDB indexes and locks,\n   Angular change detection. These rounds can't be bluffed, and your two years are an advantage only if you can go\n   five \"whys\" deep.\n5. **Stories and HR (about 10%).** Eight to ten stories with numbers, one project brief, and a scripted answer on\n   CTC and notice period.\n6. **Code review, debugging and AI-assisted coding (about 10%).** Cheap to practise and growing: review one file\n   a week out loud, and do one AI-pair session where you verify everything.\n\n**What to skip:** staff-level design topics, exotic technologies you can't defend, LeetCode hards beyond a handful,\nand memorising answers you can't explain. Each round below shows how it's scored, a worked example, the common ways\npeople fail, and exactly what to practise on this site.",
+ "rounds": [
+  {
+   "id": "online-assessment",
+   "order": 1,
+   "title": "Online Assessment (OA)",
+   "icon": "🧪",
+   "summary": "A timed, auto-graded coding test (HackerRank, CodeSignal, HackerEarth) that filters you before any engineer sees you. For SDE-2 it is usually two medium to medium-hard problems in 60-120 minutes, scored by hidden test cases.",
+   "whoRunsIt": [
+    "Amazon",
+    "Flipkart",
+    "Uber",
+    "Swiggy",
+    "Goldman Sachs",
+    "Walmart Global Tech",
+    "Atlassian (Karat)",
+    "Microsoft"
+   ],
+   "frequency": "Most product companies",
+   "weight": "Gate: pass/fail, rarely discussed later",
+   "format": "- **Duration:** 60-120 minutes. Usually 2 coding problems, sometimes 3, plus optional MCQs on Java, SQL, OS or aptitude.\n- **Platform:** HackerRank, CodeSignal, HackerEarth or the company's own portal. You run code against sample tests, then submit against hidden tests.\n- **Scoring:** automatic and per test case, so a brute force that passes 60% of cases scores more than a clever solution that times out.\n- **Proctoring:** tab-switch logs, full-screen mode, blocked paste, sometimes webcam and photo ID, and plagiarism comparison across candidates. **No AI tools.**\n- **Variants:**\n  - Amazon adds a *work-style simulation*: scenario questions on trade-offs such as quick patch vs proper fix, or latency vs durability.\n  - Atlassian uses a live **Karat** screen: about 20 minutes of rapid design questions, then two coding problems with a human watching. A retake within 48 hours was allowed in one 2024 report.\n  - CodeSignal's *Industry Coding* format: one project (for example an in-memory store) extended over 4 levels in about 90 minutes.\n- **Difficulty in 2025-26 SDE-2 reports:** graph/BFS with a twist and a trie (Flipkart, Jan 2026), DP state transition and constrained shortest path (Amazon, Jul 2025), near-hard BST/deque/graph problems (Uber on CodeSignal).",
+   "whatTheyTest": [
+    "Spotting the pattern behind a disguised medium problem within 5-10 minutes",
+    "Choosing a complexity that fits the constraints (n = 10^5 means O(n log n) or better)",
+    "Edge cases that hidden tests always contain: empty input, one element, duplicates, negatives, maximum n, overflow",
+    "Java fluency under a timer: collections, comparators, long arithmetic, fast input reading",
+    "Splitting time across 2-3 problems to collect partial credit",
+    "Integrity: flagged attempts are rejected whatever the score"
+   ],
+   "rubric": "No engineer reads your code at this stage unless something is flagged. The platform produces a score, and the\nrecruiter applies a cutoff set for the role. The cutoff rises in hiring drives with many applicants.\n\n| What you submit | Typical SDE-2 outcome |\n|---|---|\n| Both problems pass every hidden test | Clear pass, often fast-tracked |\n| One fully solved, one at 60%+ of tests | Usually passes; borderline in big drives |\n| One fully solved, nothing on the other | Coin flip, depends on the cutoff |\n| Only partial scores, or timeouts on large tests | Usually rejected |\n| Plagiarism, tab-switch or proctoring flags | Rejected regardless of score |\n\n**What silently costs points:** Time Limit Exceeded on the big cases (wrong complexity), `int` overflow in sums or\ncounts, wrong output format, and code that only handles the sample. If you clear the OA, the next interviewer may\nopen your submission and ask you to explain it, so write code you can defend.",
+   "howToAce": "**Before the test**\n\n1. Do one practice test on the real platform (HackerRank and CodeSignal both have free practice areas) so the editor, input reading and the Run vs Submit buttons hold no surprises.\n2. Keep a Java toolkit in your head: `long` for sums and counts, `ArrayDeque` instead of `Stack`, `PriorityQueue` with `Integer.compare` comparators, `HashMap.merge` for counting, `BufferedReader` when input is large.\n3. Take the test when you are sharpest, on a stable connection, with notifications off. Invites usually stay open 3-7 days, so warm up with one timed medium that morning.\n\n**During the test**\n\n1. **Read every problem first (3-4 minutes)** and start with the one you recognise. All points count the same.\n2. **Read the constraints before you think about the algorithm.** They tell you the target complexity:\n\n| n up to | Aim for |\n|---|---|\n| 20 | O(2^n), backtracking |\n| 500 | O(n^3) |\n| 5,000 | O(n^2) |\n| 10^5 to 10^6 | O(n log n) or O(n) |\n| 10^9 and above | O(log n) or a formula |\n\n3. **Bank partial credit.** If the optimal idea hasn't come after about 10 minutes, submit a correct brute force, note the score, then optimise.\n4. **Run your own edge cases before every submit:** empty or size-1 input, all-equal values, negatives, the maximum n, and an answer that needs `long`.\n5. **Timebox.** Split the time evenly. When a problem stalls, move on and come back with fresh eyes.\n6. **Stay inside the test window.** No tab switching, no pasting from outside. A flag costs more than a missed problem.\n\n**After the test**\n\nWrite both problems down from memory and solve them properly within 24 hours. Rounds are often scheduled within a\nweek, and interviewers sometimes open with \"walk me through your OA solution\".\n\n**Weekly practice on SwitchPrep**\n\nThree times a week, solve two unseen mediums from the DSA section in 70 minutes with a timer and no hints. Once a\nweek, take a full Final Round mock day. Log which patterns cost you the most time and revise those notes instead of\nstarting new topics.",
+   "walkthrough": "**The problem (paraphrased OA style):** A warehouse records a net stock change for every hour: positive for\ninbound, negative for dispatch. Count the contiguous stretches of hours whose net change is exactly `k`.\nConstraints: `n <= 2 * 10^5`, each value between `-10^4` and `10^4`.\n\n**Minute 0-3: read the constraints first.** n = 2 * 10^5 rules out O(n^2), which would be about 2 * 10^10\noperations. The target is O(n) or O(n log n). Values can be **negative**, which is the trap: a sliding window only\nworks when growing the window can only increase the sum. With negatives, shrinking from the left can raise the sum\ntoo, so the window logic breaks.\n\n**Minute 3-8: bank points.** The strong candidate writes the obvious double loop first, runs the samples and\nsubmits. It passes 7 of 15 tests and times out on the rest. Those 7 tests are now banked.\n\n**Minute 8-15: the real idea.** Let `prefix[i]` be the sum of the first i hours. The stretch from hour j to hour\ni-1 sums to `prefix[i] - prefix[j]`, so we need the number of earlier prefixes equal to `prefix[i] - k`. That is\none HashMap lookup per hour:\n\n```java\nstatic long countStretches(int[] change, int k) {\n    Map<Long, Integer> seen = new HashMap<>();\n    seen.put(0L, 1);                 // empty prefix: a stretch may start at hour 0\n    long prefix = 0, count = 0;\n    for (int c : change) {\n        prefix += c;\n        count += seen.getOrDefault(prefix - k, 0);\n        seen.merge(prefix, 1, Integer::sum);\n    }\n    return count;\n}\n```\n\n**Minute 15-20: edge cases before submitting.** The candidate checks three things on paper:\n\n- `k = 0` with input `[0, 0, 0]`: the answer is 6 (three single hours, two pairs, one triple). The `seen.put(0L, 1)` seed is what makes the stretches that start at hour 0 count.\n- **Overflow:** the count can reach n(n+1)/2, which is about 2 * 10^10 and does not fit in an `int`. Hence `long count`. The prefix itself is bounded by 2 * 10^9, uncomfortably close to `Integer.MAX_VALUE`, so it is a `long` too.\n- A single hour equal to k, and an input where no stretch matches (answer 0).\n\nSubmit: 15/15. Total time is about 20 minutes, which leaves 50+ minutes for the second problem.\n\n**Three days later, the first live round opens like this:**\n\n> **Interviewer:** I see your OA. Walk me through the second problem.\n>\n> **Candidate:** Brute force was O(n^2) over all start and end pairs, which is too slow for 2 * 10^5. I didn't use a sliding window because the values can be negative, so the window sum isn't monotonic. Instead I count, for each prefix sum, how many earlier prefixes equal `prefix - k`. That's O(n) time and O(n) space for the map.\n>\n> **Interviewer:** What if I asked for the *longest* such stretch instead of the count?\n>\n> **Candidate:** Then I'd store the *first* index where each prefix value appears, never overwriting it, and at each hour compute `i - firstIndex[prefix - k]`. Same complexity.\n\n**Why this earns points:** the constraints decided the algorithm before any code was written. Partial credit was\nbanked early. The negative-values trap was named, not discovered by failing tests. Overflow was handled on\npurpose. And because the candidate understood the solution, the OA turned into an easy first five minutes of the\nnext round instead of an awkward one.",
+   "commonFailures": [
+    "Spending 50 minutes on the first problem and never reading the second",
+    "Passing the samples but failing hidden tests through int overflow, empty input or off-by-one",
+    "An O(n^2) solution on n = 10^5 because the constraints were never read",
+    "Using sliding window on arrays that contain negative numbers",
+    "Submitting nothing on a hard problem instead of a brute force that scores partial points",
+    "Switching tabs or pasting code, which triggers a proctoring flag and an automatic reject",
+    "Taking the test in an unfamiliar language or editor for the first time"
+   ],
+   "practice": [
+    {
+     "title": "Subarray Sum Equals K (prefix sums + HashMap)",
+     "link": "/dsa/arrays-hashing/subarray-sum-equals-k"
+    },
+    {
+     "title": "Longest Substring Without Repeating Characters",
+     "link": "/dsa/sliding-window/longest-substring-without-repeating-characters"
+    },
+    {
+     "title": "Koko Eating Bananas (binary search on the answer)",
+     "link": "/dsa/binary-search/koko-eating-bananas"
+    },
+    {
+     "title": "Implement Trie",
+     "link": "/dsa/tries/implement-trie-prefix-tree"
+    },
+    {
+     "title": "Coin Change (DP state transitions)",
+     "link": "/dsa/dp-1d/coin-change"
+    },
+    {
+     "title": "Final Round Day 1: Amazon-style OA",
+     "link": "/final-round/1"
+    },
+    {
+     "title": "Final Round Day 7: timed mock test",
+     "link": "/final-round/7"
+    },
+    {
+     "title": "DSA traps that fail hidden tests",
+     "link": "/traps?area=dsa"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Flipkart SDE-2 interview experience, Jan 2026 offline drive (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8455829/flipkart-sde-2-interview-experience-jan-o8ngx/"
+    },
+    {
+     "title": "Amazon SDE-2 Bangalore, July 2025 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7009755/amazon-sde-2-bangalore-4-yoe-july-2025-o-o826/"
+    },
+    {
+     "title": "Uber SDE-2 Bangalore interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-169-uber-sde2"
+    },
+    {
+     "title": "Atlassian SDE3 India interview experience, 2024 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/4965703/"
+    },
+    {
+     "title": "CodeSignal vs HackerRank for candidates: scoring and proctoring (PracHub)",
+     "url": "https://prachub.com/resources/codesignal-vs-hackerrank-for-candidates-scoring-proctoring-question-formats-and-score-reports"
+    },
+    {
+     "title": "CodeSignal Industry Coding Framework explained (Lodely)",
+     "url": "https://www.lodely.com/blog/industry-coding-framework"
+    }
+   ]
+  },
+  {
+   "id": "dsa-live-coding",
+   "order": 2,
+   "title": "DSA Live Coding (AI off, explain as you go)",
+   "icon": "🧠",
+   "summary": "45-60 minutes of live problem solving with an engineer, no AI, where you must think out loud. It is still in almost every loop, but you are judged on how you reason and communicate as much as on the final code.",
+   "whoRunsIt": [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Flipkart",
+    "Uber",
+    "Swiggy",
+    "PhonePe",
+    "Goldman Sachs",
+    "LinkedIn"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "~15-25% of the SDE-2 decision; a clear fail usually vetoes the loop",
+   "format": "- **Duration:** 45-60 minutes, one or two problems (medium, sometimes medium-hard), often with a follow-up extension (\"now also print every operation\").\n- **Setup:** a shared editor (CoderPad, HackerRank CodePair, an internal tool). Some have no run button, so you dry-run by hand. Offline drives (Flipkart, Jan 2026) can mean pseudocode on a whiteboard.\n- **Rules:** AI off, often no autocomplete. Expect interruptions such as \"why a deque here?\" or \"what's the invariant?\" because interviewers now check that the reasoning is yours.\n- **Where it sits:** 1-2 rounds per loop. Amazon pairs each coding round with two Leadership Principle questions, and the Bar Raiser round can include a coding problem as well.",
+   "whatTheyTest": [
+    "Clarifying the problem: inputs, constraints, edge cases, a worked example",
+    "Moving from a brute force to an optimal approach, with the reason each step is faster",
+    "Clean, correct Java: sensible names, small helpers, the right collections",
+    "Testing your own code by dry run before the interviewer finds the bug",
+    "Accurate time and space complexity, plus how it changes under a follow-up",
+    "Talking while thinking, and taking a hint without getting defensive"
+   ],
+   "rubric": "Most companies score four dimensions independently and then combine them. Rough calibration for SDE-2:\n\n| Dimension | Strong hire | Hire | No hire |\n|---|---|---|---|\n| Problem solving | Finds the optimal approach on their own and explains *why* it works | Reaches the optimum with one small hint | Needs repeated hints or stays at brute force |\n| Coding | Idiomatic, bug-light, readable, finished with time to spare | Working, minor bugs fixed when pointed out | Messy, unfinished, or language struggles |\n| Verification | Dry-runs, finds own bugs, lists edge cases unprompted | Tests when asked | No testing; the interviewer finds the bugs |\n| Communication | Narrates intent, invites feedback, answers follow-ups crisply | Mostly clear with some silent stretches | Long silences, can't explain own code |\n\nA finished optimal solution delivered in silence often scores lower than a slightly slower one where the\ninterviewer could follow every decision. Working code with no tests or edge-case reasoning can still be marked\n\"lean no hire\" in 2026 rubrics.",
+   "howToAce": "**A 45-minute script you rehearse until it is automatic**\n\n1. **0-5 min, clarify.** Restate the problem in your own words. Ask about input size, value ranges, duplicates, empty input, and what to return when there is no answer. Write one small example and its expected output in the editor.\n2. **5-12 min, approach.** Say the brute force and its complexity in one sentence. Then name the bottleneck (\"we recompute the window sum each time\") and the structure that removes it. Get a nod before coding: \"Does that sound reasonable, or should I go straight for X?\"\n3. **12-32 min, code.** Narrate *intent*, not keystrokes: \"Now I'm expanding the frontier one level at a time.\" Write helper methods for the noisy parts (bounds checks, neighbour generation). Use real names.\n4. **32-40 min, test.** Dry-run your example line by line, tracking variables in a comment. Then run 2-3 edge cases out loud. When you find a bug, say what was wrong before you fix it.\n5. **40-45 min, wrap up.** State time and space complexity, then pre-empt the follow-up: \"If the grid were huge and sparse, I'd store only the active cells.\"\n\n**Patterns that cover most SDE-2 problems in Indian product-company loops**\n\nHashing and prefix sums, two pointers, sliding window, binary search on the answer, BFS/DFS on grids and graphs\n(multi-source BFS, topological sort), heaps and top-k, intervals, tree recursion (LCA, path sums, level order),\n1D/2D DP basics, union-find and tries. Depth on these beats a scattering of hard problems.\n\n**When you are stuck**\n\nSay so, and show your search: \"I'm looking for a way to avoid re-scanning; I've ruled out sorting because we need\noriginal indices.\" Try a smaller input, a different data structure, or reversing the direction of the problem.\nInterviewers give hints to people who show their thinking.\n\n**Java habits interviewers notice**\n\n`ArrayDeque` instead of `Stack`, `Integer.compare` in comparators (never `a - b`, which can overflow), `equals`\nfor boxed `Integer`, `getOrDefault` and `merge` for counting, and marking a cell as visited when you *enqueue*\nit, not when you dequeue it.\n\n**How to practise**\n\nSolve out loud, always, even alone. Record one session a week and listen for silences longer than 30 seconds. Do\none mock with a friend every week from the second month on. Mocks are where explain-as-you-go becomes natural.",
+   "walkthrough": "**Prompt (original, in the style of a common grid BFS question):** A data-centre floor is a grid. `S` cells are\nservers that already have a config update, `H` cells are healthy servers without it, and `X` cells are dead racks.\nEvery minute the update spreads from each updated server to its up/down/left/right neighbours that are healthy.\nReturn the minutes until every healthy server is updated, or -1 if some can never be reached.\n\n> **Candidate:** Let me confirm a few things. Does the update spread diagonally? Do dead racks block it? And if there are no healthy servers at the start, is the answer 0?\n>\n> **Interviewer:** Four directions only, dead racks block, and yes, 0.\n>\n> **Candidate:** How big can the grid be?\n>\n> **Interviewer:** Up to 1000 by 1000.\n\n**The approach, stated before coding.**\n\n> **Candidate:** Brute force would simulate minute by minute and rescan the whole grid each time. That's O((mn)^2) in the worst case, a snake-shaped path, which is far too slow for a million cells. The rescan is the waste. The update moves outward like a wave from *all* seeds at once, so this is a **multi-source BFS**: put every `S` in the queue at time 0 and process level by level. Each level is one minute. Every cell is enqueued at most once, so it's O(mn) time and O(mn) space for the queue. I'll count healthy servers first, so the end check is just \"did the count reach zero?\"\n>\n> **Interviewer:** Go ahead.\n\n```java\nint minutesToSpread(char[][] g) {\n    int rows = g.length, cols = g[0].length, healthy = 0;\n    Deque<int[]> queue = new ArrayDeque<>();\n    for (int r = 0; r < rows; r++)\n        for (int c = 0; c < cols; c++) {\n            if (g[r][c] == 'S') queue.offer(new int[]{r, c});\n            else if (g[r][c] == 'H') healthy++;\n        }\n    int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    int minutes = 0;\n    while (!queue.isEmpty() && healthy > 0) {\n        for (int size = queue.size(); size > 0; size--) {      // one BFS level = one minute\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int nr = cell[0] + d[0], nc = cell[1] + d[1];\n                if (nr < 0 || nc < 0 || nr >= rows || nc >= cols || g[nr][nc] != 'H') continue;\n                g[nr][nc] = 'S';                               // mark on enqueue, not on poll\n                healthy--;\n                queue.offer(new int[]{nr, nc});\n            }\n        }\n        minutes++;\n    }\n    return healthy == 0 ? minutes : -1;\n}\n```\n\nWhile coding, the candidate says two things that matter. First: \"I'm marking the cell when I *enqueue* it.\nOtherwise two neighbours could both add it and I'd double-count.\" Second: \"I'm mutating the input grid. If the\ncaller needs it unchanged, I'd copy it or keep a `visited` array. Is mutation OK here?\"\n\n**Testing out loud.** The candidate dry-runs a 3x3 grid with one seed in the corner and gets 4, as expected. Then\nthe edge cases:\n\n- No `H` cells: the loop condition `healthy > 0` is false straight away, so it returns 0. Correct.\n- An `H` walled in by `X`: the queue empties while `healthy` is 1, so it returns -1. Correct.\n- No seeds but some `H`: the queue is empty from the start, so it returns -1. Correct.\n\n> **Candidate:** Notice the `healthy > 0` check in the while loop. Without it I'd count one extra minute after the last server is updated, because the final level still runs.\n\n**The follow-up.**\n\n> **Interviewer:** Now each server takes a different number of seconds to apply and forward the update. Same question.\n>\n> **Candidate:** Then levels no longer equal time, and plain BFS is wrong. The edges have weights, so it becomes Dijkstra from multiple sources: a priority queue keyed by arrival time, seeded with every `S` at 0. The answer is the largest finalised arrival time, or -1 if a healthy server is never reached. That's O(mn log(mn)).\n\n**Moments that earned points:** clarifying questions that changed the code (diagonals, the empty case). Brute\nforce stated and rejected *with a reason*. The complexity said before coding. Two subtle correctness choices\nexplained while typing. Edge cases tested without being asked. And a follow-up answered by naming exactly which\nassumption broke (level = minute) and which algorithm fixes it.",
+   "commonFailures": [
+    "Coding in silence for 15 minutes, then presenting the result",
+    "Jumping into code without a worked example or any clarifying questions",
+    "Reproducing a memorised solution but not being able to say why it is correct",
+    "Never stating the brute force, so the interviewer can't credit the optimisation",
+    "No dry run: the interviewer finds the off-by-one you would have caught",
+    "Arguing with a hint, or ignoring it and carrying on down the wrong path",
+    "Java slips: `Stack`, `==` on boxed Integers, `a - b` comparators, int overflow",
+    "Polishing an optimal idea for 30 minutes instead of first finishing a working one"
+   ],
+   "practice": [
+    {
+     "title": "Rotting Oranges (multi-source BFS)",
+     "link": "/dsa/graphs/rotting-oranges"
+    },
+    {
+     "title": "Number of Islands",
+     "link": "/dsa/graphs/number-of-islands"
+    },
+    {
+     "title": "All Nodes Distance K in Binary Tree",
+     "link": "/dsa/trees/all-nodes-distance-k-in-binary-tree"
+    },
+    {
+     "title": "Capacity to Ship Packages Within D Days",
+     "link": "/dsa/binary-search/capacity-to-ship-packages-within-d-days"
+    },
+    {
+     "title": "Top K Frequent Words (heap + comparator)",
+     "link": "/dsa/heap/top-k-frequent-words"
+    },
+    {
+     "title": "Network Delay Time (Dijkstra follow-up)",
+     "link": "/dsa/advanced-graphs/network-delay-time"
+    },
+    {
+     "title": "Merge Intervals",
+     "link": "/dsa/intervals/merge-intervals"
+    },
+    {
+     "title": "Final Round Day 8: Google & Microsoft hard round",
+     "link": "/final-round/8"
+    }
+   ],
+   "sources": [
+    {
+     "title": "What actually changed in tech interviews in 2026 (techinterview.org)",
+     "url": "https://www.techinterview.org/post/3233475417/what-changed-tech-interviews-2026/"
+    },
+    {
+     "title": "Where LeetCode still matters in 2026: 74 interviews across 8 companies (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8446005/"
+    },
+    {
+     "title": "Software engineer interview rubric 2026 (Prepfully)",
+     "url": "https://prepfully.com/interview-guides/software-engineer-interview-rubric-2026"
+    },
+    {
+     "title": "Flipkart SDE-2 interview experience, Jan 2026 offline drive (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8455829/flipkart-sde-2-interview-experience-jan-o8ngx/"
+    },
+    {
+     "title": "Amazon SDE-2 Bangalore, July 2025 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7009755/amazon-sde-2-bangalore-4-yoe-july-2025-o-o826/"
+    }
+   ]
+  },
+  {
+   "id": "ai-assisted-coding",
+   "order": 3,
+   "title": "AI-Assisted Coding",
+   "icon": "🤖",
+   "summary": "A newer round where an AI assistant sits inside the editor next to a multi-file codebase you didn't write. You are scored on how you understand, direct and verify the work, not on typing speed.",
+   "whoRunsIt": [
+    "Meta",
+    "Google (2026 pilot)",
+    "Canva",
+    "AI-native startups",
+    "Startups with AI-allowed take-homes"
+   ],
+   "frequency": "Some companies",
+   "weight": "Replaces one of the two coding rounds at Meta (~20-25% of that loop)",
+   "format": "- **Meta (since October 2025, up to E7):** about 60 minutes in a three-panel CoderPad: file explorer, editor, and an AI chat that can see the files but only answers in chat. You paste or type the code yourself. Several models are offered (GPT, Claude, Gemini, Llama variants). Java is supported. Three phases on one problem: **fix a bug → implement the core feature → optimise** for larger hidden test data.\n- **Google (2026 pilot, junior and mid-level, select US teams):** a *code comprehension* round with Gemini: read, debug and extend an existing codebase. Described internally as \"human-led, AI-assisted\".\n- **Canva:** an AI-assisted round replaced the CS-fundamentals screen for backend and frontend roles, with deliberately ambiguous, realistic problems that one prompt can't solve.\n- **Take-homes:** AI use is often expected, followed by a live walkthrough where you must explain and change your own code.\n- **India in 2026:** rare in Indian product-company loops so far. Expect it at global companies' India offices and at AI-first startups. Most Indian loops stay AI-off.",
+   "whatTheyTest": [
+    "Reading an unfamiliar multi-file codebase quickly before touching it",
+    "Breaking the task into small, well-specified prompts instead of asking for the whole solution",
+    "Verifying every AI output: running tests, checking edge cases and complexity",
+    "Catching confident-but-wrong AI code (wrong algorithm, hidden O(n^2), broken invariants)",
+    "Owning the result: explaining every line, including lines the AI wrote",
+    "Picking the algorithm yourself when larger test data exposes a slow solution",
+    "Narrating decisions while juggling the tool and the interviewer"
+   ],
+   "rubric": "Meta reportedly scores the same four competencies as its classic coding round: problem solving, code quality,\nverification and communication. Google's pilot looks for prompt clarity, output validation and debugging. How\nthose show up with an AI in the room:\n\n| Signal | Strong | Weak |\n|---|---|---|\n| Orientation | Reads README, models and tests before the first prompt | Prompts \"fix the failing test\" in minute one |\n| Decomposition | Decides the approach, delegates bounded pieces (a helper, boilerplate, test data) | Asks for the full solution and pastes it |\n| Prompt quality | Gives types, signatures, constraints, invariants, \"don't change X\" | Vague one-liners, then several rounds of re-prompting |\n| Verification | Runs tests after every change, adds an edge-case test, checks complexity | Trusts the output because it compiles |\n| Catching errors | Spots and explains the AI's mistake, fixes it by hand or with a sharper prompt | Doesn't notice until the hidden tests fail |\n| Ownership | Explains and simplifies generated code on request | \"The AI wrote that part\" |\n\nOne internal summary quoted by Hello Interview: you *should* use AI, but you must show you understand the code.\nCandidates were marked down both for over-reliance and for never using the tool at all.",
+   "howToAce": "**Step by step in the room**\n\n1. **Orient for 5 minutes without AI.** Open the README, the domain classes and the test file. Say what you see: \"Three classes. `Allocator` is the entry point, and the tests use a builder for orders.\" This is where most candidates lose time later.\n2. **State your plan before the first prompt.** \"I'll fix the failing test, then implement the allocation with a sweep plus a heap, then check against the big dataset.\"\n3. **Bug phase: form the hypothesis yourself.** Read the failing assertion and the code path. Use the AI to confirm or to explain an unfamiliar API, not to find the bug for you. Some candidates report the assistant being deliberately unhelpful in this phase.\n4. **Implementation phase: delegate bounded work with rich prompts.** A good prompt has the goal, the signature, the types, the constraints, the invariant and the limits:\n\n> \"In `Allocator.java`, write `assign(List<Order>, List<Slot>)` returning `Map<Integer,Integer>` (orderId to slotId). Sort slots by time. Sweep them, pushing orders with `readyAt <= slot.time` into a min-heap by deadline. Discard heap entries whose deadline is before the slot time. Fill up to capacity. Don't modify `Order` or `Slot`. Target O((n+m) log n).\"\n\n5. **Review the output like a code review.** Read every line before pasting. Check loop bounds, inclusive or exclusive comparisons, mutation of shared lists, and hidden linear calls inside loops (`removeIf`, `contains` on a list).\n6. **Run tests after every paste.** Then ask the AI for edge-case tests, read them, and add your own counterexample for the greedy choice.\n7. **Optimisation phase: look at the data first.** Read the size of the large test inputs, compute your complexity, and pick the algorithm yourself. Use the AI to type it.\n8. **Narrate throughout.** Before each prompt, say what you're asking for. After it, say what you'll check. Silence while chatting with the model reads as lost control.\n\n**Preparation on SwitchPrep**\n\n- Once a week, take an LLD or practical-coding problem, give yourself 45 minutes with an AI assistant, and follow the steps above. Then close the AI and explain every line out loud.\n- Keep solving DSA by hand. The optimisation phase still needs you to recognise BFS, heaps, tries or DP quickly.\n- Prepare your answer to \"How do you use AI in daily work, and where do you still write code by hand?\" It now comes up in behavioral rounds too.",
+   "walkthrough": "**Setup (original example in the Meta/Google style):** a Java repo `slot-allocator` with `Order(id, readyAt,\ndeadline)`, `Slot(id, time, capacity)`, an `Allocator` class and `AllocatorTest`. Delivery slots leave at a fixed\ntime. An order can go on any slot whose time falls inside its window (both ends inclusive), and the goal is to\nassign as many orders as possible.\n\n**Phase 1: the failing test.**\n\n> **Candidate:** Before I prompt anything, I'll read the models and the test. `Order`'s Javadoc says the window is inclusive on both ends. The failing test is `orderReadyExactlyAtSlotTimeIsEligible`. In `Allocator.isEligible` I see `slot.time() > order.readyAt()`. That's a strict comparison, so an order ready exactly at slot time is rejected. It should be `>=`.\n>\n> **Interviewer:** You didn't use the AI for that.\n>\n> **Candidate:** Reading was faster than prompting. I'll change it, run the suite... green. While I was reading I also noticed `assign` sorts the caller's list in place. That's a side effect worth flagging, so I'll copy the list in phase 2.\n\n**Phase 2: implement `assign`.** The candidate first asks the AI for a quick version to see its shape:\n\n> **Prompt:** \"Implement `assign` so each order goes into the first eligible slot with capacity left. Return orderId to slotId.\"\n>\n> **Candidate (reading the output):** This processes orders in input order and takes the first eligible slot. It compiles, but greedy-by-input-order isn't optimal. Counterexample: order A has window [0,10], order B has [0,1], slot 1 is at t=1 with capacity 1, slot 2 is at t=5 with capacity 1. If A grabs t=1, B gets nothing, so we assign 1. The optimum is 2. I'll write that as a test first.\n\nThe new test fails against the AI's version, which proves the point. The candidate then chooses the algorithm:\n\n> **Candidate:** The classic fix is earliest deadline first. Sweep the slots in time order. Keep the orders that are already ready in a min-heap by deadline. Drop any whose deadline has passed, and give each slot's capacity to the most urgent orders. An exchange argument shows that's optimal for unit-size orders. I'll ask the AI to type it with a precise prompt.\n\nThe prompt names the signature, the sweep, the heap ordering, \"copy the inputs, don't sort them in place\", and the\ntarget complexity. The output comes back, and the candidate reads it before pasting:\n\n```java\nwhile (!heap.isEmpty() && cap > 0) { ... }\nheap.removeIf(o -> o.deadline() < slot.time());   // AI put this inside the slot loop\n```\n\n> **Candidate:** Logic's right, but `removeIf` scans the whole heap for every slot. That's O(n*m) hidden inside an O(log n)-looking loop. Expired orders always have the smallest deadlines, so they sit at the top of the heap. I'll replace it with a lazy pop: `while (!heap.isEmpty() && heap.peek().deadline() < t) heap.poll();`. Each order is then popped at most once.\n\nAll tests pass, including the counterexample.\n\n**Phase 3: the large test.** It has 200,000 orders and 50,000 slots.\n\n> **Candidate:** Sorting both lists is O(n log n + m log m), and each order enters and leaves the heap once, so O(n log n) total. That should be well under a second. Let me run it... 0.4 s, passing. One more edge case: a slot with capacity 0. The inner loop just skips it. Fine.\n\n**Moments that earned points**\n\n- Reading before prompting solved phase 1 in four minutes, and spotted a side effect for free.\n- The candidate didn't accept AI code because it compiled. They **broke it with a counterexample test**, which is the clearest verification signal there is.\n- The algorithm choice and its justification came from the candidate. The AI did the typing.\n- The hidden `removeIf` was caught *in review*, before the big test exposed it, and the fix was explained in terms of the heap's invariant.\n- Every prompt was announced and every output was checked out loud, so the interviewer never had to guess who was in control.",
+   "commonFailures": [
+    "Prompting \"solve this problem\" and pasting the whole answer",
+    "Pasting code without reading it, then debugging the AI's mistakes under time pressure",
+    "Skipping orientation and spending 25 minutes on the phase-1 bug",
+    "Letting the model choose the algorithm, then failing the large hidden tests",
+    "Going silent while chatting with the AI, so the interviewer loses the thread",
+    "Not running tests after each change; stacking three unverified edits",
+    "Being unable to explain or simplify a generated block when asked",
+    "Refusing to use the AI at all, which wastes the round's main signal"
+   ],
+   "practice": [
+    {
+     "title": "AI-assisted engineering (senior subject)",
+     "link": "/core/ai-assisted-engineering"
+    },
+    {
+     "title": "Testing and code review habits",
+     "link": "/core/testing-code-review"
+    },
+    {
+     "title": "Prompt engineering techniques that work",
+     "link": "/ai/m07-llm-apis-prompting/m07-prompt-techniques"
+    },
+    {
+     "title": "Non-overlapping Intervals (greedy proof practice)",
+     "link": "/dsa/intervals/non-overlapping-intervals"
+    },
+    {
+     "title": "Task Scheduler (greedy + heap)",
+     "link": "/dsa/greedy/task-scheduler"
+    },
+    {
+     "title": "In-memory key-value store (multi-file practice repo idea)",
+     "link": "/system-design/lld-problems/in-memory-key-value-store"
+    },
+    {
+     "title": "Java traps AI assistants commonly fall into",
+     "link": "/traps?area=java"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Meta's AI-enabled coding interview (Hello Interview)",
+     "url": "https://www.hellointerview.com/blog/meta-ai-enabled-coding"
+    },
+    {
+     "title": "How to use AI in Meta's AI-assisted coding interview (interviewing.io)",
+     "url": "https://interviewing.io/blog/how-to-use-ai-in-meta-s-ai-assisted-coding-interview-with-real-prompts-and-examples"
+    },
+    {
+     "title": "Google's AI-assisted coding interview, 2026 guide (University of Miami career blog)",
+     "url": "https://customcareer.miami.edu/blog/2026/05/14/googles-ai-assisted-coding-interview-2026-guide/"
+    },
+    {
+     "title": "Google coding interviews in 2026: what changed and what didn't (Levelop)",
+     "url": "https://levelop.dev/blog/google-coding-interviews-in-2026-what-changed-and-what-didnt"
+    },
+    {
+     "title": "Yes, you can use AI in our interviews (Canva Engineering)",
+     "url": "https://canva.dev/blog/engineering/yes-you-can-use-ai-in-our-interviews"
+    },
+    {
+     "title": "What actually changed in tech interviews in 2026 (techinterview.org)",
+     "url": "https://www.techinterview.org/post/3233475417/what-changed-tech-interviews-2026/"
+    }
+   ]
+  },
+  {
+   "id": "practical-coding",
+   "order": 4,
+   "title": "Practical Coding (changing requirements + tests)",
+   "icon": "🛠️",
+   "summary": "Build a small, working component (rate limiter, TTL cache, job scheduler, webhook handler) in a real editor while the interviewer adds a requirement every 15-20 minutes. Tests are expected, and adapting cleanly to each change is the main signal.",
+   "whoRunsIt": [
+    "Stripe",
+    "Atlassian (code design)",
+    "Meta",
+    "OpenAI",
+    "Anthropic",
+    "Uber",
+    "Companies using CodeSignal's Industry Coding format"
+   ],
+   "frequency": "Some companies",
+   "weight": "~15-20% where it replaces a DSA round; growing fastest of all formats",
+   "format": "- **Duration:** 60-90 minutes.\n- **Setup:** your own IDE, or CoderPad with a run button. Sometimes a starter repo with interfaces and a few tests. Internet docs are often allowed. AI is usually not (Stripe's integration round explicitly bans AI assistants).\n- **Shape:** a progressive spec. Level 1 is the basic API. Each later level adds a twist: time windows, a second limit, capacity eviction, retries, cancellation, concurrency. CodeSignal's version runs 4 levels in about 90 minutes, and few people finish all four.\n- **Atlassian's code-design round:** function signatures provided, the code must pass test cases, then a discussion of internals and of how you would improve usability and efficiency.\n- **Typical prompts:** per-user + global rate limiter; TTL cache with max capacity; task scheduler with pause/retry/cancel; idempotent webhook receiver; booking without double booking; a small rules or discount engine; an in-memory key-value store with transactions; a bank ledger with scheduled transfers.",
+   "whatTheyTest": [
+    "Turning a vague spec into a small, clear API with defined semantics",
+    "Getting a correct first version running fast, then improving it",
+    "Absorbing new requirements with small refactors instead of rewrites",
+    "Writing focused JUnit tests as you go, including boundary cases",
+    "Making time and randomness injectable so the code is testable",
+    "Thread-safety and failure semantics when the spec asks for them",
+    "Explaining trade-offs (accuracy vs memory, strictness vs simplicity)"
+   ],
+   "rubric": "| Area | Strong hire | Hire | No hire |\n|---|---|---|---|\n| Progress | Reaches level 3-4; every finished level works | Reaches level 2-3, solid | Stuck on level 1, or later levels break earlier ones |\n| Design | Small interfaces, logic separated from I/O, injectable clock | Reasonable structure, some coupling | God class, or a framework built up front for imagined needs |\n| Change handling | Restates the new rule, finds the affected seam, refactors in minutes | Gets there with some patching | Rewrites from scratch or piles up `if` flags |\n| Tests | Tests from level 1, reruns after each change, covers boundaries | A few tests, mostly happy path | None, or \"I'd add tests later\" |\n| Communication | Names semantics and trade-offs before coding | Explains when asked | Silent, or can't justify choices |\n\nInterviewers repeat one line in practical rounds: correctness and readability beat cleverness at every stage. A\nboring level-3 solution with tests beats a brilliant, untested level-2 one.",
+   "howToAce": "**The playbook**\n\n1. **Pin down semantics before code (3-5 min).** For a limiter: what does \"100 per minute\" mean, a fixed window or rolling? What does the caller get on rejection, a boolean or a retry-after? Per user, per key, global? Write the answers as comments at the top of the file. They become your test names.\n2. **Write the interface first.** `boolean allow(String userId)` or `Optional<V> get(K key)`. Keep it tiny. Every later level should fit behind it.\n3. **Inject time.** Pass a `LongSupplier nowMs` or a `java.time.Clock` into the constructor. Hard-coding `System.currentTimeMillis()` makes window, TTL and retry logic untestable, and interviewers notice.\n4. **Simplest correct version, then a test immediately.** Have a JUnit 5 skeleton in your fingers: `@Test`, `assertEquals`, `assertTrue`, `assertThrows`. One happy-path test and one boundary test per level.\n5. **When the requirement changes, follow a small loop.** Restate it (\"so a user under their own limit can still be rejected by the global limit\"). Name what breaks. Make the smallest refactor that creates a seam: extract a strategy, add a wrapper, split a method. Rerun all tests, add one new test.\n6. **Separate the clock, the storage and the policy.** Most level-3 and level-4 twists change exactly one of them.\n7. **Concurrency only when asked, but mention it early:** \"Single-threaded for now. I'll make the per-key state atomic if we need concurrency.\" When it comes, use `ConcurrentHashMap.compute` or per-key locks, and say what's atomic and what isn't.\n8. **Narrate trade-offs in one sentence each:** \"A sliding log is exact but O(limit) memory per user. A token bucket is O(1) and allows controlled bursts.\"\n9. **Manage the clock.** If a level takes more than 25 minutes, finish a simpler correct version, say what you'd improve, and move on.\n\n**Practise on SwitchPrep**\n\nPick an LLD problem and write your own 4-level spec (for example: LRU cache, then TTL, then per-entry\nweights, then thread-safety). Do it in 75 minutes in IntelliJ with JUnit. Repeat weekly with a different problem\nfrom the list above.",
+   "walkthrough": "**Prompt, level 1:** \"Build a rate limiter: each user may make at most N requests per second.\"\n\n> **Candidate:** A few semantics questions. Should a burst of N at the very end of one second, plus N at the start of the next, be allowed? That's the fixed-window problem. And on rejection, do you just need a boolean?\n>\n> **Interviewer:** A boolean is fine. Don't worry about the boundary yet.\n>\n> **Candidate:** Then I'll start with a fixed window per user, but behind an interface so I can swap the algorithm. I'll inject the clock so the tests can control time.\n\n```java\ninterface RateLimiter { boolean allow(String userId); }\n\nfinal class FixedWindowLimiter implements RateLimiter {\n    private record Window(long start, int count) {}\n    private final Map<String, Window> windows = new HashMap<>();\n    private final int limit; private final long windowMs; private final LongSupplier now;\n\n    FixedWindowLimiter(int limit, long windowMs, LongSupplier now) { ... }\n\n    public boolean allow(String user) {\n        long t = now.getAsLong();\n        Window w = windows.get(user);\n        if (w == null || t - w.start() >= windowMs) w = new Window(t, 0);\n        if (w.count() >= limit) return false;\n        windows.put(user, new Window(w.start(), w.count() + 1));\n        return true;\n    }\n}\n```\n\nTwo tests follow straight away: five calls allowed and the sixth rejected, then allowed again after advancing a\nfake clock by one second. The fake clock is just `long[] t = {0}; LongSupplier now = () -> t[0];`.\n\n**Level 2:** \"Customers are abusing the boundary: 2N requests in 10 ms across two windows. Fix it.\"\n\n> **Candidate:** That's the known fixed-window weakness. Two options. A sliding log of timestamps is exact but stores up to N timestamps per user. A token bucket is O(1) per user and smooths bursts: capacity N, refilling N tokens per second. I'll go with the token bucket and keep the same interface, so the level 1 tests should still pass with the new class.\n\n```java\nfinal class TokenBucket {\n    private final double capacity, refillPerMs;\n    private double tokens; private long last;\n    TokenBucket(double capacity, double refillPerMs, long now) {\n        this.capacity = capacity; this.refillPerMs = refillPerMs; this.tokens = capacity; this.last = now;\n    }\n    void refill(long now) { tokens = Math.min(capacity, tokens + (now - last) * refillPerMs); last = now; }\n    boolean hasToken() { return tokens >= 1; }\n    void take() { tokens -= 1; }\n}\n```\n\nThe new test is the exact abuse case: N calls at t=999 ms, then N at t=1001 ms. The second batch is now mostly\nrejected. The level 1 tests still pass.\n\n**Level 3:** \"Add a global limit of G requests per second across all users.\"\n\n> **Candidate:** Restating: a request needs a token from *both* the user's bucket and the global bucket. The subtle part is ordering. If I take the user's token and the global check then fails, the user has been charged for a rejected request. So I check both first and take from both only if both have tokens.\n\n```java\npublic boolean allow(String user) {\n    long t = now.getAsLong();\n    TokenBucket mine = buckets.computeIfAbsent(user, u -> new TokenBucket(perUser, perUserRate, t));\n    mine.refill(t); global.refill(t);\n    if (!mine.hasToken() || !global.hasToken()) return false;\n    mine.take(); global.take();\n    return true;\n}\n```\n\nThe test: two users each under their own limit, but together over G. The last request is rejected, and the\nrejected user's bucket still has its token.\n\n**Level 4:** \"This runs on a 200-thread server.\"\n\n> **Candidate:** `computeIfAbsent` on a `ConcurrentHashMap` makes bucket creation safe, but check-then-take across two buckets isn't atomic. The simplest correct fix is to synchronise on the global bucket, which serialises every request through one lock. That's fine at a few thousand requests per second. If it becomes the bottleneck, I'd shard the global budget into per-core buckets, accepting a slightly fuzzy global limit. Across several server instances this whole design moves to Redis with a Lua script, but that's a system-design conversation.\n\nTheir test for level 4: 50 threads released together by a `CountDownLatch`, each calling `allow` 100 times. They\nassert that the total allowed never exceeds the global capacity plus the refill for the elapsed time.\n\n**Moments that earned points:** semantics questions before code. An injectable clock from the first minute. The\nsame interface surviving three requirement changes. The token-ordering bug named *before* it was written. Tests\nadded at every level. And a concurrency answer that gave the simple correct option first, then its cost, then the\nnext step.",
+   "commonFailures": [
+    "Building a framework of interfaces and factories before anything runs",
+    "No tests, or tests only in the last five minutes",
+    "Hard-coded System.currentTimeMillis(), so time-based behaviour can't be tested",
+    "Rewriting from scratch at each new level instead of extending a seam",
+    "Ignoring semantics: inclusive vs exclusive boundaries, what happens on rejection",
+    "Not reading the provided starter code and tests before writing new code",
+    "Mixing console I/O and parsing into the core logic"
+   ],
+   "practice": [
+    {
+     "title": "Rate limiter (LLD)",
+     "link": "/system-design/lld-problems/rate-limiter-lld"
+    },
+    {
+     "title": "LRU cache (LLD)",
+     "link": "/system-design/lld-problems/lru-cache-lld"
+    },
+    {
+     "title": "LRU Cache (DSA implementation)",
+     "link": "/dsa/linked-list/lru-cache"
+    },
+    {
+     "title": "In-memory key-value store",
+     "link": "/system-design/lld-problems/in-memory-key-value-store"
+    },
+    {
+     "title": "Testing Spring Boot apps: JUnit 5, Mockito",
+     "link": "/core/spring-boot?chapter=10"
+    },
+    {
+     "title": "Testing and code review (senior subject)",
+     "link": "/core/testing-code-review"
+    },
+    {
+     "title": "Idempotency and exactly-once (webhook handler prompts)",
+     "link": "/system-design/senior/idempotency-exactly-once"
+    },
+    {
+     "title": "Rate limiter (distributed design follow-up)",
+     "link": "/system-design/case-studies/rate-limiter-design"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Stripe software engineer interview guide: coding, bug bash, integration (Aced)",
+     "url": "https://www.aced.io/guides/stripe-software-engineer-interview"
+    },
+    {
+     "title": "Where LeetCode still matters in 2026: 74 interviews across 8 companies (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8446005/"
+    },
+    {
+     "title": "Atlassian SDE3 India interview experience, 2024 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/4965703/"
+    },
+    {
+     "title": "CodeSignal Industry Coding Framework explained (Lodely)",
+     "url": "https://www.lodely.com/blog/industry-coding-framework"
+    },
+    {
+     "title": "Software engineer interview rubric 2026 (Prepfully)",
+     "url": "https://prepfully.com/interview-guides/software-engineer-interview-rubric-2026"
+    }
+   ]
+  },
+  {
+   "id": "machine-coding-lld",
+   "order": 5,
+   "title": "Machine Coding / LLD",
+   "icon": "🧩",
+   "summary": "India's signature product-company round: 90-120 minutes to build a working, extensible, in-memory system (BNPL wallet, cab booking, Splitwise) in your own IDE. A review follows where interviewers stress-test your code and add a requirement live.",
+   "whoRunsIt": [
+    "Flipkart",
+    "PhonePe",
+    "Uber",
+    "Swiggy",
+    "Razorpay",
+    "CRED",
+    "Myntra",
+    "Udaan",
+    "Amazon (LLD discussion)"
+   ],
+   "frequency": "Most product companies",
+   "weight": "~25% of the SDE-2 decision at Flipkart, PhonePe and Razorpay; usually an elimination round",
+   "format": "- **Coding:** 90-120 minutes on your own laptop in IntelliJ or similar, in person at Flipkart's offline drives. You get a problem document with **mandatory** and **bonus** requirements. No database, no UI: in-memory storage and a driver `main` or tests.\n- **Review:** 30-90 minutes with one or two engineers. You walk through layers and patterns, they feed in edge cases (\"this should never throw an unexpected exception\"), you implement an extra strategy or a new requirement live, and sometimes draw a UML class diagram (Flipkart, Jan 2026).\n- **Take-home variant:** PhonePe (Oct 2025) sent a 90-minute unproctored problem to email back, then held a 30-minute call on concurrency and design patterns.\n- **Amazon-style LLD:** a 60-minute class-design discussion (Digital Wallet in a July 2025 SDE-2 loop) with less code and more modelling, plus two Leadership Principle questions.\n- **Recent problems:** BNPL with credit limits and dues (Flipkart, 2026), phonebook (Flipkart), survey service and an in-memory blog search engine (Razorpay), customer-issue assignment (PhonePe), cab booking (Swiggy), plus classics like parking lot, Splitwise and elevator.",
+   "whatTheyTest": [
+    "A working demo: the code runs end to end with a driver or tests",
+    "Entity modelling and clean layers (model, repository, service, strategy)",
+    "Extensibility: adding a new rule or strategy touches one or two classes",
+    "Edge cases and errors handled with clear custom exceptions",
+    "Concurrency awareness (two users booking the last seat)",
+    "Readable code: naming, small methods, no god class",
+    "Explaining and defending design choices in the review"
+   ],
+   "rubric": "| Criterion | Strong hire | Hire | No hire |\n|---|---|---|---|\n| Runs | Demo works first time; driver covers every mandatory flow | Works with small fixes during review | Doesn't compile or crashes on the main flow |\n| Requirements | All mandatory plus some bonus | All or nearly all mandatory | Major mandatory features missing |\n| Modularity | Clear layers; services depend on interfaces | Mostly separated, a few leaks | Everything in `Main` or one service class |\n| Extensibility | New requirement in the review lands in minutes, in one place | Lands with moderate edits | Needs rewiring across files, or `if-else` chains on type |\n| Edge cases | Validation and custom exceptions; nothing unexpected escapes | Main edge cases covered | Raw `NullPointerException`s and `RuntimeException`s |\n| Review | Explains trade-offs, admits shortcuts, knows the concurrency fix | Explains when probed | Can't justify the structure |\n\nWorking code is the gate. A beautifully layered design that doesn't run usually fails, while a slightly plain\ndesign that runs and extends cleanly passes.",
+   "howToAce": "**The 90-minute plan**\n\n1. **0-10 min: read, clarify, list.** Underline every noun (entities) and verb (operations). Ask what's mandatory and what's bonus, and confirm uniqueness rules, limits and what to show for invalid input. Write the operation list as comments in `Main`.\n2. **10-20 min: skeleton.** Packages `model`, `repository`, `service`, `strategy`, `exception`. Models with fields and enums for states. Repositories as interfaces with an in-memory implementation backed by `ConcurrentHashMap` and `AtomicLong` ids.\n3. **20-60 min: vertical slices.** Implement one mandatory operation end to end (service, repository, driver call), **run it**, then the next. Never have more than 15 minutes of unrun code.\n4. **60-75 min: harden.** Validation, custom exceptions (`InsufficientCreditException`, `AgentUnavailableException`), and state-transition guards.\n5. **75-85 min: bonus features,** chosen for value rather than ease.\n6. **85-90 min: demo script.** The driver prints a readable story of the main flows and one or two failures. Delete dead code.\n\n**Patterns: use the ones the problem asks for, no more**\n\n- *Strategy* for anything that says \"based on\" (pricing, assignment, splitting, ranking).\n- *State* (or an enum with guarded transitions) for lifecycles: order, ride, issue, booking.\n- *Observer* for notifications.\n- *Factory* when objects are created by type.\n- *Singleton* only if asked. Prefer passing dependencies through constructors.\n\n**Concurrency, in two sentences you can say in any review**\n\n\"Repositories use `ConcurrentHashMap`. Where a check-then-act decides a scarce resource (the last seat, a free\nagent, the credit limit), I lock per entity or use a compare-and-set on the status, so two threads can't both\nwin.\"\n\n**The review is half the score**\n\nExpect \"add X\". Before answering, say *where* it plugs in: \"That's a new `AssignmentStrategy` implementation and\none line in the factory.\" Then expect stress tests on invalid ids, double actions and empty states. Admit your\nshortcuts plainly: \"I skipped persistence of history; here's where it would go.\"\n\n**Practise on SwitchPrep**\n\nOne problem a week from the LLD list, timed at 90 minutes in IntelliJ. Afterwards, give yourself an unseen\nrequirement (a bonus feature you invent) and time how long it takes to add. If it takes more than 15 minutes, the\ndesign needs work.",
+   "walkthrough": "**Problem (original, similar in spirit to a 2025 PhonePe prompt):** build an in-memory customer-issue resolution\nsystem. Mandatory: create an issue (transaction id, type such as PAYMENT or GOLD, subject, email); add agents with\nexpertise in issue types; assign an issue to an agent; an agent resolves an issue; view an agent's history; search\nissues by email or type. Bonus: if no agent is free, put the issue on a waitlist and assign it when one frees up.\n\n**Minute 0-8: clarify.**\n\n> **Candidate:** Can an agent work on more than one issue at a time?\n>\n> **Interviewer:** One active issue at a time.\n>\n> **Candidate:** If several agents qualify, how do we choose? I'll make it pluggable. Default: the first free agent with that expertise.\n>\n> **Interviewer:** Fine.\n>\n> **Candidate:** Can a resolved issue be reopened?\n>\n> **Interviewer:** Out of scope.\n\n**Minute 8-18: skeleton.** Entities: `Issue` (id, txnId, type, status, assignedAgentId), `Agent` (id, email,\nexpertise set, activeIssueId, history), and an `IssueStatus` enum with OPEN, ASSIGNED, RESOLVED and WAITING.\nInterfaces `IssueRepository` and `AgentRepository` with in-memory implementations. `IssueService` handles create\nand search, and `AssignmentService` handles assign, resolve and the waitlist.\n\n```java\npublic interface AssignmentStrategy {\n    Optional<Agent> pick(Issue issue, Collection<Agent> agents);\n}\n\npublic final class FirstFreeAgentStrategy implements AssignmentStrategy {\n    public Optional<Agent> pick(Issue issue, Collection<Agent> agents) {\n        return agents.stream()\n            .filter(a -> a.isFree() && a.handles(issue.getType()))\n            .findFirst();\n    }\n}\n```\n\n**Minute 18-60: slices, each run immediately.** The candidate builds create-and-search first and runs it, then\nassign and resolve, then history. The status transition lives in one guarded method on `Issue`:\n\n```java\nvoid markAssigned(String agentId) {\n    if (status != IssueStatus.OPEN && status != IssueStatus.WAITING)\n        throw new InvalidStateException(id, status, IssueStatus.ASSIGNED);\n    this.status = IssueStatus.ASSIGNED;\n    this.assignedAgentId = agentId;\n}\n```\n\n**Minute 60-85: hardening and the bonus.** Unknown ids throw `NotFoundException`. Resolving an issue that isn't\nassigned throws `InvalidStateException`. For the waitlist, an `EnumMap<IssueType, Deque<Issue>>` holds waiting\nissues. When an agent resolves an issue, the service polls the first waiting issue matching that agent's\nexpertise. The driver prints the whole story, including two deliberate failures.\n\n**The review.**\n\n> **Interviewer:** New requirement: assign to the agent with the fewest resolved issues today, to balance load.\n>\n> **Candidate:** That's a new `AssignmentStrategy`. `LeastLoadedStrategy` filters the same way, then takes `min` by `resolvedToday()`. One new class plus the constructor argument in `Main`. The services don't change.\n\nThey write it in about six minutes and switch the driver over.\n\n> **Interviewer:** Two requests call `assign` at the same moment and both see agent A as free. What happens?\n>\n> **Candidate:** With my current code, both could assign to A. That's a check-then-act race between `isFree()` and `markBusy()`. The smallest fix is to make the claim atomic on the agent: `activeIssueId` becomes an `AtomicReference<String>`, and claiming is `compareAndSet(null, issueId)`. If the CAS fails, the strategy tries the next candidate. The alternative is `synchronized` on the agent object. The CAS avoids holding a lock while I scan the other agents. In a real service with a database, it would be a conditional update: `UPDATE agent SET active_issue = ? WHERE id = ? AND active_issue IS NULL`, checking that one row changed.\n>\n> **Interviewer:** Why didn't you use a Singleton for the services?\n>\n> **Candidate:** Constructor injection keeps them testable and lets me swap the strategy. `Main` wires everything once, which gives one instance without the global state.\n\n**Moments that earned points:** the clarifications changed the model (one active issue per agent). The code ran\nafter every slice, so the demo worked first time. The lifecycle sits in one guarded method instead of being\nscattered. The new requirement took one class. The race was named precisely (check-then-act between `isFree` and\n`markBusy`), fixed with the smallest correct primitive, and mapped to its database equivalent. Pattern questions\nwere answered with reasons, not pattern names.",
+   "commonFailures": [
+    "Code that doesn't run at the end because everything was integrated in the last 10 minutes",
+    "Over-design: ten interfaces and five patterns for a 90-minute problem",
+    "A god service class, or all the logic in Main",
+    "if-else or switch on type where a strategy was obviously requested",
+    "No validation, so raw NullPointerExceptions escape during the review's edge-case tests",
+    "Chasing bonus features before every mandatory one works",
+    "Being unable to say where a new requirement would plug in",
+    "No answer when asked what happens if two threads do the same action"
+   ],
+   "practice": [
+    {
+     "title": "How to approach LLD and machine coding",
+     "link": "/system-design/lld-fundamentals/how-to-approach-lld"
+    },
+    {
+     "title": "Behavioral patterns: Strategy, State, Observer",
+     "link": "/system-design/lld-fundamentals/design-patterns-behavioral"
+    },
+    {
+     "title": "Splitwise",
+     "link": "/system-design/lld-problems/splitwise"
+    },
+    {
+     "title": "Cab booking",
+     "link": "/system-design/lld-problems/cab-booking-lld"
+    },
+    {
+     "title": "BookMyShow (seat locking)",
+     "link": "/system-design/lld-problems/bookmyshow-lld"
+    },
+    {
+     "title": "Inventory and order management",
+     "link": "/system-design/lld-problems/inventory-order-management"
+    },
+    {
+     "title": "Parking lot",
+     "link": "/system-design/lld-problems/parking-lot"
+    },
+    {
+     "title": "Final Round Day 11: Machine Coding / LLD day",
+     "link": "/final-round/11"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Flipkart SDE-2 interview experience, Jan 2026 offline drive (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8455829/flipkart-sde-2-interview-experience-jan-o8ngx/"
+    },
+    {
+     "title": "Flipkart SDE-2 interview experience [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/6160355/flipkart-sde-2-interview-experience-offer"
+    },
+    {
+     "title": "Razorpay SDE-2 / SSE Bangalore interview experience, Dec 2024 (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-question/6179716/"
+    },
+    {
+     "title": "PhonePe backend software engineer (3-5 yrs) interview, Oct 2025 (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7539137/phonepe-backend-software-engineer-3-5-ye-n5mi/"
+    },
+    {
+     "title": "Amazon SDE-2 Bangalore, July 2025 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7009755/amazon-sde-2-bangalore-4-yoe-july-2025-o-o826/"
+    },
+    {
+     "title": "What is a machine coding round? (workat.tech)",
+     "url": "https://workat.tech/machine-coding/article/what-is-a-machine-coding-round-omfn1w54ojlg"
+    },
+    {
+     "title": "Machine coding round guide 2026 (PracHub)",
+     "url": "https://prachub.com/resources/machine-coding-round-guide-2026-requirements-architecture-tests-and-working-code"
+    }
+   ]
+  },
+  {
+   "id": "concurrency-round",
+   "order": 6,
+   "title": "Concurrency Round",
+   "icon": "⚙️",
+   "summary": "Sometimes its own round, more often a 15-20 minute segment inside machine coding or a Java round: find the race, name the invariant it breaks, fix it in Java or SQL, and show how you'd test it.",
+   "whoRunsIt": [
+    "Uber",
+    "PhonePe",
+    "Walmart Global Tech",
+    "Goldman Sachs",
+    "JPMorgan",
+    "Flipkart",
+    "Razorpay",
+    "Atlassian"
+   ],
+   "frequency": "Most product companies",
+   "weight": "Often decides SDE-2 vs SDE-1 level at Java-heavy companies",
+   "format": "- **As a segment (most common):** inside a machine-coding review (\"two requests assign the same agent\"), a Java fundamentals round (`wait` vs `sleep`, `synchronized`, `volatile`), or a design round (\"two workers pick the same job\").\n- **As a dedicated round (45-60 min):** implement something thread-safe (bounded blocking queue, rate limiter, LRU cache, a scheduler), or review a snippet and explain the race. Uber's SDE-2 machine coding explicitly covered asynchronous programming, thread synchronisation and parallel execution.\n- **Database flavour:** conditional updates, optimistic locking with `@Version`, `SELECT ... FOR UPDATE` and `SKIP LOCKED` job claiming, isolation levels, deadlocks.\n- **Modern Java:** `CompletableFuture` composition and timeouts; virtual threads (Java 21) and pinning, which JDK 24's JEP 491 largely removed for `synchronized`.",
+   "whatTheyTest": [
+    "Naming race shapes precisely: check-then-act, read-modify-write, unsafe publication, lazy init",
+    "Choosing the smallest correct primitive (Atomic*, ConcurrentHashMap.compute, lock, semaphore, queue)",
+    "Knowing that a JVM lock does nothing across multiple service instances, and moving the guard to the DB or Redis",
+    "Database concurrency: isolation levels, row locks, optimistic vs pessimistic locking",
+    "Crash and retry semantics: leases, idempotency, at-least-once processing",
+    "Deadlock causes and prevention (lock ordering, timeouts)",
+    "Testing concurrent code with latches, thread pools and repeated runs"
+   ],
+   "rubric": "| Signal | Strong hire | No hire |\n|---|---|---|\n| Diagnosis | Describes the exact interleaving: \"T1 reads QUEUED, T2 reads QUEUED, both write RUNNING\" | \"There might be a race somewhere\" |\n| Invariant | States what must stay true: \"a job has at most one active owner\" | Talks about threads, not about correctness |\n| Fix | Smallest correct scope, and right for the deployment (single JVM vs many instances) | `synchronized` on everything, or `volatile` on a counter |\n| Trade-offs | Contention, lock hold time, throughput, failure modes | One answer, no alternatives |\n| Failure thinking | Worker crash, retries, duplicate delivery, idempotency | Assumes nothing ever dies mid-operation |\n| Proof | A concrete test: N threads, a latch, an assertion on the invariant | \"I'd test it manually\" |\n\nThe phrase interviewers listen for is a four-part answer: **the race, the broken invariant, the prevention, the\ntest.**",
+   "howToAce": "**Answer every concurrency question in four beats**\n\n1. **Race:** the interleaving, step by step.\n2. **Invariant:** what must always be true, in business terms.\n3. **Prevention:** the primitive, its scope, and why it's enough.\n4. **Proof:** how a test would fail before the fix and pass after.\n\n**The race shapes to recognise on sight**\n\n- *Check-then-act:* `if (!map.containsKey(k)) map.put(k, v)`, `if (seat.isFree()) seat.book()`.\n- *Read-modify-write:* `count++`, `balance = balance - amount`, an entity loaded, modified and saved.\n- *Unsafe publication / lazy init:* double-checked locking without `volatile`, a shared `HashMap` or `SimpleDateFormat` in a singleton bean.\n- *Lost update in the database:* two transactions read the same row and both write. The default REPEATABLE READ does **not** stop this for read-then-write code.\n\n**Java toolbox you should be able to write from memory**\n\n- `ConcurrentHashMap.merge` and `compute` for atomic per-key updates. `AtomicLong` and `LongAdder` for counters.\n- A bounded blocking queue with `ReentrantLock` and two `Condition`s (`notFull`, `notEmpty`), using `while` loops around `await()`.\n- `ExecutorService` plus `CountDownLatch` to release N threads at once in a test.\n- `CompletableFuture.allOf(...)` with `orTimeout`, and `exceptionally` for fallbacks.\n- Lock ordering (always lock the lower account id first) to prevent deadlock in transfers.\n\n**Database toolbox (this is what makes it work across instances)**\n\n- **Conditional update:** `UPDATE ... SET status='RUNNING' WHERE id=? AND status='QUEUED'`, then check that exactly one row changed.\n- **Optimistic locking:** a `@Version` column. JPA adds `AND version=?` and throws on conflict, so you retry or reject.\n- **Pessimistic locking:** `SELECT ... FOR UPDATE` inside a short transaction. Add `SKIP LOCKED` (MySQL 8+) so workers grab different rows.\n- **Unique constraints** as the last line of defence for idempotency (one refund per request id).\n\n**Decide the scope out loud**\n\n\"Is this one JVM or several instances?\" If several, a Java lock protects nothing and the guard must live in the\ndatabase, in Redis, or in a single-partition queue. Saying this early is a strong senior signal.\n\n**Practise on SwitchPrep**\n\nWork through the practical concurrency subject and the concurrency traps. Then take every LLD problem you've\nsolved and ask yourself: \"Which operation decides a scarce resource, and what happens if two threads do it at\nonce?\"",
+   "walkthrough": "**Prompt:** \"Our Spring Boot job runner has three instances. Each one polls like this. What's wrong, and how do you\nfix it?\"\n\n```java\n@Scheduled(fixedDelay = 1000)\npublic void poll() {\n    Job job = jobRepository.findFirstByStatusOrderByCreatedAt(Status.QUEUED);\n    if (job == null) return;\n    job.setStatus(Status.RUNNING);\n    jobRepository.save(job);\n    processor.process(job);              // sends an email and charges a card\n}\n```\n\n> **Candidate:** The race is a check-then-act across instances. Instance A reads job 42 as QUEUED. Before A saves, instance B runs the same query and also gets job 42. Both set RUNNING, both save, and both process. The customer gets charged twice. The invariant is: *a job has at most one active owner, and its side effects happen once*. A `synchronized` method wouldn't help, because the three instances are separate JVMs. The guard has to be in the database.\n>\n> **Interviewer:** What would you change?\n>\n> **Candidate:** Make the claim atomic with a conditional update and check how many rows changed:\n\n```java\n@Modifying\n@Query(nativeQuery = true, value =\n    \"UPDATE job SET status = 'RUNNING', owner = :owner, lease_until = :lease \" +\n    \"WHERE id = :id AND status = 'QUEUED'\")\nint claim(@Param(\"id\") long id, @Param(\"owner\") String owner, @Param(\"lease\") Instant lease);\n```\n\n> **Candidate:** The worker calls `claim(...)` in its own short transaction and processes the job only if it returns 1. InnoDB takes a row lock for the update, so the second instance's update waits, then re-checks the condition, finds RUNNING, and changes 0 rows. For throughput, instead of every instance fighting over the oldest row, I'd claim a batch with `SELECT id FROM job WHERE status='QUEUED' ORDER BY created_at LIMIT 10 FOR UPDATE SKIP LOCKED` inside a short transaction, then update those ids. Each instance gets different rows without waiting.\n>\n> **Interviewer:** Why not `@Version` optimistic locking?\n>\n> **Candidate:** That works too. The second save throws `OptimisticLockException` and we skip the job. But under contention most attempts fail and retry, which wastes queries. For a hot queue, `SKIP LOCKED` is better. For rare conflicts, like editing a profile, `@Version` is simpler.\n>\n> **Interviewer:** Instance A claims job 42 and then crashes halfway through processing.\n>\n> **Candidate:** That's why I added `leaseUntil`. A sweeper re-queues RUNNING jobs whose lease has expired. Long jobs extend the lease with a heartbeat. But it means a job can now run twice: once by the crashed worker, which might have sent the email before dying, and once after the re-queue. So delivery is at-least-once, and the side effects must be idempotent. The charge call passes the job id as an idempotency key to the payment provider. The email table has a unique constraint on `(job_id, template)`, so the insert that records \"sent\" fails on the second attempt.\n>\n> **Interviewer:** How would you test the claim?\n\n```java\n@Test\nvoid onlyOneWorkerWinsTheClaim() throws Exception {\n    long id = jobs.save(Job.queued()).getId();\n    int workers = 8;\n    ExecutorService pool = Executors.newFixedThreadPool(workers);\n    CountDownLatch go = new CountDownLatch(1);\n    List<Future<Integer>> results = new ArrayList<>();\n    for (int i = 0; i < workers; i++) {\n        String owner = \"w\" + i;\n        results.add(pool.submit(() -> { go.await(); return claimer.claim(id, owner, Instant.now().plusSeconds(60)); }));\n    }\n    go.countDown();\n    int winners = 0;\n    for (Future<Integer> f : results) winners += f.get();\n    assertEquals(1, winners);\n}\n```\n\n> **Candidate:** I'd run it against real MySQL in Testcontainers, not H2, because locking behaviour differs. And I'd repeat it a few hundred times with `@RepeatedTest`. The original code fails this test intermittently, which is exactly the point.\n\n**Moments that earned points:** the interleaving was spelled out with concrete instances and a job id. The\ninvariant was stated in business terms (a double charge). \"Separate JVMs\" ruled out Java locks before the\ninterviewer could ask. Two database strategies were compared on contention. The crash follow-up led naturally to\nleases and then idempotency, and the candidate pointed out the cost (at-least-once). The test was concrete, ran\nagainst the real database, and was repeated.",
+   "commonFailures": [
+    "Adding synchronized to a service that runs on several instances",
+    "Using volatile for a counter (volatile gives visibility, not atomicity for count++)",
+    "containsKey then put on a ConcurrentHashMap, which is still a check-then-act race",
+    "Holding a lock or a DB transaction while calling a remote service",
+    "Assuming @Transactional or REPEATABLE READ prevents lost updates in read-modify-write code",
+    "Inconsistent lock ordering in transfers, leading to deadlock",
+    "Ignoring crashes and retries, so the fix still allows duplicate side effects",
+    "No test, or a single-threaded test that can't fail"
+   ],
+   "practice": [
+    {
+     "title": "Practical concurrency (senior subject)",
+     "link": "/core/concurrency-practical"
+    },
+    {
+     "title": "Concurrency utilities: locks, executors, CompletableFuture",
+     "link": "/core/java?chapter=12"
+    },
+    {
+     "title": "ConcurrentHashMap and concurrent collections",
+     "link": "/core/java?chapter=5"
+    },
+    {
+     "title": "Concurrency for LLD",
+     "link": "/system-design/lld-fundamentals/concurrency-for-lld"
+    },
+    {
+     "title": "InnoDB locking, MVCC and deadlocks",
+     "link": "/core/sql?chapter=8"
+    },
+    {
+     "title": "Distributed job scheduler",
+     "link": "/system-design/senior/distributed-job-scheduler"
+    },
+    {
+     "title": "Concurrency traps",
+     "link": "/traps?area=concurrency"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Uber SDE-2 Bangalore interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-169-uber-sde2"
+    },
+    {
+     "title": "PhonePe backend software engineer (3-5 yrs) interview, Oct 2025 (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7539137/phonepe-backend-software-engineer-3-5-ye-n5mi/"
+    },
+    {
+     "title": "Walmart SDE-3 interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-149-walmart-sde3-l3"
+    },
+    {
+     "title": "InnoDB Locking (MySQL 8.0 Reference Manual)",
+     "url": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html"
+    },
+    {
+     "title": "java.util.concurrent package summary (Java SE 21 API)",
+     "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/package-summary.html"
+    },
+    {
+     "title": "JEP 491: Synchronize Virtual Threads without Pinning (OpenJDK)",
+     "url": "https://openjdk.org/jeps/491"
+    }
+   ]
+  },
+  {
+   "id": "code-review-round",
+   "order": 7,
+   "title": "Code Review Round",
+   "icon": "🔍",
+   "summary": "You get a pull request or a file with planted bugs and design problems. You score by finding the issues that would break production first, then explaining impact and fixes like a reviewer people trust.",
+   "whoRunsIt": [
+    "Google (code comprehension)",
+    "Meta (bug phase of the AI round)",
+    "Atlassian",
+    "Teams using HackerRank or CoderPad review tasks",
+    "AI-first startups"
+   ],
+   "frequency": "Some companies",
+   "weight": "~10-15% where it appears; growing because AI made writing code cheap and judging it valuable",
+   "format": "- **Duration:** 30-60 minutes, sometimes as a segment of a coding or HM round.\n- **Setup:** a diff view with inline comments (HackerRank's code-review question shows split or unified diffs, and the interviewer's rubric is hidden from you), or a file shared on screen. Usually 80-300 lines. For Raj's profile, expect Java with Spring Boot and JPA.\n- **Variants:** \"explain this code\", then \"what's wrong with it\", then \"fix the worst issue\". Increasingly the code is AI-generated and looks clean: confident, idiomatic, subtly wrong.\n- **Follow-ups:** \"Are you sure that's a bug?\", \"Which one would you block the PR for?\", \"How would you phrase that comment to a junior?\"",
+   "whatTheyTest": [
+    "Reading unfamiliar code fast and stating its intent correctly",
+    "Ranking findings by production risk: correctness, data loss, security before style",
+    "Concrete impact and a concrete fix for each finding",
+    "Spring, JPA and Java pitfalls: transaction boundaries, N+1, thread-safety, resource leaks",
+    "Reviewing tests: what's missing, what's tested wrongly",
+    "Tone: separating blockers from nits, collaborating rather than lecturing",
+    "Holding a position under pushback when right, and updating when wrong"
+   ],
+   "rubric": "| Signal | Strong hire | Hire | No hire |\n|---|---|---|---|\n| Prioritisation | Top 3 findings are the top 3 risks, called out first | Finds them, but mixed in with nits | Leads with formatting and naming |\n| Depth | Explains the failure scenario (\"two retries both refund\") | Names the issue | \"This looks off\" |\n| Fixes | Specific and proportionate | Generic (\"add validation\") | None, or \"rewrite it\" |\n| Coverage | Correctness, security, failure handling, performance, tests | Two or three areas | Style only |\n| Communication | Blocker vs nit labels; kind, precise wording | Clear | Harsh or vague |\n\nGoogle's review guide orders concerns as design, functionality, complexity, tests, then naming, comments and\nstyle, and says personal preferences should be marked \"Nit:\". Interview rubrics follow the same order.",
+   "howToAce": "**A fixed order of passes (about 25 minutes for 150 lines)**\n\n1. **Intent (2 min).** Read the PR description, the method names and the tests. Say in one sentence what the code is meant to do. Many planted bugs are mismatches between intent and behaviour.\n2. **Correctness and data integrity.** Business rules, boundaries, null and empty cases, money arithmetic, state transitions, idempotency, transaction boundaries, races.\n3. **Security.** Injection (string-built SQL or JPQL), missing authorisation checks, secrets or personal data in logs, unvalidated input.\n4. **Failure handling.** Swallowed exceptions, remote calls without timeouts, retries without backoff or idempotency, partial failure between the DB and an external call.\n5. **Performance.** N+1 queries, `findAll()` then filtering in memory, unbounded caches and collections, work inside loops.\n6. **Tests.** Is the risky path tested? Are the assertions meaningful?\n7. **Design and readability.** Layering, naming, duplication. Mark these as nits unless they hide bugs.\n\n**Comment template**\n\n`[blocker] What: refund amount isn't checked against what was already refunded. Impact: repeated partial refunds can exceed the payment. Fix: check amount <= paid - refunded inside the same locked update.`\n\n**Finish with a ranked summary:** \"I'd block on 1-3, want 4-5 fixed before release, and 6+ are suggestions.\"\n\n**The Spring and Java bugs that get planted most often**\n\n- `@Transactional` on a private method, or called from the same class, so no proxy and no transaction.\n- A remote HTTP call inside a DB transaction.\n- `catch (Exception e)` that logs and returns success.\n- `double` for money, `new BigDecimal(0.1)`, or `BigDecimal.equals` where scale differs.\n- `equals` without `hashCode` on a class used as a map key or in a set.\n- Shared mutable state in a singleton bean (`HashMap`, `SimpleDateFormat`).\n- `Optional.get()` without a check. Streams or connections never closed.\n- N+1 lazy loading in a loop. `findAll()` on a large table.\n- Missing idempotency on a POST that moves money.\n- `LocalDateTime` used for instants across time zones.\n\n**When challenged**\n\nRe-derive the bug from a concrete input instead of repeating yourself. If you were wrong, say so quickly. Updating\ngracefully is itself a positive signal.\n\n**Practise on SwitchPrep**\n\nUse the testing and code review subject and the Spring and JPA traps as a bug catalogue. Then review real open\nsource PRs, or your own old code, out loud with a 25-minute timer, and write a ranked summary every time.",
+   "walkthrough": "**The code (original, condensed):** a refund method written for an order service.\n\n```java\n@Service\npublic class RefundService {\n    private static final Map<Long, Order> cache = new HashMap<>();\n    @Autowired private OrderRepository orders;\n    @Autowired private PaymentGatewayClient gateway;\n\n    public ResponseEntity<String> refund(Long orderId, double amount) {\n        try {\n            return doRefund(orderId, amount);\n        } catch (Exception e) {\n            log.error(\"refund failed\");\n            return ResponseEntity.ok(\"REFUND_QUEUED\");\n        }\n    }\n\n    @Transactional\n    private ResponseEntity<String> doRefund(Long orderId, double amount) {\n        Order order = cache.computeIfAbsent(orderId, id -> orders.findById(id).get());\n        log.info(\"Refunding card {} amount {}\", order.getCardNumber(), amount);\n        if (amount <= order.getPaidAmount()) {\n            gateway.refund(order.getPaymentId(), amount);          // HTTP call, 2-8 s\n            order.setRefundedAmount(order.getRefundedAmount() + amount);\n            order.setStatus(\"REFUNDED\");\n            orders.save(order);\n        }\n        return ResponseEntity.ok(\"OK\");\n    }\n}\n```\n\n> **Candidate:** Intent first: refund part or all of an order's payment through the gateway and record it. I'll go correctness first, then security, then the rest. I'll rank at the end.\n>\n> **Candidate:** **One, money can be lost.** The check compares the amount against `paidAmount` and ignores `refundedAmount`. Three refunds of 400 on a 1,000 order all pass. On top of that, there's no idempotency key, so a client retry after a timeout refunds again. And two concurrent requests can both pass the check. Fix: accept an idempotency key with a unique constraint on the refunds table, check `amount <= paid - refunded`, and make the update conditional (or use `@Version`). Pass the same key to the gateway so its side is idempotent too.\n>\n> **Candidate:** **Two, there's no transaction at all.** `@Transactional` sits on a private method called from inside the same class. Spring's proxy only intercepts external calls through the proxy, so this annotation does nothing. And if it did work, it would hold a DB connection open during a 2-8 second HTTP call. Fix: a short transaction to reserve the refund (status REFUND_PENDING), the gateway call outside any transaction, then a second short transaction to mark it complete or failed. A reconciliation job picks up stuck PENDING rows.\n>\n> **Candidate:** **Three, failures are reported as success.** Any exception, including `NoSuchElementException` from `findById(...).get()` on a bad id, returns 200 \"REFUND_QUEUED\", but nothing is queued. Support will tell customers their refund is coming when it isn't. Fix: a 404 for an unknown order, a real error for a gateway failure, and log the exception with the order id.\n>\n> **Interviewer:** What about the cache? Is that really a problem or just style?\n>\n> **Candidate:** It's real. Four things. A static `HashMap` shared across request threads isn't thread-safe, and concurrent `computeIfAbsent` can corrupt it. It never evicts, so it grows until the JVM runs out of memory. It returns stale orders, so the second refund reads an old `refundedAmount`, which makes bug one worse. And it holds JPA entities outside their persistence context. I'd delete it. Reading one order by primary key is cheap.\n>\n> **Candidate:** **Five, compliance:** the full card number is logged at INFO. That's a PCI problem and likely a security incident in itself. Log the order id and a masked token instead.\n>\n> **Candidate:** **Six,** `double` for money gives rounding errors. Use `BigDecimal` with an explicit scale, or a `long` in paise.\n>\n> **Candidate:** **Nits:** field injection instead of constructor injection. A service returning `ResponseEntity`, so HTTP concerns leak into the service layer. Status as a raw string where an enum belongs. And no tests: I'd want at least repeated partial refunds, the same idempotency key twice, and a gateway timeout.\n>\n> **Candidate:** **Ranked:** I'd block on 1, 2, 3 and 5. Four and six must be fixed before release. The rest are suggestions.\n\n**Moments that earned points:** stating intent first. Opening with the issue that loses money, with a concrete\nscenario (three refunds of 400). Knowing *why* the annotation fails (proxy, self-invocation), not just that it\n\"might not work\". Explaining the real-world cost of the swallowed exception. Defending the cache finding with four\nspecific failure modes when challenged. Ranking at the end, and saving the style comments for last, labelled as\nnits.",
+   "commonFailures": [
+    "Opening with formatting, naming and missing comments",
+    "A flat list of 15 findings with no severity",
+    "Vague comments (\"this could be better\") without impact or fix",
+    "Missing the business-logic bug because only Java-level issues were checked",
+    "Not reading the tests, or not noticing that there are none",
+    "Proposing a full rewrite instead of targeted fixes",
+    "Folding immediately under pushback, or digging in without re-checking"
+   ],
+   "practice": [
+    {
+     "title": "Testing and code review (senior subject)",
+     "link": "/core/testing-code-review"
+    },
+    {
+     "title": "@Transactional: propagation, isolation and pitfalls",
+     "link": "/core/spring-boot?chapter=8"
+    },
+    {
+     "title": "Spring AOP and proxies (why self-invocation fails)",
+     "link": "/core/spring-boot?chapter=12"
+    },
+    {
+     "title": "The N+1 problem and JPA performance",
+     "link": "/core/spring-boot?chapter=7"
+    },
+    {
+     "title": "Spring traps",
+     "link": "/traps?area=spring"
+    },
+    {
+     "title": "JPA / Hibernate traps",
+     "link": "/traps?area=jpa-hibernate"
+    },
+    {
+     "title": "Security for backend engineers",
+     "link": "/core/security"
+    },
+    {
+     "title": "Payment processing reliability",
+     "link": "/system-design/senior/payment-processing-reliability"
+    }
+   ],
+   "sources": [
+    {
+     "title": "What to look for in a code review (Google Engineering Practices)",
+     "url": "https://google.github.io/eng-practices/review/reviewer/looking-for.html"
+    },
+    {
+     "title": "Code review questions in interviews (HackerRank knowledge base)",
+     "url": "https://hackerrank-knowledge-base.help.usepylon.com/articles/4634293009-code-review-questions-in-interviews"
+    },
+    {
+     "title": "Why companies are moving from 'solve this problem' to 'explain this code' (Levelop)",
+     "url": "https://levelop.dev/blog/why-companies-are-moving-from-solve-this-problem-to-explain-this-code"
+    },
+    {
+     "title": "What actually changed in tech interviews in 2026 (techinterview.org)",
+     "url": "https://www.techinterview.org/post/3233475417/what-changed-tech-interviews-2026/"
+    },
+    {
+     "title": "Using @Transactional (Spring Framework reference)",
+     "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html"
+    },
+    {
+     "title": "Meta's AI-enabled coding interview (Hello Interview)",
+     "url": "https://www.hellointerview.com/blog/meta-ai-enabled-coding"
+    }
+   ]
+  },
+  {
+   "id": "debugging-production-round",
+   "order": 8,
+   "title": "Debugging & Production Incident Round",
+   "icon": "🚨",
+   "summary": "Either fix a failing test in an unfamiliar repo (a \"bug squash\") or talk through a live incident such as \"p99 latency tripled after the deploy\". Either way you are scored on method: hypotheses, evidence, mitigation first, prevention after.",
+   "whoRunsIt": [
+    "Stripe (bug squash)",
+    "Google (code comprehension)",
+    "Meta (bug phase)",
+    "Amazon (Dive Deep)",
+    "Uber",
+    "Razorpay",
+    "PhonePe",
+    "Atlassian"
+   ],
+   "frequency": "Some companies",
+   "weight": "~10-20% where it's a round; incident questions also feed Ownership and Dive Deep signals in HM rounds",
+   "format": "**Flavour A: hands-on bug squash (45-60 min).** An unfamiliar repository with a failing test or an issue\ndescription. Stripe lets you use your own IDE and language and look up docs and StackOverflow. A clear diagnosis\ncan count for more than a finished fix. AI is usually off.\n\n**Flavour B: incident scenario (30-45 min, whiteboard).** The interviewer describes symptoms and reveals dashboards,\nlogs and recent changes only when you ask for them. Common scenarios: a regression after a deploy, one bad host or\nshard, cache-driven DB overload, a cold cache after a restart, connection pool exhaustion, a retry storm.\n\n**Flavour C: embedded.** \"Tell me about the worst production issue you handled\" in HM and behavioral rounds,\nfollowed by a technical drill into it.",
+   "whatTheyTest": [
+    "A systematic method instead of random poking",
+    "Asking for the right signals: latency, traffic, errors, saturation, and what changed",
+    "Mitigating impact before chasing the root cause",
+    "Reading stack traces, logs, thread dumps and query plans",
+    "Knowing JVM, Spring and MySQL failure modes (pool exhaustion, GC, locks, slow queries)",
+    "Verifying the fix and adding guardrails so it doesn't recur",
+    "Calm, clear communication while under pressure"
+   ],
+   "rubric": "| Signal | Strong hire | No hire |\n|---|---|---|\n| Opening | Confirms the symptom and scope: who, since when, how bad | Names a cause in the first 30 seconds |\n| Evidence | Asks for golden signals, recent changes, healthy-vs-unhealthy comparison | Guesses, or asks for \"all the logs\" |\n| Priorities | Mitigates first (rollback, flag off, shed load), then diagnoses | Debugs while users keep failing |\n| Hypotheses | Ranked by likelihood and cost to test; each test can rule one out | Changes several things at once |\n| Depth | Connects symptom to mechanism (\"threads blocked on the pool because...\") | Stops at \"the DB was slow\" |\n| Closure | Verifies recovery, adds an alert, a test, a runbook, a postmortem | Stops once the graph goes green |\n\nGoogle's SRE book makes the same point. In a major outage your first job is to make the system work, even before\nyou know why it broke, like a pilot who lands the plane before troubleshooting.",
+   "howToAce": "**The incident loop (say it, then walk it)**\n\n1. **Confirm the symptom.** Which endpoints, users, regions? Since when? What's the error rate or latency versus the baseline?\n2. **Check the four golden signals:** latency, traffic, errors, saturation. For each resource, check the **USE** method: utilisation, saturation, errors (CPU, memory, threads, DB connections, disk, network).\n3. **Ask what changed:** deploys, config or feature flags, traffic pattern, dependency releases, data growth, certificate expiry.\n4. **Compare healthy with unhealthy:** one host or all? One shard? One customer? One endpoint?\n5. **Mitigate:** roll back, switch a flag off, scale out, shed or rate-limit load, fail over, drain a bad host.\n6. **Verify** that the metrics recover and the symptom is gone for users.\n7. **Find the root cause and add a guardrail:** a fix plus a regression test, an alert on the leading signal, a timeout or limit, and a blameless postmortem.\n\n**The hands-on loop (bug squash)**\n\nReproduce by running the failing test. Read the assertion and the stack trace, starting from the first frame in\n*your* code. Narrow down by bisecting inputs or commits, or by adding a log line. State a hypothesis, make the\nminimal fix, add a regression test, and explain. Narrate what you've **ruled out**. That counts even if time runs\nout.\n\n**The Spring Boot and MySQL failure catalogue to know cold**\n\n| Symptom | Likely mechanism | Evidence |\n|---|---|---|\n| `Connection is not available, request timed out` | Hikari pool exhausted by long transactions or slow queries | Pool active/pending metrics, thread dump |\n| Latency grows with data size | Missing index or full scan, OFFSET pagination | Slow query log, `EXPLAIN` |\n| Spike in queries per request after a release | New lazy relation causing N+1 | SQL logs, query count per request |\n| Periodic latency spikes, rising memory | GC pressure, unbounded cache, leak | GC logs, heap dump |\n| Everything slow when one dependency is slow | No timeout, thread pool saturated | Thread dump: threads in socket read |\n| DB overload just after a cache flush | Cache stampede, no request coalescing | Cache hit ratio, DB QPS |\n| Errors multiply during a partial outage | Retry storm without backoff or jitter | Request rate per client |\n| Intermittent `Deadlock found` | Inconsistent lock order across transactions | `SHOW ENGINE INNODB STATUS` |\n\n**Tools to name:** Spring Boot Actuator and Micrometer metrics, Prometheus and Grafana, structured logs with trace\nids, `jcmd` or `jstack` thread dumps, heap dumps, `EXPLAIN`, MySQL's slow query log and `performance_schema`.\n\n**Practise on SwitchPrep**\n\nWork through the production debugging and performance subjects. Then, once a week, pick one row from the\ncatalogue above and tell the incident story out loud from first page to postmortem, in under eight minutes.",
+   "walkthrough": "**Prompt:** \"It's Tuesday evening. After this afternoon's deploy, checkout API p99 went from 300 ms to 4 s, and\nabout 5% of requests return 503 at peak. You're on call. Go.\"\n\n> **Candidate:** First, scope. Is it only checkout, or every endpoint? All instances, or some? Did traffic change?\n>\n> **Interviewer:** Only the checkout endpoints. All six instances look the same. Traffic is a normal Tuesday peak.\n>\n> **Candidate:** All instances and normal traffic points away from a bad host or a load spike, and towards the deploy or a dependency. Saturation next: CPU, heap, Tomcat threads, DB pool, and what are the 503s actually saying?\n>\n> **Interviewer:** CPU is 30%. The heap looks normal. Tomcat busy threads are pinned at 200, the maximum. The logs show `HikariPool-1 - Connection is not available, request timed out after 30000ms`. DB CPU is moderate, about 40%.\n\n> **Candidate:** So the app threads are all busy waiting for DB connections, but the database itself isn't struggling. That pattern usually means connections are being *held* too long, not that queries are slow. Something is keeping a connection checked out while it does other work. Before I dig in, though, I'd mitigate, because we're losing checkouts. The deploy correlates in time, and rolling back is cheap and reversible, so I'd roll back now and watch p99 and pool pending threads. If the change sits behind a feature flag, switching the flag off is even faster.\n>\n> **Interviewer:** You roll back. p99 returns to 320 ms within five minutes.\n>\n> **Candidate:** Good. That confirms the deploy and buys us time. Now the root cause. What changed in checkout in that release?\n>\n> **Interviewer:** The diff adds a call to a new fraud-scoring service from `CheckoutService.placeOrder`.\n>\n> **Candidate:** Is `placeOrder` annotated `@Transactional`, and where is the call?\n>\n> **Interviewer:** Yes, and the call is in the middle of the method, after the order insert.\n>\n> **Candidate:** That's the mechanism. The transaction opens at the start of `placeOrder` and takes a pool connection. The fraud call is an HTTP request. If its p99 is, say, 2-3 seconds, each checkout holds a DB connection for that long while doing no DB work. With a pool of 10 per instance, at peak we run out of connections. Requests queue for 30 seconds, then time out, and the 503s follow. Tomcat threads fill up waiting, which is why they're pinned at 200. To confirm in staging, a thread dump would show many threads in a socket read inside the fraud client, each holding a connection, and the rest waiting in `HikariPool.getConnection`. I'd also check the fraud client's timeout. I'd bet it's the default, which can be very long or infinite.\n>\n> **Interviewer:** How do you fix it?\n>\n> **Candidate:** Three layers. **The fix:** move the fraud call *before* the transaction starts, or split the work into a short transaction to create the order as PENDING, the fraud call with no transaction open, and a second short transaction to confirm or reject. **Resilience:** a strict timeout on the fraud client (say 500 ms) and a circuit breaker with an explicit fallback. Whether we fail open or fail closed is a business decision I'd confirm with the risk team. **Guardrails:** an alert on Hikari pending threads and on connection acquisition time, which would have fired minutes before the 503s. A load test in the pipeline for checkout. And a code review checklist item: no remote calls inside `@Transactional`. Then a blameless postmortem with the timeline.\n>\n> **Interviewer:** Would you just increase the pool size?\n>\n> **Candidate:** Not as the fix. A bigger pool only means more connections idling during HTTP calls, and six instances times a bigger pool can exceed MySQL's `max_connections` and hurt every other service. It might be a stop-gap if a rollback were impossible, but it treats the symptom.\n\n**Moments that earned points:** scope first, which removed whole classes of causes. Saturation signals read\ncorrectly (the app waiting on the pool while the DB is calm means connections held, not slow queries). Rollback\n*before* root cause, with the reason it's safe. Specific evidence named for each hypothesis. The fix layered as\ncode, resilience and guardrails. And a confident, reasoned \"no\" to the tempting pool-size answer.",
+   "commonFailures": [
+    "Naming a root cause before asking a single scoping question",
+    "Debugging while users keep failing, instead of rolling back or switching a flag off first",
+    "Never asking \"what changed?\"",
+    "Restarting servers as the whole answer",
+    "Reflexively increasing pool sizes, timeouts or instance counts",
+    "Stopping when the graph goes green: no verification, alert, test or postmortem",
+    "In hands-on rounds: editing code before reproducing the failure, or ignoring the stack trace"
+   ],
+   "practice": [
+    {
+     "title": "Production debugging (senior subject)",
+     "link": "/core/production-debugging"
+    },
+    {
+     "title": "Performance engineering (senior subject)",
+     "link": "/core/performance"
+    },
+    {
+     "title": "Observability and SLOs at scale",
+     "link": "/system-design/senior/observability-slos-at-scale"
+    },
+    {
+     "title": "Failure handling and resilience",
+     "link": "/system-design/senior/failure-handling-resilience"
+    },
+    {
+     "title": "Observability: logging, metrics, tracing",
+     "link": "/core/microservices?chapter=7"
+    },
+    {
+     "title": "EXPLAIN and query optimisation",
+     "link": "/core/sql?chapter=5"
+    },
+    {
+     "title": "JVM internals: memory and GC",
+     "link": "/core/java?chapter=13"
+    },
+    {
+     "title": "Distributed systems traps",
+     "link": "/traps?area=distributed-systems"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Effective Troubleshooting (Google SRE book)",
+     "url": "https://sre.google/sre-book/effective-troubleshooting/"
+    },
+    {
+     "title": "Monitoring Distributed Systems: the four golden signals (Google SRE book)",
+     "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+    },
+    {
+     "title": "The USE Method (Brendan Gregg)",
+     "url": "https://www.brendangregg.com/usemethod.html"
+    },
+    {
+     "title": "Stripe software engineer interview guide: coding, bug bash, integration (Aced)",
+     "url": "https://www.aced.io/guides/stripe-software-engineer-interview"
+    },
+    {
+     "title": "Meta's AI-enabled coding interview (Hello Interview)",
+     "url": "https://www.hellointerview.com/blog/meta-ai-enabled-coding"
+    },
+    {
+     "title": "Google coding interviews in 2026: what changed and what didn't (Levelop)",
+     "url": "https://levelop.dev/blog/google-coding-interviews-in-2026-what-changed-and-what-didnt"
+    }
+   ]
+  },
+  {
+   "id": "system-design-senior",
+   "order": 9,
+   "title": "System Design (HLD) at SDE-2 / Senior",
+   "icon": "🏗️",
+   "summary": "45-60 minutes designing a production system (payments, notifications, booking, delivery) from vague requirements to failure handling. It is now standard in SDE-2 loops and the biggest single signal for your level.",
+   "whoRunsIt": [
+    "Amazon",
+    "Flipkart",
+    "Uber",
+    "Razorpay",
+    "PhonePe",
+    "Swiggy",
+    "Atlassian",
+    "Walmart Global Tech",
+    "Google",
+    "Goldman Sachs"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "~25-30% of a senior decision; the main driver of SDE-1 vs SDE-2 levelling",
+   "format": "- **Duration:** 45-60 minutes. Amazon's SDE-2 HLD round ran 1 hour 45 minutes in a July 2025 report because about 35 minutes of Leadership Principle questions were folded in. Flipkart combined it with the hiring manager round.\n- **Tools:** a virtual whiteboard (Excalidraw, Whimsical, Miro) or a physical board in onsite drives. No code, though you may sketch an API or a table.\n- **Prompts are production-flavoured:** subscription billing on top of a payment gateway (Razorpay), food delivery with four actor types (Amazon), an UrbanClap-style services marketplace (Flipkart), Twitter search (Walmart), monitoring tool (Goldman Sachs), plus the classics: URL shortener, notification system, ticket booking, chat.\n- **Expect follow-ups on** failure paths, idempotency, consistency, observability, cost, and \"what would you change if traffic grew 10x?\" Some interviewers change a constraint mid-way on purpose.",
+   "whatTheyTest": [
+    "Scoping: functional requirements, non-functional targets, and rough numbers",
+    "A clean API and data model, including keys and indexes",
+    "A high-level design that actually satisfies the requirements",
+    "Depth in two or three areas: consistency, idempotency, partitioning, caching, queues",
+    "Failure handling: timeouts, retries, dead letters, outbox, reconciliation",
+    "Trade-off reasoning tied to the requirements, not to buzzwords",
+    "Adapting calmly when the interviewer changes a constraint"
+   ],
+   "rubric": "Hello Interview's levelling guidance matches what Indian SDE-2 loops ask for:\n\n| | SDE-1 / mid-level | SDE-2 / senior (Raj's target) |\n|---|---|---|\n| Driving | Leads requirements, API and the high-level design; the interviewer drives the deep dives | Drives the whole session, picks the deep dives, and flags limits in their own design |\n| Breadth | Knows what each box does and why it's there | Assumed; fundamentals are only probed if something sounds wrong |\n| Depth | Textbook level | Experience-based detail in about two areas (\"we hit this with MySQL locks when...\") |\n| Trade-offs | Names the options | Chooses, justifies with the requirements, and states the cost |\n| Failure thinking | Mentions retries | Walks the failure paths: what happens when X is slow, down, or duplicated |\n\n**No hire signals:** boxes before requirements, technology names that can't be explained, no data model, no\nfailure handling, designing Google scale for a small problem, and defending the design when the constraint changes.",
+   "howToAce": "**A time plan for 45-60 minutes** (adapted from Hello Interview's delivery framework)\n\n1. **Requirements (5 min).** Three to five functional requirements, explicitly out-of-scope items, and non-functional targets: availability, latency, consistency, scale. Do back-of-envelope maths only where it changes a decision (\"2M renewals on the 1st of the month is about 25/s spread over a day, but 500/s if we run it all in the first hour\").\n2. **Core entities (2 min)** and **API (5 min).** REST endpoints with request and response shapes. Put an **idempotency key** on anything that moves money or creates records.\n3. **High-level design (10-15 min).** Draw the simplest design that satisfies the functional requirements, then walk one request through it end to end.\n4. **Deep dives (15-20 min).** Pick the two or three hardest parts of *this* problem: usually correctness under retries and concurrency, the hot path's scaling, and failure handling. Raise them yourself: \"The riskiest part here is double charging, so let me start with that.\"\n5. **Wrap-up (3 min).** Observability (SLOs, key metrics, alerts), the biggest remaining risk, and what you would build next.\n\n**Components every SDE-2 answer should include**\n\n- Numbers: QPS (average and peak), storage growth, read/write ratio.\n- A schema with primary keys, unique constraints and the indexes your queries need.\n- A clear line between synchronous and asynchronous work, and why.\n- A failure table: \"If the gateway times out... if the worker crashes... if the queue is down...\"\n- The consistency choice for each piece of data (strong for balances, eventual for feeds).\n\n**Topics to master, in priority order for 2027**\n\nCaching patterns and invalidation; SQL schema design and indexing; replication and read replicas; partitioning\nand sharding keys; queues, the outbox pattern and idempotent consumers; rate limiting; state machines for payments\nand orders; observability and SLOs; then multi-region and cost as stretch topics.\n\n**Use your own experience.** Raj has built Spring Boot and MySQL systems. Saying \"in my current project, a\nsynchronous chain of three services caused cascading timeouts, so here I'd make step 2 asynchronous\" is exactly the\nexperience-based depth the senior bar asks for.\n\n**Practise on SwitchPrep**\n\nOne design a week, timed at 45 minutes, drawn in Excalidraw and explained out loud. Alternate between case\nstudies and the senior group (payments, idempotency, failure handling, job scheduler). After each one, write\nthe failure table from memory.",
+   "walkthrough": "**Prompt (original, similar in spirit to a Razorpay SDE-2 question):** \"Design recurring subscriptions on top of\nour existing one-time payment gateway. Merchants create plans (for example a monthly meal plan), customers\nsubscribe, and we charge them automatically every cycle until they cancel.\"\n\n**Requirements.**\n\n> **Candidate:** Functional: merchants create plans; customers subscribe with a saved payment mandate; we charge each cycle; we retry failed charges; customers can cancel; merchants get webhooks. Out of scope for now: proration, plan upgrades, and taxes. Is that the right cut?\n>\n> **Interviewer:** Yes.\n>\n> **Candidate:** Scale?\n>\n> **Interviewer:** Assume 2 million active subscriptions. Most renew on the 1st of the month.\n>\n> **Candidate:** So about 1.5 million charges land on one day. Spread over 12 hours, that's roughly 35 per second, but merchants will want them early in the day, so I'll design for a few hundred per second at peak and rate-limit ourselves towards the gateway and banks. The most important non-functional requirement is **never charge twice for the same cycle**. Next is never silently skipping a cycle. Latency barely matters: it's a batch.\n\n**Entities and API.** Plan, Subscription (status ACTIVE, PAST_DUE, CANCELLED; `next_charge_at`), Invoice (one per\nsubscription per period), and PaymentAttempt (several per invoice). `POST /subscriptions` takes an\n`Idempotency-Key` header. `POST /subscriptions/{id}/cancel`. Merchants receive webhooks for `invoice.paid` and\n`invoice.failed`.\n\n**High-level design.** A scheduler scans subscriptions whose `next_charge_at` is due, partitioned by id range so\nseveral scheduler instances can share the work. It creates Invoices and publishes `charge-invoice` messages to a\nqueue. Charge workers call the gateway. A webhook receiver records asynchronous results from the gateway. A\nnotifier sends the merchant webhooks with retries.\n\n**Deep dive 1: no double charges.**\n\n> **Candidate:** Three layers. First, the Invoice has a unique key on `(subscription_id, period_start)`, so even if the scheduler runs twice, the second insert fails and no second invoice exists. Second, workers claim an attempt with a conditional update (`status` from PENDING to PROCESSING) and pass `invoice_id + attempt_no` as the idempotency key to the gateway, so a retried request can't create a second charge. Third, the queue is at-least-once, so the consumer is idempotent on that same claim.\n>\n> **Interviewer:** The gateway call times out. Did the customer get charged?\n>\n> **Candidate:** We don't know, and that's the dangerous case. I'd mark the attempt UNKNOWN, never blindly retry it, and query the gateway's status API with the same idempotency key, or wait for its webhook. A reconciliation job compares our UNKNOWN and PROCESSING attempts against the gateway's settlement report every hour. Only a confirmed failure moves to the retry schedule.\n\n**Deep dive 2: the 1st-of-month spike.**\n\n> **Candidate:** Pre-generate invoices the night before, so the scheduler isn't on the critical path. Charge workers pull from the queue with a concurrency cap per gateway and per bank, since banks throttle. Add jitter across the morning, and process merchants with earlier promised times first. If the gateway is degraded, a circuit breaker pauses the workers and the queue absorbs the backlog. Nothing is lost, only delayed.\n\n**Deep dive 3: failed payments.** A dunning schedule retries after 1, 3 and 5 days at different times of day. After\nthe final failure, the subscription moves to PAST_DUE and the merchant gets a webhook. Every state change is an\nevent in an append-only `subscription_events` table, which helps with support questions and audits.\n\n**Constraint change.**\n\n> **Interviewer:** New regulation: customers must be notified 24 hours before every auto-debit, and can object.\n>\n> **Candidate:** That adds a state before charging: invoice created leads to NOTIFIED, and only after the 24-hour window does it become CHARGEABLE. The scheduler now runs two days ahead: it creates invoices and sends notices on day minus 1, and the charge workers only pick up CHARGEABLE invoices. Objections cancel the invoice. The good news is the rest of the design holds, because the invoice state machine was already the backbone.\n\n**Observability.** SLOs on charge success rate per gateway and per bank, an alert on invoices stuck in UNKNOWN for\nmore than an hour, queue lag, and the reconciliation mismatch count, which should be zero.\n\n**Moments that earned points:** the numbers changed the design (batch, not latency). The top non-functional\nrequirement was named and then designed for in three layers. The timeout question was answered with \"we don't\nknow\", followed by a safe procedure. The spike was handled with pre-generation and throttling. The constraint change\nslotted in as one new state because the core abstraction was right. And observability was specific to this system,\nnot a generic \"add monitoring\".",
+   "commonFailures": [
+    "Drawing boxes before agreeing on requirements and scale",
+    "No numbers at all, so no decision is justified",
+    "Buzzword soup: Kafka, CQRS, sharding and microservices with no reason tied to the problem",
+    "No data model, or tables without keys and indexes",
+    "Only the happy path: nothing on timeouts, retries, duplicates or crashes",
+    "Designing global scale for a modest problem",
+    "Waiting for the interviewer to drive the deep dives",
+    "Defending the original design when a constraint changes instead of adapting it"
+   ],
+   "practice": [
+    {
+     "title": "How to approach system design",
+     "link": "/system-design/concepts/how-to-approach"
+    },
+    {
+     "title": "Back-of-envelope estimation",
+     "link": "/system-design/concepts/back-of-envelope"
+    },
+    {
+     "title": "Payment system (UPI)",
+     "link": "/system-design/case-studies/payment-system-upi"
+    },
+    {
+     "title": "Notification system",
+     "link": "/system-design/case-studies/notification-system"
+    },
+    {
+     "title": "Ticket booking (BookMyShow)",
+     "link": "/system-design/case-studies/ticket-booking-bookmyshow"
+    },
+    {
+     "title": "Payment processing reliability",
+     "link": "/system-design/senior/payment-processing-reliability"
+    },
+    {
+     "title": "Idempotency and exactly-once",
+     "link": "/system-design/senior/idempotency-exactly-once"
+    },
+    {
+     "title": "Failure handling and resilience",
+     "link": "/system-design/senior/failure-handling-resilience"
+    }
+   ],
+   "sources": [
+    {
+     "title": "The system design interview: what is expected at each level (Hello Interview)",
+     "url": "https://hellointerview.com/blog/the-system-design-interview-what-is-expected-at-each-level"
+    },
+    {
+     "title": "System design delivery framework (Hello Interview)",
+     "url": "https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery"
+    },
+    {
+     "title": "Why senior engineers fail system design interviews (Deep Engineering)",
+     "url": "https://deepengineering.substack.com/p/why-senior-engineers-fail-system-design-interviews"
+    },
+    {
+     "title": "Razorpay SDE-2 / SSE Bangalore interview experience, Dec 2024 (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-question/6179716/"
+    },
+    {
+     "title": "Amazon SDE-2 Bangalore, July 2025 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7009755/amazon-sde-2-bangalore-4-yoe-july-2025-o-o826/"
+    },
+    {
+     "title": "Uber SDE-2 Bangalore interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-169-uber-sde2"
+    },
+    {
+     "title": "Designing robust and predictable APIs with idempotency (Stripe)",
+     "url": "https://stripe.com/blog/idempotency"
+    }
+   ]
+  },
+  {
+   "id": "resume-deep-dive",
+   "order": 10,
+   "title": "Resume Deep Dive (your own stack)",
+   "icon": "📄",
+   "summary": "45-60 minutes where an engineer picks lines from your resume (Spring Boot, JPA, MySQL, Angular) and keeps asking \"why?\" and \"how does that work underneath?\" until they find the edge of your knowledge. It can't be bluffed.",
+   "whoRunsIt": [
+    "Walmart Global Tech",
+    "Goldman Sachs",
+    "JPMorgan",
+    "Swiggy",
+    "Flipkart",
+    "PhonePe",
+    "Paytm",
+    "Oracle",
+    "Amazon (Dive Deep)"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "~20-25% of the decision at Java-heavy companies; often the first technical round",
+   "format": "- **Duration:** 45-80 minutes. Walmart's SDE-3 round 1 ran 80 minutes and covered projects, Java Streams coding, Java 8 interface rules, collections, Spring DI and bean scopes, Hibernate mapping, an SQL query without subqueries, a REST endpoint, and AWS IAM, because it was on the resume.\n- **Setup:** a conversation with small live tasks: write a Streams pipeline, an SQL query, a controller, a JPA mapping.\n- **Style:** the interviewer reads your resume beforehand and drills any keyword. Swiggy's SDE-2 hiring manager went into Kafka, Redis optimisations and database internals. Each answer becomes the next question.\n- **At senior level** they care less about definitions and more about \"when does it break, how would you know, what did you do?\"",
+   "whatTheyTest": [
+    "Genuine ownership of the work your resume claims",
+    "Internals of your own stack: Spring proxies, transactions, JPA, InnoDB, Angular change detection",
+    "Production judgement: when a feature breaks and how you'd detect it",
+    "Trade-offs between the alternatives you could have chosen",
+    "Numbers about your own systems: traffic, data size, latency",
+    "Honesty about the limits of what you know"
+   ],
+   "rubric": "Interviewers push each topic down a depth ladder and note where you stop:\n\n| Level | What you can do | Signal |\n|---|---|---|\n| 1. What | Define it | Junior |\n| 2. How used | Show how you used it in your project | SDE-1 |\n| 3. How it works | Explain the mechanism underneath | SDE-1 to SDE-2 |\n| 4. When it breaks | Name failure modes and how you'd detect them | SDE-2 |\n| 5. Alternatives | Compare options and choose for a given constraint | Senior |\n\n**Strong hire:** reaches level 4-5 on the core of your own stack, with real numbers and at least one production\nstory. **No hire:** stays at level 1-2 on things listed as achievements, or bluffs and gets caught. A clear\n\"I haven't gone that deep, but here's how I'd reason about it\" scores far better than a confident wrong answer.",
+   "howToAce": "**Prepare like this**\n\n1. **Audit the resume.** Every keyword is a question. Remove what you can't defend at level 3.\n2. **For each bullet, prepare:** the problem, your part, the mechanism, one number, one thing that went wrong.\n3. **Answer in three layers:** a one-line definition, then the internals, then \"in my project...\".\n4. **Know your own numbers:** requests per day, table sizes, p95 latency, team size, release cadence.\n\n**The 20 questions Raj must answer alone, without notes**\n\n*Spring Boot*\n\n1. What happens between `SpringApplication.run()` and the first request? (context, auto-configuration, bean creation, embedded Tomcat)\n2. How does auto-configuration decide to create a `DataSource`, and how do you see why a bean was or wasn't created? (`@Conditional*`, the `--debug` conditions report)\n3. Why does `@Transactional` do nothing on a private method or a call from the same class? (proxies, self-invocation)\n4. REQUIRED vs REQUIRES_NEW: the inner call throws. What happens to the outer transaction? (rollback-only; checked exceptions don't roll back by default)\n5. Trace a request: filter chain, `DispatcherServlet`, interceptors, controller, `@ControllerAdvice`.\n6. How does your JWT filter validate tokens, and how would you revoke one before it expires?\n7. A singleton bean holds a mutable field and Tomcat runs 200 threads. What breaks?\n\n*JPA / Hibernate*\n\n8. Show an N+1 in your code and three fixes. (fetch join, `@EntityGraph`, batch size, DTO projection)\n9. Why does `LazyInitializationException` happen, and why might you disable open-in-view?\n10. What does the persistence context do? (dirty checking, flush timing, first-level cache; why managed entities need no `save()`)\n11. Prevent a lost update on stock count: optimistic `@Version` or pessimistic lock? When would you pick each?\n\n*MySQL / InnoDB*\n\n12. Why does the primary key choice matter in InnoDB? (clustered index, random UUID inserts, secondary indexes store the PK)\n13. Index on `(a, b, c)`: which `WHERE` and `ORDER BY` combinations use it? (leftmost prefix, range stops, covering)\n14. Read the `EXPLAIN` of your slowest query: `type`, `key`, `rows`, `Using filesort`.\n15. What does REPEATABLE READ guarantee in InnoDB? (MVCC snapshots, next-key locks, what it doesn't prevent)\n16. How would you diagnose and prevent a deadlock? (`SHOW ENGINE INNODB STATUS`, lock order, retry)\n17. Paginating 10 million rows: why is `OFFSET` slow, and how does keyset pagination fix it?\n\n*Angular*\n\n18. Default vs `OnPush` change detection: what triggers a check, and what changes with signals and zoneless (the default from v21)?\n19. `switchMap` vs `mergeMap` vs `concatMap` vs `exhaustMap` for a search box and a save button; how you avoid subscription leaks.\n20. How does an interceptor attach the JWT and refresh on 401 without firing five refresh calls at once?\n\n**Practise on SwitchPrep:** answer each question out loud in under two minutes, then check the matching core\nchapter and its Q&A.",
+   "walkthrough": "**The resume line:** \"Reduced order-search API latency from 2.1 s to 180 ms by optimising JPA queries and adding\nMySQL indexes.\"\n\n> **Interviewer:** Tell me about this one. How did you know it was slow, and why?\n>\n> **Candidate:** Support tickets first. Then we confirmed it with Actuator metrics: the p95 for `/orders/search` was about 2.1 seconds for customers with large histories. I turned on SQL logging in a staging copy with production-like data. One search ran 1 query for orders plus 1 per order for its items: a classic N+1. A customer with 300 orders meant 301 queries.\n>\n> **Interviewer:** How did you fix it?\n>\n> **Candidate:** First attempt: `JOIN FETCH o.items` in the repository query. Query count dropped to 1, but Hibernate logged a warning, \"firstResult/maxResults specified with collection fetch; applying in memory\". Because we paginated, it was fetching *all* of the customer's orders and items and paging in the JVM. That's worse at scale, so I switched to two queries: page the order ids first, then fetch those orders with their items using `WHERE o.id IN (:ids)` and a fetch join. Two queries, correctly paginated.\n>\n> **Interviewer:** And the index?\n>\n> **Candidate:** The page query filtered by `customer_id` and sorted by `created_at DESC`. `EXPLAIN` showed it using the single-column `customer_id` index, followed by `Using filesort`. I added a composite index on `(customer_id, created_at)`. The sort then comes from the index order and the filesort disappeared. Rows examined dropped from thousands to the page size.\n>\n> **Interviewer:** Why not add `status` to the index too? The search filters by status sometimes.\n>\n> **Candidate:** Status has five values, and the filter is optional. Putting it before `created_at` would break the sort for queries without a status filter, because of the leftmost-prefix rule. Putting it after `created_at` doesn't help the range much. With the customer filter, we're already down to at most a few hundred rows, so filtering status from those is cheap. Every extra index also costs on writes, and orders are write-heavy at peak.\n>\n> **Interviewer:** Did you measure that write cost?\n>\n> **Candidate:** Honestly, no. At the time I only checked that insert latency on the dashboard didn't move. If I did it again, I'd run a load test on the insert path before and after, and look at the index size in `information_schema`.\n>\n> **Interviewer:** The orders table grows 50 times. What breaks first?\n>\n> **Candidate:** Deep pages. OFFSET pagination makes MySQL walk and discard all the skipped rows, so page 200 gets slow. I'd move to keyset pagination: `WHERE customer_id = ? AND created_at < :lastSeen ORDER BY created_at DESC LIMIT 20`, with the id as a tiebreaker. After that, archiving orders older than two years into a separate table, and sending search reads to a replica if the primary gets busy.\n>\n> **Interviewer:** You said 180 ms. Where does the remaining time go?\n>\n> **Candidate:** About 40 ms in the two queries, and most of the rest serialising a large DTO graph to JSON. We trimmed the response with a projection for the list view. I didn't take that further because 180 ms met the target we'd agreed with the product team.\n\n**Moments that earned points**\n\n- **Evidence:** the latency came from metrics, and the cause from SQL logs on realistic data.\n- **The second-order bug:** the candidate knew why the fetch join plus pagination was wrong, which shows real experience. That's level 4 on the ladder.\n- **Index reasoning** used the leftmost-prefix rule and the write cost, not \"more indexes are faster\".\n- **Honesty:** \"Honestly, no\" about the write-cost measurement, followed by exactly how they'd measure it. That earned more trust than a made-up number.\n- **Growth:** the 50x question was answered with the next three steps in the right order.\n- **The full latency budget** was known, and stopping at the agreed target showed judgement.",
+   "commonFailures": [
+    "Resume keywords (Kafka, Docker, AWS, Redis) that can't survive two follow-up questions",
+    "Textbook definitions with no project story or numbers behind them",
+    "\"We did\" everything, so the interviewer can't find your part",
+    "Bluffing internals, then getting caught on the next question",
+    "Not knowing your own system's scale: traffic, data size, latency",
+    "Dismissing Angular questions with \"I'm mostly backend\" when Angular is on the resume",
+    "Listing features used (\"@Transactional, JPA, caching\") without knowing how they fail"
+   ],
+   "practice": [
+    {
+     "title": "Transactions: @Transactional, propagation, isolation",
+     "link": "/core/spring-boot?chapter=8"
+    },
+    {
+     "title": "N+1, fetching strategies and JPA performance",
+     "link": "/core/spring-boot?chapter=7"
+    },
+    {
+     "title": "Auto-configuration, starters and startup",
+     "link": "/core/spring-boot?chapter=3"
+    },
+    {
+     "title": "InnoDB indexes: B+trees, composite, covering",
+     "link": "/core/sql?chapter=4"
+    },
+    {
+     "title": "InnoDB locking, MVCC and deadlocks",
+     "link": "/core/sql?chapter=8"
+    },
+    {
+     "title": "Angular change detection: OnPush, zoneless",
+     "link": "/core/angular?chapter=3"
+    },
+    {
+     "title": "Final Round Day 12: Spring Boot + microservices deep dive",
+     "link": "/final-round/12"
+    },
+    {
+     "title": "JPA / Hibernate traps",
+     "link": "/traps?area=jpa-hibernate"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Walmart SDE-3 interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-149-walmart-sde3-l3"
+    },
+    {
+     "title": "Swiggy SDE-2 interview experience, 4 yrs (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/7197132"
+    },
+    {
+     "title": "Using @Transactional (Spring Framework reference)",
+     "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html"
+    },
+    {
+     "title": "InnoDB Locking (MySQL 8.0 Reference Manual)",
+     "url": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html"
+    },
+    {
+     "title": "Angular without ZoneJS (zoneless) guide (angular.dev)",
+     "url": "https://angular.dev/guide/zoneless"
+    },
+    {
+     "title": "Software engineer interview rubric 2026 (Prepfully)",
+     "url": "https://prepfully.com/interview-guides/software-engineer-interview-rubric-2026"
+    }
+   ]
+  },
+  {
+   "id": "project-deep-dive",
+   "order": 11,
+   "title": "Project Deep Dive",
+   "icon": "🗂️",
+   "summary": "You present one project end to end and defend its architecture: why it was built that way, what failed, and what you'd change. It is often folded into the hiring manager or system design round, and it strongly shapes your level.",
+   "whoRunsIt": [
+    "Razorpay",
+    "Uber",
+    "Flipkart",
+    "Google (Googleyness round, 2026)",
+    "Atlassian",
+    "Swiggy",
+    "Walmart Global Tech",
+    "Amazon"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "~15% on its own, but it colours how every other round is read",
+   "format": "- **Duration:** 20-45 minutes, usually inside another round. Razorpay's SDE-2 HM round spent its first half on the current project's flaws and how the candidate would redesign it today. Uber's system design round opened with \"explain a project you built from scratch\". Flipkart's HM round went deep into the candidate's main project.\n- **Google (2026):** the Googleyness and Leadership round now includes a technical discussion of a system or decision from your past work, including its trade-offs.\n- **Setup:** you draw the architecture (whiteboard or Excalidraw). The interviewer then zooms into one component and keeps asking \"why?\", \"what if?\" and \"how did you know?\"",
+   "whatTheyTest": [
+    "Real ownership: what you personally designed, built and decided",
+    "Architecture reasoning: why these components and boundaries",
+    "Constraints and trade-offs that shaped the design",
+    "Impact in numbers: latency, cost, incidents, time saved, users",
+    "Self-critique: honest flaws and a credible redesign",
+    "Zooming between the big picture and code-level detail on demand"
+   ],
+   "rubric": "| Signal | Strong hire | No hire |\n|---|---|---|\n| Framing | 60-second context (users, scale, why it mattered), then architecture | Five minutes on the client's business |\n| Ownership | Clear \"I designed / I decided / I fixed\", with \"we\" used honestly for team work | \"We\" throughout, can't isolate their part |\n| Depth | Explains adjacent components and why they talk the way they do | Knows only their own module |\n| Numbers | Traffic, data size, before-and-after metrics | \"It became much faster\" |\n| Hindsight | Names a real flaw, explains its cost, proposes a fix that fits the constraints | \"Nothing, it was well designed\" |\n| Composure | Handles \"what if 10x?\" by reasoning out loud | Gets defensive or vague |",
+   "howToAce": "**Pick the right project.** Choose the one with the biggest scope *you* drove, ideally with a hard technical\nproblem, an incident or a measurable improvement. Not the whole client programme, and not a trivial CRUD\nscreen.\n\n**Build a one-page brief (and rehearse it)**\n\n1. **Context:** the business problem, users, scale (requests per day, data volume), team size, your role.\n2. **Architecture:** 5-7 boxes you can draw in three minutes. Services, databases, queues, external systems.\n3. **Your part:** two or three things you designed or decided, with the alternatives you rejected.\n4. **Hard problems:** two, each with the symptom, the cause, the fix and a number.\n5. **One incident:** what broke, how you found it, what changed afterwards.\n6. **Hindsight:** one decision you'd reverse, why, and what it cost.\n7. **Results:** before-and-after metrics.\n\n**The five-minute pitch structure**\n\nProblem, constraints, architecture, my part, the hard part, the result, what I'd change. Stop at five minutes and\ninvite questions: \"Which part should I go deeper on?\"\n\n**Service-company framing**\n\nClient NDAs are real, but they're no excuse for saying nothing. Anonymise (\"a US insurance client, about 8,000\nclaims a day\") and keep the focus on the engineering. Product companies know service work. What they test is\nwhether you understood and influenced the system or only closed tickets. If you didn't own the design, own a slice\nof it deeply, and show you understand the rest well enough to critique it.\n\n**Prepare for the zoom questions**\n\n- \"How does service A know service B failed?\"\n- \"What happens if this call times out halfway?\"\n- \"Where is this data cached, and how is it invalidated?\"\n- \"What happens at 10x traffic?\"\n- \"How do you deploy it, and how do you roll back?\"\n- \"How did you test it?\"\n\n**Answering \"what would you change?\"**\n\nPick something real, with a reason and a cost. Good examples: a synchronous call chain that should be\nevent-driven; a shared database between services; no idempotency on a retried endpoint; missing observability.\nAvoid \"I'd rewrite it in microservices\". Also say what you'd *keep*, which shows balanced judgement.\n\n**Practise on SwitchPrep:** write the brief using the guide on presenting service-company projects, then explain\nthe project to a friend who interrupts every 90 seconds with \"why?\".",
+   "walkthrough": "**Setting:** the second half of a hiring manager round.\n\n> **Interviewer:** Pick one project and walk me through it.\n>\n> **Candidate:** A claims-processing platform for a US insurance client. Agents and customers submit claims with documents, and adjusters review them. About 8,000 claims a day, peaking at around 40 submissions a minute on Mondays. Angular front end, three Spring Boot services (claims, documents, policy), MySQL, and S3 for files. Five developers. I owned the documents service and the submission flow end to end, and I did most of the Angular work for submission.\n\nThey draw it: Angular to an API gateway, then the claims service, which calls the policy service synchronously\nto validate coverage and the documents service to attach files. MySQL sits behind the claims service, and S3\nbehind the documents service.\n\n> **Interviewer:** Zoom into document upload. What happens if the upload to S3 succeeds but your DB insert fails?\n>\n> **Candidate:** In the first version, exactly that happened: orphaned files in S3 with no record. We found it when storage costs crept up. I changed the flow so that we create the document row first with status PENDING, generate a pre-signed S3 URL so the browser uploads directly, and then an S3 event marks the row as UPLOADED. A nightly job deletes PENDING rows older than 24 hours and their objects. That also took large file traffic off our service.\n>\n> **Interviewer:** What was the hardest bug?\n>\n> **Candidate:** Duplicate claims. About 0.5% of submissions created two claims, which caused double payouts that finance had to reverse manually. Two causes. Users double-clicked submit, and our Angular HTTP interceptor retried on gateway timeouts. I fixed it in three places: the button disables on submit and uses `exhaustMap`, the client generates an idempotency key per form submission, and the claims table has a unique constraint on that key. A duplicate request now returns the original claim. Duplicates went to zero, and the manual reversals stopped.\n>\n> **Interviewer:** If you could redesign one thing, what would it be?\n>\n> **Candidate:** The synchronous call from claims to policy on submission. When the policy service slowed down during their batch window, our submission p95 went from 400 ms to over 5 seconds, and we had a couple of cascading timeouts. If I did it again, I'd accept the claim immediately as SUBMITTED and validate coverage asynchronously through an event, using an outbox table so the event can't be lost. Adjusters only need the coverage result before review, not at submission. I'd keep the modular monolith-ish split we had: three services was the right size for five developers.\n>\n> **Interviewer:** Why didn't you do that at the time?\n>\n> **Candidate:** The client's requirement was to reject uncovered claims at submission. I didn't push back with data then. Now I'd show them the timeout incidents and propose \"accept, then notify within a minute\" as an alternative.\n>\n> **Interviewer:** How did you measure the effect of your changes?\n>\n> **Candidate:** Duplicate rate from a daily SQL report, orphaned objects from an S3 inventory, and submission p95 from Actuator metrics in Grafana.\n\n**Moments that earned points:** context with numbers in under a minute. Clear ownership (\"I owned...\") with honest\nteam boundaries. The S3 failure question answered with a real past bug and its evolution, not a textbook pattern.\nThe hardest bug came with its cost (double payouts), its causes and a three-layer fix. The redesign was specific,\ntied to an observed incident, kept what worked, and acknowledged the original constraint. And the candidate\nadmitted a missed chance to push back, which is a senior trait.",
+   "commonFailures": [
+    "Spending five minutes on the client's business before any engineering",
+    "\"We\" throughout, so your contribution is invisible",
+    "No diagram, or a diagram that changes as you talk",
+    "No numbers for scale or impact",
+    "Not understanding components next to your own module",
+    "Claiming the design had no flaws",
+    "Choosing a trivial project with no hard problem in it",
+    "Using the NDA as a reason to say nothing concrete"
+   ],
+   "practice": [
+    {
+     "title": "Presenting service-company projects so they sound impactful",
+     "link": "/core/behavioral?chapter=2"
+    },
+    {
+     "title": "Distributed transactions: saga, outbox, idempotency",
+     "link": "/core/microservices?chapter=6"
+    },
+    {
+     "title": "Resilience patterns with Resilience4j",
+     "link": "/core/microservices?chapter=5"
+    },
+    {
+     "title": "Microservices patterns",
+     "link": "/system-design/concepts/microservices-patterns"
+    },
+    {
+     "title": "Idempotency and exactly-once",
+     "link": "/system-design/senior/idempotency-exactly-once"
+    },
+    {
+     "title": "Senior leadership and influence (senior subject)",
+     "link": "/core/senior-leadership"
+    },
+    {
+     "title": "Job switch guide: resume and stories",
+     "link": "/guide"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Razorpay SDE-2 / SSE Bangalore interview experience, Dec 2024 (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-question/6179716/"
+    },
+    {
+     "title": "Uber SDE-2 Bangalore interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-169-uber-sde2"
+    },
+    {
+     "title": "Flipkart SDE-2 interview experience, Jan 2026 offline drive (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/8455829/flipkart-sde-2-interview-experience-jan-o8ngx/"
+    },
+    {
+     "title": "Google coding interviews in 2026: what changed and what didn't (Levelop)",
+     "url": "https://levelop.dev/blog/google-coding-interviews-in-2026-what-changed-and-what-didnt"
+    },
+    {
+     "title": "Behavioral interviews for senior candidates (Tech Interview Handbook)",
+     "url": "https://www.techinterviewhandbook.org/behavioral-interview-senior-candidates/"
+    }
+   ]
+  },
+  {
+   "id": "behavioral-leadership",
+   "order": 12,
+   "title": "Behavioral & Leadership",
+   "icon": "🤝",
+   "summary": "Structured \"tell me about a time\" questions (Amazon Leadership Principles, Atlassian values, Google's Googleyness) with deep follow-up probes. At SDE-2 this round can downlevel or reject a technically strong candidate.",
+   "whoRunsIt": [
+    "Amazon",
+    "Atlassian",
+    "Google",
+    "Uber",
+    "Flipkart",
+    "Walmart Global Tech",
+    "Microsoft",
+    "PhonePe"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "~15-20%; frequently decides level (Atlassian and Amazon both downlevel on it)",
+   "format": "- **Dedicated round (45-60 min):** Atlassian's values interview plus a separate managerial round. Amazon's Bar Raiser is heavy on Leadership Principles. Expect 2-4 stories with 3-5 follow-ups each.\n- **Segments in every round:** Amazon asks about two Leadership Principles in each technical round (for example Deliver Results and Learn and Be Curious alongside DSA, Ownership and Earn Trust alongside HLD).\n- **Follow-ups are the real test:** \"What exactly did *you* do?\", \"What would you do differently?\", \"What did your manager think?\", \"How did you measure it?\"\n- **New in 2026:** AI-related prompts such as \"How do you use AI in your daily work?\", \"Tell me about a teammate over-relying on AI-generated code\", \"Describe a time AI-generated code failed\".",
+   "whatTheyTest": [
+    "Ownership: acting beyond your assigned tasks and owning outcomes",
+    "Handling ambiguity: defining the problem and the scope yourself",
+    "Disagreement and conflict: data, respect, disagree-and-commit",
+    "Failure and learning: a real mistake and a lasting behaviour change",
+    "Influence without authority, and mentoring others",
+    "Customer and business focus, with impact in numbers",
+    "Calibrated use of AI tools and judgement about their output"
+   ],
+   "rubric": "| Theme | Mid-level answer | Senior answer (target) |\n|---|---|---|\n| Disagreeing with a lead | Pushed until they agreed; ends in vindication | Made the case with data, lost, committed fully, and named the risk in writing |\n| Conflict with a peer | The peer was wrong | Describes the peer's reasoning fairly; the resolution changed how they work together |\n| Failure | A disguised strength | A real failure with a cost, and a specific habit changed since |\n| Ambiguity | Volunteered for extra work | Defined the problem, set scope, said what they would *not* do |\n| Impact | Worked the weekend and saved the launch | Unblocked others and multiplied the team's output |\n| Mentoring | \"I enjoy helping juniors\" | A specific person, what they were stuck on, what changed |\n\n**Weak signals that sink candidates:** passive ownership (\"I was assigned...\"), noticing problems without acting,\none-way communication, \"we\" with no \"I\", hypothetical answers (\"I would...\"), and verbose stories that repeat the\nsame point.",
+   "howToAce": "**Build a story bank of 8-10 stories** that cover: a disagreement with a lead; a conflict with a peer or another\nteam; a real failure; an ambiguous problem you scoped; a production incident you owned; a time you went beyond\nyour role; helping or mentoring someone; a tight deadline with a trade-off; learning something fast; a decision\nyou changed your mind on. One story can answer several prompts if you change the emphasis.\n\n**Tell each one as STAR plus a lesson**\n\n- **Situation (2 sentences):** the context and the stakes. Why did it matter?\n- **Task (1 sentence):** your responsibility, or the gap you chose to fill.\n- **Action (60% of the time):** what *you* did, with the reasoning and the alternatives you rejected.\n- **Result:** numbers (latency, incidents, hours saved, money, customers) and what happened to the people involved.\n- **Lesson:** a behaviour you still use.\n\nAim for a two-minute first telling, then let the follow-ups pull out detail. Long monologues lose points.\n\n**Mining stories from service-company work**\n\nYou have more material than you think: a client escalation you handled; pushing back on an unrealistic estimate; a\nproduction defect you traced; introducing code review, tests or CI where there were none; onboarding a new joiner;\na migration (Java 8 to 17, AngularJS to Angular); a design you questioned. Small scope is fine if the behaviour is\nsenior.\n\n**Prepare the follow-up layers for each story**\n\nWhat did others think? What would you do differently? How did you measure it? What did your manager say? What\nhappened next? If you haven't rehearsed these, the story collapses at the second question.\n\n**Company specifics**\n\n- **Amazon:** 16 Leadership Principles. Map at least two stories to each of Ownership, Customer Obsession, Dive Deep, Deliver Results, Have Backbone; Disagree and Commit, Earn Trust, Insist on the Highest Standards, and Learn and Be Curious.\n- **Atlassian:** values such as \"Don't #@!% the customer\", \"Open company, no bullshit\" and \"Play, as a team\". Stories about candour and team play land well there.\n\n**The AI question:** answer candidly and with calibration. For example: \"I use it heavily for boilerplate, tests\nand exploring unfamiliar APIs. I write and review transaction and security code myself, and I never merge\ngenerated code I can't explain.\"\n\n**Practise on SwitchPrep:** draft the bank using the STAR chapter, check it against the Amazon LP chapter, then\ntell each story out loud to a timer.",
+   "walkthrough": "**Question:** \"Tell me about a time you disagreed with your tech lead.\"\n\n> **Candidate:** Two days before a release, our monthly report endpoint was timing out for large clients: 12 seconds against a 5-second gateway limit. My tech lead proposed adding a Redis cache in front of it. I'd profiled it the day before and found that 80% of the time came from an N+1 query: around 2,000 queries per report. My concern was that a cache would hide the problem, serve stale numbers to finance users, and add a new moving part two days before release.\n>\n> **Candidate:** I wrote a one-page comparison: the cache would take about a day plus invalidation logic, with a stale-data risk. The query fix would take about half a day, with a risk of changing report results, which we could mitigate by comparing outputs for 20 real clients. I showed him the profiler output in a 15-minute call.\n>\n> **Interviewer:** And?\n>\n> **Candidate:** He still chose the cache for this release. His reasoning was fair: the query change touched the reporting logic finance had signed off, and re-certifying it in two days was risky. I disagreed, but I committed. I implemented the cache with a 10-minute TTL and explicit eviction when the underlying data changed, added a test for the eviction, and wrote the stale-data risk into the release note so product knew.\n>\n> **Interviewer:** What happened?\n>\n> **Candidate:** The release went out on time, and timeouts dropped to zero. A week later, a finance user saw yesterday's figures after a late adjustment, because one write path didn't trigger the eviction. Because the risk was already documented, it was a quick conversation rather than an escalation. In the next sprint, my lead asked me to do the query fix. I cut it to 3 queries per report, verified the outputs against the 20 clients, report time went to about 900 ms, and we removed the cache.\n>\n> **Interviewer:** What would you do differently?\n>\n> **Candidate:** Raise it earlier. I'd seen the slow report in a test environment a week before, but didn't flag it because it wasn't my ticket. Now I raise performance concerns in stand-up when I see them, even if they're outside my task. And I try to bring data plus an option the other person can say yes to, rather than just objecting.\n>\n> **Interviewer:** What would your lead say about how you handled it?\n>\n> **Candidate:** I think he'd say I pushed back with evidence, didn't sulk when he decided, and made his decision work. He picked me to lead the performance work in the next quarter, so I think it landed well.\n\n**Moments that earned points**\n\n- **Stakes and numbers** in the first 20 seconds: 12 seconds, 2,000 queries, two days to release.\n- **Data, not opinion,** and a written comparison that made the trade-off easy to discuss.\n- **No villain:** the lead's reasoning was described fairly, and it was a reasonable call.\n- **Disagree and commit, done properly:** they built the cache *well* and documented the risk.\n- **An honest outcome,** including the stale-data bug, and how documenting the risk paid off.\n- **The lesson is a behaviour** (raising concerns early, outside their own ticket) rather than a platitude.\n- **The final answer** gives external evidence (being chosen to lead later) instead of self-praise.",
+   "commonFailures": [
+    "Hypothetical answers (\"I would...\") instead of a real past example",
+    "\"We\" everywhere, so the interviewer can't credit you",
+    "Stories with no tension, no stakes and no numbers",
+    "Villain stories that make the other person look stupid",
+    "Fake failures (\"I work too hard\")",
+    "Six-minute monologues, or one story reused for every question",
+    "Collapsing at the second follow-up because only the headline was prepared",
+    "Badmouthing the current employer or client"
+   ],
+   "practice": [
+    {
+     "title": "The STAR method and building your story bank",
+     "link": "/core/behavioral?chapter=1"
+    },
+    {
+     "title": "Amazon Leadership Principles and behavioral themes",
+     "link": "/core/behavioral?chapter=5"
+    },
+    {
+     "title": "Behavioral interview Q&A",
+     "link": "/core/behavioral?view=qa"
+    },
+    {
+     "title": "Senior leadership: influence, mentoring, ownership",
+     "link": "/core/senior-leadership"
+    },
+    {
+     "title": "Behavioral traps",
+     "link": "/traps?area=behavioral"
+    },
+    {
+     "title": "Final Round Day 14: final mock + HR",
+     "link": "/final-round/14"
+    }
+   ],
+   "sources": [
+    {
+     "title": "Amazon Leadership Principles (amazon.jobs)",
+     "url": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles"
+    },
+    {
+     "title": "Atlassian company values",
+     "url": "https://www.atlassian.com/company/values"
+    },
+    {
+     "title": "Behavioral interviews for senior candidates (Tech Interview Handbook)",
+     "url": "https://www.techinterviewhandbook.org/behavioral-interview-senior-candidates/"
+    },
+    {
+     "title": "What senior engineers say differently in behavioral rounds (techinterview.org)",
+     "url": "https://www.techinterview.org/post/3233476405/senior-engineers-behavioral-interview-answers/"
+    },
+    {
+     "title": "AI-era behavioral interviews 2026: how the questions shifted (techinterview.org)",
+     "url": "https://www.techinterview.org/post/3233475312/ai-era-behavioral-interviews-2026-shifted/"
+    },
+    {
+     "title": "Amazon SDE-2 Bangalore, July 2025 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/7009755/amazon-sde-2-bangalore-4-yoe-july-2025-o-o826/"
+    },
+    {
+     "title": "Atlassian SDE3 India interview experience, 2024 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/4965703/"
+    },
+    {
+     "title": "Why the behavioral interview matters (Hello Interview)",
+     "url": "https://www.hellointerview.com/learn/behavioral/overview/introduction"
+    }
+   ]
+  },
+  {
+   "id": "hiring-manager-and-hr",
+   "order": 13,
+   "title": "Hiring Manager & HR (incl. CTC and notice period)",
+   "icon": "💼",
+   "summary": "The final rounds: the hiring manager checks team fit, ownership and motivation, while HR checks CTC, notice period and how likely you are to actually join. Weak answers here lose offers or shrink the package.",
+   "whoRunsIt": [
+    "Flipkart",
+    "Swiggy",
+    "Uber",
+    "Walmart Global Tech",
+    "Razorpay",
+    "Amazon",
+    "Atlassian (managerial)",
+    "PhonePe"
+   ],
+   "frequency": "Almost every loop",
+   "weight": "Pass/fail, and it sets your level and package",
+   "format": "- **Hiring manager (45-60 min):** usually a mix: a project deep dive, a design or techno-managerial discussion, behavioral questions, and the team's work. Swiggy's SDE-2 HM covered system design, design patterns, Kafka, Redis and database internals. Uber's HM went through past projects in depth plus teamwork, conflict and ownership. Walmart's HM asked about urgent last-minute requirements and building a new team.\n- **HR (20-30 min):** why you're switching, why this company, current CTC and its breakup, expected CTC, notice period and buyout, other offers, location, joining date. Then documents: payslips, offer and relieving letters, and background verification.\n- **After the offer:** negotiation on fixed pay, joining bonus, ESOPs, joining date.",
+   "whatTheyTest": [
+    "Motivation: pull towards this role, not just escape from the current one",
+    "Stability: tenure pattern and the reasons behind each move",
+    "Fit with the team's work, pace and on-call expectations",
+    "Ownership and maturity in how you describe past teams",
+    "Realistic, well-researched compensation expectations",
+    "Joining probability: notice period, competing offers, counter-offer risk"
+   ],
+   "rubric": "| Signal | Strong | Red flag |\n|---|---|---|\n| Why switch | Specific pull: product ownership, scale, engineering depth, this team's problems | \"Salary\" alone, or complaints about the current company |\n| Tenure | Moves explained in a sentence each; 2+ years in the current role | Very short stints with no story (one Swiggy SDE-2 candidate was rejected for switching within 3 months) |\n| CTC | Exact breakup known; expectations anchored to the role's band | Inflated numbers (background checks verify payslips) or \"anything is fine\" |\n| Notice | Precise, with a realistic plan to shorten it | Vague, or a promise you can't keep |\n| Offers | Honest, no bluffing | Invented offers to create pressure |\n| Questions | Thoughtful questions about the team and success criteria | None |\n\nContext: in 2025, offer dropout reportedly reached about 38% at Indian product startups, and roughly three\nquarters of dropped offers traced back to the notice period (counter-offers and competing offers). That's why HR\nprobes how firmly you intend to join.",
+   "howToAce": "**Hiring manager round**\n\n1. **Research the team:** product, scale, recent engineering blog posts, the tech stack in the job description.\n2. **Why switch, as a pull:** \"I want to own a product end to end, at a scale where design decisions matter, with engineers who'll raise my bar. This team's work on X is exactly that.\" One sentence about what you've outgrown is fine. A complaint list isn't.\n3. **Expect techno-managerial depth:** a project deep dive, a design discussion, an incident story.\n4. **Ask good questions:** \"What would make someone successful in the first six months?\", \"What's the team's biggest technical challenge this year?\", \"How does on-call work?\", \"How are engineers levelled and promoted?\"\n\n**HR round: compensation in India**\n\n- **Know your CTC breakup exactly:** fixed salary, variable or bonus, employer PF, gratuity, insurance, other allowances. Quote fixed and variable separately. Product companies compare fixed pay.\n- **Expected CTC: anchor to the role, not to a percentage hike.** Product companies pay by level band. A service-company salary plus 30% is a weak anchor when the SDE-2 band starts well above it. Research the band (AmbitionBox, Glassdoor, levels.fyi, friends inside), then give a range whose bottom you'd accept happily: \"Based on the role's scope and my research, I'm looking for 16-19 LPA fixed.\"\n- **If pushed for one number,** give the upper-middle of your range and say it's open to discussion with the full structure.\n- **Never inflate current CTC.** Payslips and bank statements get checked during background verification, and offers are withdrawn over it.\n- **Other offers:** mention real ones, with the figures if they help. Never invent them.\n\n**Notice period**\n\n- State it exactly: \"90 days per my contract.\"\n- Show a plan: \"My manager has agreed in principle to release me in 60 days after handover. Buyout of the remainder is possible, and I'd ask for a joining bonus to cover it.\"\n- Start interviewing so that offers land as your notice can start. Many companies prefer candidates with 30-60 day notice, and notice length can be a tie-breaker.\n- **Decide your counter-offer stance before you resign.** If you accept an offer, honour it. Accepting and then backing out burns bridges with recruiters, who talk to each other.\n\n**Reading the offer letter**\n\nFixed vs variable split and how the variable is paid; joining bonus clawback terms; ESOP grant, vesting schedule\nand cliff; notice period at the new company; relocation support; your level or title in writing.\n\n**Practise on SwitchPrep:** script your \"why switch\", your CTC breakup and your notice-period answer with the\nsalary negotiation chapter, then rehearse them out loud until they take under a minute each.",
+   "walkthrough": "**An HR call after the final technical round (Raj's situation, illustrative numbers).**\n\n> **HR:** Congratulations on clearing the technical rounds. Can you share your current CTC?\n>\n> **Candidate:** Sure. My CTC is 7.8 LPA: 7.0 fixed, including employer PF, and up to 0.8 variable, paid annually based on performance. I can share payslips whenever you need them.\n>\n> **HR:** And your expectation?\n>\n> **Candidate:** I've researched SDE-2 compensation for backend roles at similar product companies in Bangalore, and I'm looking at 16 to 19 LPA fixed, depending on the overall structure, including any variable and stock.\n>\n> **HR:** That's more than double your current salary. Usually we look at 30-40% on current.\n>\n> **Candidate:** I understand. My current number reflects a service-company band. I'm being evaluated for SDE-2 here, and I cleared the same loop as other SDE-2 candidates. I'd like the offer to reflect the role's band rather than my past employer's pay structure. If the role is levelled lower, I'd want to understand the gap.\n\nThis is the key move: anchoring to the **level**, not a percentage, calmly and without ultimatums.\n\n> **HR:** What's your notice period?\n>\n> **Candidate:** 90 days per contract. I've already discussed it with my manager: they'll release me in 60 days once handover is done, and the remaining 30 days can be bought out. If we agree on an offer, I can resign within two days and confirm my last working day in writing within a week.\n>\n> **HR:** We'd really prefer 45 days.\n>\n> **Candidate:** I'll ask for 45 with a buyout of the rest. I can't promise it until my manager agrees, and I'd rather give you a date I can keep. Would a joining bonus to cover the buyout be possible? That would make 45 days realistic.\n>\n> **HR:** I'll check. Any other offers?\n>\n> **Candidate:** I'm in the final stage with one other company and expect their decision next week. This role is my first preference because of the team's work on the payments platform, so I'd like to close here if the numbers work.\n>\n> **HR:** Why are you leaving after only two years?\n>\n> **Candidate:** Two years taught me to deliver for clients and work across time zones, but I don't own product decisions or see the impact of my design choices at scale. That's what I want next, and this team works on exactly those problems.\n\n**A week later: the offer** is 15.5 LPA fixed plus 10% variable. The candidate replies by email: thanks for the\noffer; it's excited about the role; based on its research and the other process, would a fixed component of 17 be\npossible, or alternatively 16 fixed plus a joining bonus that covers the notice buyout. The final offer comes back\nat 16.2 fixed with a 1 lakh joining bonus.\n\n**Moments that earned points:** an exact, verifiable CTC breakup. An expectation anchored to the level and backed by\nresearch. A calm reframe of the \"percentage hike\" objection. A notice-period plan with what's already agreed and\nwhat isn't, and no false promise. An honest picture of the other offer, plus a stated preference, which lowers the\ncompany's dropout fear. A \"why switch\" built on pull, not complaint. And negotiation in writing, with two options\nfor HR to choose from.",
+   "commonFailures": [
+    "Inflating current CTC, which background verification catches",
+    "\"Any reasonable hike is fine\", which anchors you at the bottom of the band",
+    "Quoting expectations only as a percentage of a service-company salary",
+    "Vague or over-promised notice periods",
+    "Negative talk about the current company or manager",
+    "No questions for the hiring manager",
+    "Accepting verbally, then quietly shopping the offer or not joining",
+    "Not reading variable pay, joining-bonus clawback or ESOP vesting terms"
+   ],
+   "practice": [
+    {
+     "title": "Salary discussion and negotiation (India)",
+     "link": "/core/behavioral?chapter=4"
+    },
+    {
+     "title": "Tell me about yourself, why switch, why this company",
+     "link": "/core/behavioral?chapter=3"
+    },
+    {
+     "title": "Questions to ask the interviewer and round etiquette",
+     "link": "/core/behavioral?chapter=6"
+    },
+    {
+     "title": "Behavioral and HR Q&A",
+     "link": "/core/behavioral?view=qa"
+    },
+    {
+     "title": "Job switch guide",
+     "link": "/guide"
+    },
+    {
+     "title": "Final Round Day 14: final mock + HR",
+     "link": "/final-round/14"
+    }
+   ],
+   "sources": [
+    {
+     "title": "The 90-day notice period debate: is it hurting Indian tech hiring? (The People's Board)",
+     "url": "https://www.thepeoplesboard.com/hr-voices/the-90-day-notice-period-debate-is-it-hurting-indian-tech-hiring/"
+    },
+    {
+     "title": "Swiggy SDE-2 interview experience, 4 yrs (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/7197132"
+    },
+    {
+     "title": "Walmart SDE-3 interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-149-walmart-sde3-l3"
+    },
+    {
+     "title": "Uber SDE-2 Bangalore interview experience (Roundz)",
+     "url": "https://roundz.substack.com/p/interview-experience-169-uber-sde2"
+    },
+    {
+     "title": "Flipkart SDE-2 interview experience [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/post/6160355/flipkart-sde-2-interview-experience-offer"
+    },
+    {
+     "title": "Atlassian SDE3 India interview experience, 2024 [Offer] (LeetCode Discuss)",
+     "url": "https://leetcode.com/discuss/interview-experience/4965703/"
+    }
+   ]
+  }
+ ]
+}

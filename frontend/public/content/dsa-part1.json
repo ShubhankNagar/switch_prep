@@ -1,0 +1,1994 @@
+{
+ "patterns": [
+  {
+   "id": "arrays-hashing",
+   "name": "Arrays & Hashing",
+   "order": 1,
+   "intro": "**Arrays & Hashing** is the foundation of almost every interview. The idea: trade a little memory for speed by remembering what you have already seen (in a `HashMap`/`HashSet`, a count array, or a running prefix value) so a brute-force O(n²) scan becomes one O(n) pass.\n\n**How to recognize it**\n- \"Find a pair / count subarrays / check duplicates\" -> HashMap of value -> index or count.\n- \"Sum of a subarray equals K\" -> **prefix sums** + HashMap of prefix -> frequency.\n- \"Maximum subarray sum\" -> **Kadane** (extend the current run or restart).\n- \"Sort 0/1/2 in place\" -> **Dutch National Flag** (three pointers).\n- \"Element appearing more than n/2 times\" -> **Boyer-Moore voting**.\n- Matrix questions (rotate, spiral, set zeroes) -> careful index bookkeeping, often using the first row/column as storage.\n\n**Reusable templates**\n```java\n// 1. Seen-map (pair problems)\nMap<Integer, Integer> seen = new HashMap<>();\nfor (int i = 0; i < nums.length; i++) {\n    int need = target - nums[i];\n    if (seen.containsKey(need)) { /* found pair (seen.get(need), i) */ }\n    seen.put(nums[i], i);\n}\n\n// 2. Prefix sum + frequency map (count subarrays with sum k)\nMap<Integer, Integer> freq = new HashMap<>();\nfreq.put(0, 1);\nint prefix = 0, count = 0;\nfor (int x : nums) {\n    prefix += x;\n    count += freq.getOrDefault(prefix - k, 0);\n    freq.merge(prefix, 1, Integer::sum);\n}\n\n// 3. Kadane\nint cur = 0, best = Integer.MIN_VALUE;\nfor (int x : nums) { cur = Math.max(x, cur + x); best = Math.max(best, cur); }\n```\n\n**Common pitfalls**\n- Forgetting `freq.put(0, 1)` in prefix-sum problems (misses subarrays starting at index 0).\n- Using a sliding window when the array has negative numbers - it breaks; use prefix sums instead.\n- Integer overflow in sums/products - use `long` when values can be large.\n- For character problems, an `int[26]` is faster and cleaner than a HashMap.\n- Inserting into the map *before* checking (two-sum) can pair an element with itself.",
+   "problems": [
+    {
+     "id": "two-sum",
+     "title": "Two Sum",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Flipkart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/two-sum/",
+     "summary": "Given an integer array and a target, return the indices of the two numbers that add up to the target (exactly one valid answer exists, and you cannot use the same index twice). Example: nums = [2,7,11,15], target = 9 -> [0,1].",
+     "approach": "**Brute force:** check every pair, O(n²).\n\n**Optimal:** while scanning, ask \"have I already seen `target - nums[i]`?\" A HashMap from value to index answers that in O(1). Check *before* inserting the current element so an element never pairs with itself. One pass, O(n) time.\n\n**Key insight:** turn a search for a pair into a lookup of the complement.",
+     "solution": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        Map<Integer, Integer> seen = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int need = target - nums[i];\n            if (seen.containsKey(need)) {\n                return new int[]{seen.get(need), i};\n            }\n            seen.put(nums[i], i);\n        }\n        return new int[0];\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "contains-duplicate",
+     "title": "Contains Duplicate",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Apple",
+      "Adobe",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/contains-duplicate/",
+     "summary": "Return true if any value occurs at least twice in the array, false if all values are distinct. Example: [1,2,3,1] -> true; [1,2,3,4] -> false.",
+     "approach": "**Brute force:** compare every pair, O(n²). **Better:** sort and check neighbours, O(n log n).\n\n**Optimal:** push elements into a `HashSet`. `Set.add` returns `false` if the element was already present - that is your duplicate. O(n) time, O(n) space.\n\nMention the trade-off in an interview: sorting uses O(1) extra space but mutates the input and is slower.",
+     "solution": "class Solution {\n    public boolean containsDuplicate(int[] nums) {\n        Set<Integer> seen = new HashSet<>();\n        for (int x : nums) {\n            if (!seen.add(x)) return true;\n        }\n        return false;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "valid-anagram",
+     "title": "Valid Anagram",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Bloomberg",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/valid-anagram/",
+     "summary": "Given two strings s and t, decide whether t is a rearrangement of the letters of s (same characters with the same counts). Example: s = \"anagram\", t = \"nagaram\" -> true; s = \"rat\", t = \"car\" -> false.",
+     "approach": "**Brute force:** sort both strings and compare, O(n log n).\n\n**Optimal:** lengths must match. Use an `int[26]` counter: increment for each char of `s`, decrement for each char of `t`. If every slot ends at zero, they are anagrams. O(n) time, O(1) space (fixed 26 slots).\n\n**Follow-up (Unicode):** replace the array with a `HashMap<Character, Integer>`.",
+     "solution": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        if (s.length() != t.length()) return false;\n        int[] count = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            count[s.charAt(i) - 'a']++;\n            count[t.charAt(i) - 'a']--;\n        }\n        for (int c : count) {\n            if (c != 0) return false;\n        }\n        return true;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "group-anagrams",
+     "title": "Group Anagrams",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Goldman Sachs",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/group-anagrams/",
+     "summary": "Given a list of strings, group together the words that are anagrams of each other; groups may be returned in any order. Example: [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"] -> [[\"eat\",\"tea\",\"ate\"],[\"tan\",\"nat\"],[\"bat\"]].",
+     "approach": "**Idea:** anagrams share a *canonical key*. Two choices:\n1. Sort each word's characters -> key (O(k log k) per word).\n2. Build a 26-letter frequency signature like `\"1#0#0#...#\"` -> key (O(k) per word).\n\nPut each word into `Map<String, List<String>>` under its key, then return the map values. Using `computeIfAbsent` keeps the code short.\n\n**Key insight:** grouping = hashing by an invariant that all members share.",
+     "solution": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> groups = new HashMap<>();\n        for (String word : strs) {\n            int[] count = new int[26];\n            for (char c : word.toCharArray()) count[c - 'a']++;\n            StringBuilder key = new StringBuilder();\n            for (int c : count) key.append(c).append('#');\n            groups.computeIfAbsent(key.toString(), k -> new ArrayList<>()).add(word);\n        }\n        return new ArrayList<>(groups.values());\n    }\n}",
+     "time": "O(n * k)",
+     "space": "O(n * k)",
+     "mustDo": true
+    },
+    {
+     "id": "top-k-frequent-elements",
+     "title": "Top K Frequent Elements",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Google",
+      "Microsoft",
+      "Flipkart",
+      "Swiggy"
+     ],
+     "leetcode": "https://leetcode.com/problems/top-k-frequent-elements/",
+     "summary": "Return the k values that occur most often in an integer array, in any order (the answer is guaranteed unique). Example: nums = [1,1,1,2,2,3], k = 2 -> [1,2].",
+     "approach": "**Step 1:** count frequencies with a HashMap.\n\n**Option A - heap:** keep a min-heap of size k keyed by frequency, O(n log k).\n\n**Option B - bucket sort (optimal):** a frequency can be at most `n`, so create `n + 1` buckets where `bucket[f]` lists numbers occurring `f` times. Walk buckets from high to low and collect until you have k numbers. O(n) time.\n\n**Key insight:** bounded frequency range lets you replace sorting with bucketing.",
+     "solution": "class Solution {\n    public int[] topKFrequent(int[] nums, int k) {\n        Map<Integer, Integer> freq = new HashMap<>();\n        for (int x : nums) freq.merge(x, 1, Integer::sum);\n\n        List<Integer>[] buckets = new List[nums.length + 1];\n        for (Map.Entry<Integer, Integer> e : freq.entrySet()) {\n            int f = e.getValue();\n            if (buckets[f] == null) buckets[f] = new ArrayList<>();\n            buckets[f].add(e.getKey());\n        }\n\n        int[] result = new int[k];\n        int idx = 0;\n        for (int f = nums.length; f > 0 && idx < k; f--) {\n            if (buckets[f] == null) continue;\n            for (int val : buckets[f]) {\n                if (idx == k) break;\n                result[idx++] = val;\n            }\n        }\n        return result;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "product-of-array-except-self",
+     "title": "Product of Array Except Self",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Apple",
+      "Uber",
+      "Goldman Sachs",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/product-of-array-except-self/",
+     "summary": "Build an output array where each position holds the product of every other element of the input, without using division and in O(n). Example: [1,2,3,4] -> [24,12,8,6].",
+     "approach": "**Brute force:** for each index multiply all others, O(n²). Division fails with zeros and is banned anyway.\n\n**Optimal:** `answer[i] = (product of everything left of i) * (product of everything right of i)`.\n- Pass 1 (left to right): store the running left product in `answer[i]`.\n- Pass 2 (right to left): keep a running `right` product and multiply it in.\n\nThis uses the output array as storage, so extra space is O(1).",
+     "solution": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] answer = new int[n];\n        answer[0] = 1;\n        for (int i = 1; i < n; i++) {\n            answer[i] = answer[i - 1] * nums[i - 1];\n        }\n        int right = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            answer[i] *= right;\n            right *= nums[i];\n        }\n        return answer;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) extra",
+     "mustDo": true
+    },
+    {
+     "id": "longest-consecutive-sequence",
+     "title": "Longest Consecutive Sequence",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-consecutive-sequence/",
+     "summary": "Given an unsorted integer array, return the length of the longest run of consecutive integers (in value, not position), in O(n) time. Example: [100,4,200,1,3,2] -> 4 because of 1,2,3,4.",
+     "approach": "**Brute force:** sort and scan, O(n log n) - not allowed by the O(n) requirement.\n\n**Optimal:** put everything in a `HashSet`. Only start counting from a number `x` if `x - 1` is **not** in the set (so `x` is the start of a run). From there, walk `x+1, x+2, ...` while present. Each number is visited at most twice overall, so it is O(n).\n\n**Key insight:** only expand from sequence starts to avoid repeated work.",
+     "solution": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        Set<Integer> set = new HashSet<>();\n        for (int x : nums) set.add(x);\n        int best = 0;\n        for (int x : set) {\n            if (set.contains(x - 1)) continue; // not the start of a run\n            int len = 1;\n            while (set.contains(x + len)) len++;\n            best = Math.max(best, len);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "subarray-sum-equals-k",
+     "title": "Subarray Sum Equals K",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Goldman Sachs",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/subarray-sum-equals-k/",
+     "summary": "Count how many contiguous subarrays have a sum exactly equal to k (values may be negative). Example: nums = [1,1,1], k = 2 -> 2; nums = [1,2,3], k = 3 -> 2.",
+     "approach": "**Brute force:** all O(n²) subarrays with running sums.\n\n**Why not sliding window?** Negative numbers mean shrinking the window doesn't guarantee the sum decreases.\n\n**Optimal - prefix sums:** sum(i..j) = prefix[j] - prefix[i-1]. So for each running prefix `p`, the number of subarrays ending here with sum k equals how many earlier prefixes equal `p - k`. Keep a HashMap of prefix -> frequency, seeded with `{0: 1}` for subarrays that start at index 0.",
+     "solution": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        Map<Integer, Integer> freq = new HashMap<>();\n        freq.put(0, 1);\n        int prefix = 0, count = 0;\n        for (int x : nums) {\n            prefix += x;\n            count += freq.getOrDefault(prefix - k, 0);\n            freq.merge(prefix, 1, Integer::sum);\n        }\n        return count;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "maximum-subarray",
+     "title": "Maximum Subarray (Kadane)",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "LinkedIn",
+      "Apple",
+      "Paytm",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/maximum-subarray/",
+     "summary": "Find the contiguous non-empty subarray with the largest sum and return that sum. Example: [-2,1,-3,4,-1,2,1,-5,4] -> 6 from [4,-1,2,1].",
+     "approach": "**Brute force:** try all subarrays, O(n²).\n\n**Kadane's algorithm:** at each index decide: is it better to *extend* the best subarray ending at the previous index, or *start fresh* here? `cur = max(x, cur + x)`. Track the global best. If `cur` becomes negative it can only hurt future sums, which is why restarting works.\n\n**Follow-up:** to return the subarray itself, record the start index whenever you restart and the end when best improves. Initialise `best` with the first element so all-negative arrays work.",
+     "solution": "class Solution {\n    public int maxSubArray(int[] nums) {\n        int cur = nums[0], best = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            cur = Math.max(nums[i], cur + nums[i]);\n            best = Math.max(best, cur);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "sort-colors",
+     "title": "Sort Colors (Dutch National Flag)",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Adobe",
+      "Flipkart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/sort-colors/",
+     "summary": "An array contains only 0s, 1s and 2s (red, white, blue). Sort it in place in a single pass without a library sort. Example: [2,0,2,1,1,0] -> [0,0,1,1,2,2].",
+     "approach": "**Simple:** count 0s/1s/2s then overwrite - two passes.\n\n**One pass - Dutch National Flag:** keep three pointers.\n- `[0, low)` holds 0s, `[low, mid)` holds 1s, `(high, end]` holds 2s.\n- If `nums[mid] == 0`: swap with `low`, advance both.\n- If `1`: just advance `mid`.\n- If `2`: swap with `high`, decrement `high` but **don't** advance `mid` (the swapped-in value is unchecked).\n\nLoop while `mid <= high`.",
+     "solution": "class Solution {\n    public void sortColors(int[] nums) {\n        int low = 0, mid = 0, high = nums.length - 1;\n        while (mid <= high) {\n            if (nums[mid] == 0) {\n                swap(nums, low++, mid++);\n            } else if (nums[mid] == 1) {\n                mid++;\n            } else {\n                swap(nums, mid, high--);\n            }\n        }\n    }\n\n    private void swap(int[] a, int i, int j) {\n        int t = a[i]; a[i] = a[j]; a[j] = t;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "majority-element",
+     "title": "Majority Element",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/majority-element/",
+     "summary": "Return the element that appears more than n/2 times in the array; it is guaranteed to exist. Example: [2,2,1,1,1,2,2] -> 2.",
+     "approach": "**Options:** HashMap counts (O(n) space) or sort and take the middle (O(n log n)).\n\n**Optimal - Boyer-Moore voting:** keep a `candidate` and a `count`. When count is 0, adopt the current element as candidate. Same element -> count++, different -> count--. Since the majority outnumbers all others combined, it survives the cancellations. O(n) time, O(1) space.\n\nIf the majority is not guaranteed, do a second pass to verify the candidate's count.",
+     "solution": "class Solution {\n    public int majorityElement(int[] nums) {\n        int candidate = 0, count = 0;\n        for (int x : nums) {\n            if (count == 0) candidate = x;\n            count += (x == candidate) ? 1 : -1;\n        }\n        return candidate;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "majority-element-ii",
+     "title": "Majority Element II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Zenefits",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/majority-element-ii/",
+     "summary": "Return all elements that appear more than n/3 times in the array (there can be at most two). Example: [3,2,3] -> [3]; [1,2] -> [1,2].",
+     "approach": "**Observation:** at most two values can exceed n/3.\n\n**Extended Boyer-Moore:** keep two candidates with two counts. For each number: if it matches a candidate, bump that count; else if a count is 0, take over that slot; else decrement both counts (cancel a triple of distinct values).\n\nThe survivors are only *possible* answers, so do a **second pass** to count them and keep those with count > n/3. O(n) time, O(1) space.",
+     "solution": "class Solution {\n    public List<Integer> majorityElement(int[] nums) {\n        int c1 = 0, c2 = 1, n1 = 0, n2 = 0; // distinct dummy candidates\n        for (int x : nums) {\n            if (x == c1) n1++;\n            else if (x == c2) n2++;\n            else if (n1 == 0) { c1 = x; n1 = 1; }\n            else if (n2 == 0) { c2 = x; n2 = 1; }\n            else { n1--; n2--; }\n        }\n        n1 = 0; n2 = 0;\n        for (int x : nums) {\n            if (x == c1) n1++;\n            else if (x == c2) n2++;\n        }\n        List<Integer> res = new ArrayList<>();\n        if (n1 > nums.length / 3) res.add(c1);\n        if (n2 > nums.length / 3) res.add(c2);\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "next-permutation",
+     "title": "Next Permutation",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Adobe",
+      "Goldman Sachs",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/next-permutation/",
+     "summary": "Rearrange the array into the next lexicographically larger ordering of its numbers, in place; if it is already the largest, wrap around to the smallest (sorted ascending). Example: [1,2,3] -> [1,3,2]; [3,2,1] -> [1,2,3].",
+     "approach": "**Brute force:** generate all permutations - factorial, useless.\n\n**Optimal (3 steps):**\n1. From the right, find the first index `i` with `nums[i] < nums[i+1]` (the \"pivot\"). Everything right of it is descending.\n2. If such `i` exists, find from the right the first `j` with `nums[j] > nums[i]` and swap them.\n3. Reverse the suffix after `i` to make it ascending (smallest possible).\n\nIf no pivot exists the whole array is descending, so reversing it gives the smallest permutation.",
+     "solution": "class Solution {\n    public void nextPermutation(int[] nums) {\n        int i = nums.length - 2;\n        while (i >= 0 && nums[i] >= nums[i + 1]) i--;\n        if (i >= 0) {\n            int j = nums.length - 1;\n            while (nums[j] <= nums[i]) j--;\n            swap(nums, i, j);\n        }\n        reverse(nums, i + 1, nums.length - 1);\n    }\n\n    private void reverse(int[] a, int l, int r) {\n        while (l < r) swap(a, l++, r--);\n    }\n\n    private void swap(int[] a, int i, int j) {\n        int t = a[i]; a[i] = a[j]; a[j] = t;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "merge-sorted-array",
+     "title": "Merge Sorted Array",
+     "difficulty": "Easy",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Facebook",
+      "Apple",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/merge-sorted-array/",
+     "summary": "nums1 has length m + n with its first m elements sorted and n trailing zeros; nums2 has n sorted elements. Merge nums2 into nums1 in place so it is fully sorted. Example: [1,2,3,0,0,0], m=3, [2,5,6], n=3 -> [1,2,2,3,5,6].",
+     "approach": "**Naive:** copy nums2 into the tail and sort, O((m+n) log(m+n)).\n\n**Optimal:** fill nums1 **from the back**. Use pointers at the end of the real data in both arrays and a write pointer at the very end. Put the larger of the two values at the write pointer. Writing from the back never overwrites unread nums1 values. When nums2 is exhausted you're done (remaining nums1 values are already in place).",
+     "solution": "class Solution {\n    public void merge(int[] nums1, int m, int[] nums2, int n) {\n        int i = m - 1, j = n - 1, write = m + n - 1;\n        while (j >= 0) {\n            if (i >= 0 && nums1[i] > nums2[j]) {\n                nums1[write--] = nums1[i--];\n            } else {\n                nums1[write--] = nums2[j--];\n            }\n        }\n    }\n}",
+     "time": "O(m + n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "set-matrix-zeroes",
+     "title": "Set Matrix Zeroes",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Facebook",
+      "Oracle",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/set-matrix-zeroes/",
+     "summary": "In an m x n matrix, whenever a cell is 0, set its entire row and column to 0, doing it in place. Example: [[1,1,1],[1,0,1],[1,1,1]] -> [[1,0,1],[0,0,0],[1,0,1]].",
+     "approach": "**Brute force:** copy the matrix, O(mn) space. **Better:** two boolean arrays for rows/cols, O(m+n) space.\n\n**Optimal O(1) space:** use the **first row and first column as the marker arrays**. Since they themselves may contain zeros, first record in two booleans whether row 0 / column 0 originally had a zero. Then mark, then zero out the inner cells based on markers, and finally zero row 0 / column 0 if needed. Order matters - handle the first row/column last.",
+     "solution": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean firstRow = false, firstCol = false;\n        for (int i = 0; i < m; i++) if (matrix[i][0] == 0) firstCol = true;\n        for (int j = 0; j < n; j++) if (matrix[0][j] == 0) firstRow = true;\n\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    matrix[i][0] = 0;\n                    matrix[0][j] = 0;\n                }\n            }\n        }\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][0] == 0 || matrix[0][j] == 0) matrix[i][j] = 0;\n            }\n        }\n        if (firstCol) for (int i = 0; i < m; i++) matrix[i][0] = 0;\n        if (firstRow) for (int j = 0; j < n; j++) matrix[0][j] = 0;\n    }\n}",
+     "time": "O(m * n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "rotate-image",
+     "title": "Rotate Image",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Apple",
+      "Adobe",
+      "Cisco"
+     ],
+     "leetcode": "https://leetcode.com/problems/rotate-image/",
+     "summary": "Rotate an n x n matrix 90 degrees clockwise, modifying it in place. Example: [[1,2,3],[4,5,6],[7,8,9]] -> [[7,4,1],[8,5,2],[9,6,3]].",
+     "approach": "**With extra space:** `rotated[j][n-1-i] = matrix[i][j]` - but in-place is required.\n\n**Trick:** a clockwise rotation = **transpose** (swap `[i][j]` with `[j][i]` for j > i) followed by **reversing each row**. Both steps are easy in place.\n\n(Counter-clockwise = transpose then reverse each column.) O(n²) time, O(1) space.",
+     "solution": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int t = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = t;\n            }\n        }\n        for (int[] row : matrix) {\n            for (int l = 0, r = n - 1; l < r; l++, r--) {\n                int t = row[l]; row[l] = row[r]; row[r] = t;\n            }\n        }\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "spiral-matrix",
+     "title": "Spiral Matrix",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Google",
+      "Apple",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/spiral-matrix/",
+     "summary": "Return all elements of an m x n matrix in clockwise spiral order starting from the top-left. Example: [[1,2,3],[4,5,6],[7,8,9]] -> [1,2,3,6,9,8,7,4,5].",
+     "approach": "Maintain four boundaries: `top`, `bottom`, `left`, `right`. Repeat while `top <= bottom && left <= right`:\n1. Go right along `top`, then `top++`.\n2. Go down along `right`, then `right--`.\n3. If `top <= bottom`, go left along `bottom`, then `bottom--`.\n4. If `left <= right`, go up along `left`, then `left++`.\n\nThe two `if` checks prevent double-counting when only a single row or column remains - the most common bug.",
+     "solution": "class Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> res = new ArrayList<>();\n        int top = 0, bottom = matrix.length - 1;\n        int left = 0, right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int j = left; j <= right; j++) res.add(matrix[top][j]);\n            top++;\n            for (int i = top; i <= bottom; i++) res.add(matrix[i][right]);\n            right--;\n            if (top <= bottom) {\n                for (int j = right; j >= left; j--) res.add(matrix[bottom][j]);\n                bottom--;\n            }\n            if (left <= right) {\n                for (int i = bottom; i >= top; i--) res.add(matrix[i][left]);\n                left++;\n            }\n        }\n        return res;\n    }\n}",
+     "time": "O(m * n)",
+     "space": "O(1) extra",
+     "mustDo": false
+    },
+    {
+     "id": "best-time-to-buy-and-sell-stock",
+     "title": "Best Time to Buy and Sell Stock",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Goldman Sachs",
+      "Flipkart",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
+     "summary": "prices[i] is a stock's price on day i. Pick one day to buy and a later day to sell to maximize profit; return 0 if no profit is possible. Example: [7,1,5,3,6,4] -> 5 (buy at 1, sell at 6).",
+     "approach": "**Brute force:** every buy/sell pair, O(n²).\n\n**Optimal:** scan once, tracking the **minimum price seen so far**. At each day, the best profit if you sell today is `price - minSoFar`. Keep the maximum of those. O(n) time, O(1) space.\n\nThis is Kadane in disguise: it maximizes the sum of daily price differences.",
+     "solution": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE, best = 0;\n        for (int p : prices) {\n            minPrice = Math.min(minPrice, p);\n            best = Math.max(best, p - minPrice);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "valid-sudoku",
+     "title": "Valid Sudoku",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Apple",
+      "Uber",
+      "Microsoft",
+      "Snapchat"
+     ],
+     "leetcode": "https://leetcode.com/problems/valid-sudoku/",
+     "summary": "Check whether a partially filled 9x9 Sudoku board is valid: no digit repeats in any row, column, or 3x3 box (empty cells are '.'). You don't need to check solvability.",
+     "approach": "Single pass with three `boolean[9][9]` tables: `rows[r][d]`, `cols[c][d]`, `boxes[b][d]`, where the box index is `b = (r / 3) * 3 + c / 3`.\n\nFor each filled cell with digit `d`, if any of the three flags is already set, the board is invalid; otherwise set all three. O(81) = O(1) time and space.\n\n**Alternative:** a single `HashSet<String>` with keys like `\"5 in row 0\"`, `\"5 in col 3\"`, `\"5 in box 1\"` - concise but slower.",
+     "solution": "class Solution {\n    public boolean isValidSudoku(char[][] board) {\n        boolean[][] rows = new boolean[9][9];\n        boolean[][] cols = new boolean[9][9];\n        boolean[][] boxes = new boolean[9][9];\n        for (int r = 0; r < 9; r++) {\n            for (int c = 0; c < 9; c++) {\n                char ch = board[r][c];\n                if (ch == '.') continue;\n                int d = ch - '1';\n                int b = (r / 3) * 3 + c / 3;\n                if (rows[r][d] || cols[c][d] || boxes[b][d]) return false;\n                rows[r][d] = cols[c][d] = boxes[b][d] = true;\n            }\n        }\n        return true;\n    }\n}",
+     "time": "O(1)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "two-pointers",
+   "name": "Two Pointers",
+   "order": 2,
+   "intro": "**Two Pointers** uses two indices that move through a sequence in a coordinated way, replacing a nested loop with a single linear pass.\n\n**Two flavours**\n1. **Opposite ends** (`l = 0`, `r = n - 1`, move inward) - works when the array is **sorted** or when the answer depends on both ends (pair sums, palindromes, container area, trapping water).\n2. **Same direction / fast-slow** (`read` and `write` pointers) - in-place compaction: remove duplicates, move zeroes, partitioning.\n\n**How to recognize it**\n- Input is sorted (or you can sort it) and you look for pairs/triplets with a target sum.\n- \"In place\" with O(1) extra space.\n- Comparing characters from both ends (palindromes).\n\n**Template - opposite ends on a sorted array**\n```java\nint l = 0, r = nums.length - 1;\nwhile (l < r) {\n    int sum = nums[l] + nums[r];\n    if (sum == target) { /* record */ l++; r--; }\n    else if (sum < target) l++;   // need a bigger sum\n    else r--;                     // need a smaller sum\n}\n```\n\n**Template - read/write compaction**\n```java\nint write = 0;\nfor (int read = 0; read < nums.length; read++) {\n    if (keep(nums[read])) nums[write++] = nums[read];\n}\n// first `write` elements are the answer\n```\n\n**Why it works:** in a sorted array, if `nums[l] + nums[r]` is too small, no pair using `nums[l]` with any index `<= r` can reach the target, so `l` can be safely discarded. Every move eliminates a whole row/column of the brute-force search space.\n\n**Pitfalls**\n- Skipping duplicates in 3Sum/4Sum (both for the fixed element and after finding a match).\n- Overflow in 4Sum - use `long` for the sum.\n- Forgetting to sort first (sorting costs O(n log n), and destroys original indices - Two Sum on unsorted input needs a HashMap instead).",
+   "problems": [
+    {
+     "id": "valid-palindrome",
+     "title": "Valid Palindrome",
+     "difficulty": "Easy",
+     "companies": [
+      "Facebook",
+      "Microsoft",
+      "Amazon",
+      "Apple",
+      "Wayfair"
+     ],
+     "leetcode": "https://leetcode.com/problems/valid-palindrome/",
+     "summary": "After lowercasing and removing every non-alphanumeric character, decide whether the string reads the same forwards and backwards. Example: \"A man, a plan, a canal: Panama\" -> true; \"race a car\" -> false.",
+     "approach": "**Naive:** build a cleaned string and compare with its reverse - O(n) extra space.\n\n**Two pointers:** `l` at start, `r` at end. Skip characters that are not letters/digits (`Character.isLetterOrDigit`). Compare `Character.toLowerCase` of both; mismatch -> false. Move inward. O(n) time, O(1) space.",
+     "solution": "class Solution {\n    public boolean isPalindrome(String s) {\n        int l = 0, r = s.length() - 1;\n        while (l < r) {\n            while (l < r && !Character.isLetterOrDigit(s.charAt(l))) l++;\n            while (l < r && !Character.isLetterOrDigit(s.charAt(r))) r--;\n            if (Character.toLowerCase(s.charAt(l)) != Character.toLowerCase(s.charAt(r))) {\n                return false;\n            }\n            l++;\n            r--;\n        }\n        return true;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "two-sum-ii-input-array-is-sorted",
+     "title": "Two Sum II - Input Array Is Sorted",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Adobe",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
+     "summary": "Given a 1-indexed sorted array, return the 1-based indices of the two numbers that add up to target using only O(1) extra space. Example: [2,7,11,15], target 9 -> [1,2].",
+     "approach": "The HashMap solution works but uses O(n) space. Because the array is **sorted**, use opposite-end pointers: if the sum is too small, move `l` right to increase it; if too big, move `r` left. Each step discards one candidate permanently, so it is O(n) with O(1) space.\n\nRemember to return 1-based indices.",
+     "solution": "class Solution {\n    public int[] twoSum(int[] numbers, int target) {\n        int l = 0, r = numbers.length - 1;\n        while (l < r) {\n            int sum = numbers[l] + numbers[r];\n            if (sum == target) return new int[]{l + 1, r + 1};\n            if (sum < target) l++;\n            else r--;\n        }\n        return new int[0];\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "3sum",
+     "title": "3Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Apple",
+      "Adobe",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/3sum/",
+     "summary": "Find all unique triplets in the array whose sum is zero; the result must not contain duplicate triplets. Example: [-1,0,1,2,-1,-4] -> [[-1,-1,2],[-1,0,1]].",
+     "approach": "**Brute force:** three loops plus a set to dedupe, O(n³).\n\n**Optimal:** sort, then fix the first element `nums[i]` and run Two Sum II (two pointers) on the rest for target `-nums[i]`. O(n²).\n\n**Deduplication (the real test):**\n- Skip `i` if `nums[i] == nums[i-1]`.\n- After a match, move both pointers and skip equal neighbours.\n- Early exit when `nums[i] > 0` (sorted, so no zero sum possible).",
+     "solution": "class Solution {\n    public List<List<Integer>> threeSum(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> res = new ArrayList<>();\n        for (int i = 0; i < nums.length - 2; i++) {\n            if (nums[i] > 0) break;\n            if (i > 0 && nums[i] == nums[i - 1]) continue;\n            int l = i + 1, r = nums.length - 1;\n            while (l < r) {\n                int sum = nums[i] + nums[l] + nums[r];\n                if (sum == 0) {\n                    res.add(Arrays.asList(nums[i], nums[l], nums[r]));\n                    l++;\n                    r--;\n                    while (l < r && nums[l] == nums[l - 1]) l++;\n                    while (l < r && nums[r] == nums[r + 1]) r--;\n                } else if (sum < 0) {\n                    l++;\n                } else {\n                    r--;\n                }\n            }\n        }\n        return res;\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(1) extra (ignoring sort/output)",
+     "mustDo": true
+    },
+    {
+     "id": "4sum",
+     "title": "4Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Adobe",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/4sum/",
+     "summary": "Return all unique quadruplets [a,b,c,d] of distinct indices whose values sum to target. Example: [1,0,-1,0,-2,2], target 0 -> [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]].",
+     "approach": "Generalize 3Sum: sort, fix two elements with nested loops (`i`, `j`), and two-pointer the remaining range for `target - nums[i] - nums[j]`. O(n³).\n\nApply the same duplicate skipping at **every** level (`i`, `j`, and after each match). Values go up to 10^9, so compute the sum as `long` to avoid overflow - a classic hidden test case.",
+     "solution": "class Solution {\n    public List<List<Integer>> fourSum(int[] nums, int target) {\n        Arrays.sort(nums);\n        List<List<Integer>> res = new ArrayList<>();\n        int n = nums.length;\n        for (int i = 0; i < n - 3; i++) {\n            if (i > 0 && nums[i] == nums[i - 1]) continue;\n            for (int j = i + 1; j < n - 2; j++) {\n                if (j > i + 1 && nums[j] == nums[j - 1]) continue;\n                int l = j + 1, r = n - 1;\n                while (l < r) {\n                    long sum = (long) nums[i] + nums[j] + nums[l] + nums[r];\n                    if (sum == target) {\n                        res.add(Arrays.asList(nums[i], nums[j], nums[l], nums[r]));\n                        l++;\n                        r--;\n                        while (l < r && nums[l] == nums[l - 1]) l++;\n                        while (l < r && nums[r] == nums[r + 1]) r--;\n                    } else if (sum < target) {\n                        l++;\n                    } else {\n                        r--;\n                    }\n                }\n            }\n        }\n        return res;\n    }\n}",
+     "time": "O(n^3)",
+     "space": "O(1) extra",
+     "mustDo": false
+    },
+    {
+     "id": "container-with-most-water",
+     "title": "Container With Most Water",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/container-with-most-water/",
+     "summary": "height[i] is the height of a vertical line at x = i. Choose two lines that, together with the x-axis, hold the most water and return that area. Example: [1,8,6,2,5,4,8,3,7] -> 49.",
+     "approach": "**Brute force:** every pair, O(n²).\n\n**Two pointers:** start with the widest container (`l = 0`, `r = n-1`). Area = `min(h[l], h[r]) * (r - l)`. Now move the pointer at the **shorter** line inward. Why? The area is capped by the shorter line; moving the taller one can only shrink width without raising that cap, so it can never help. Moving the shorter one is the only chance to improve. O(n).",
+     "solution": "class Solution {\n    public int maxArea(int[] height) {\n        int l = 0, r = height.length - 1, best = 0;\n        while (l < r) {\n            int area = Math.min(height[l], height[r]) * (r - l);\n            best = Math.max(best, area);\n            if (height[l] < height[r]) l++;\n            else r--;\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "trapping-rain-water",
+     "title": "Trapping Rain Water",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Goldman Sachs",
+      "Microsoft",
+      "Flipkart",
+      "Uber",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/trapping-rain-water/",
+     "summary": "Given bar heights of width 1, compute how much rain water is trapped between the bars. Example: [0,1,0,2,1,0,1,3,2,1,2,1] -> 6.",
+     "approach": "Water above bar `i` = `min(maxLeft[i], maxRight[i]) - height[i]`.\n\n**Approach 1:** precompute `maxLeft` and `maxRight` arrays, O(n) space.\n\n**Optimal two pointers:** keep `leftMax` and `rightMax`. If `height[l] < height[r]`, the left side is the bottleneck: the right side has something at least as tall, so water at `l` depends only on `leftMax`. Add `leftMax - height[l]` and move `l`. Symmetric for the right. O(n) time, O(1) space.\n\n(A monotonic stack solution also exists - it computes water layer by layer.)",
+     "solution": "class Solution {\n    public int trap(int[] height) {\n        int l = 0, r = height.length - 1;\n        int leftMax = 0, rightMax = 0, water = 0;\n        while (l < r) {\n            if (height[l] < height[r]) {\n                leftMax = Math.max(leftMax, height[l]);\n                water += leftMax - height[l];\n                l++;\n            } else {\n                rightMax = Math.max(rightMax, height[r]);\n                water += rightMax - height[r];\n                r--;\n            }\n        }\n        return water;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "remove-duplicates-from-sorted-array",
+     "title": "Remove Duplicates from Sorted Array",
+     "difficulty": "Easy",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Facebook",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/",
+     "summary": "Remove duplicates in place from a sorted array so each value appears once, keeping relative order, and return the count k of unique values (the first k slots must hold them). Example: [0,0,1,1,1,2,2,3,3,4] -> 5, array starts [0,1,2,3,4].",
+     "approach": "Classic read/write pointers. `write` marks where the next unique value goes. Because the array is sorted, a value is new exactly when it differs from the last written one (`nums[write - 1]`). Copy it and advance `write`. Return `write`. O(n) time, O(1) space.\n\nVariation (LC 80, allow at most two copies): compare against `nums[write - 2]` instead.",
+     "solution": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        int write = 1;\n        for (int read = 1; read < nums.length; read++) {\n            if (nums[read] != nums[write - 1]) {\n                nums[write++] = nums[read];\n            }\n        }\n        return write;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "move-zeroes",
+     "title": "Move Zeroes",
+     "difficulty": "Easy",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Apple",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/move-zeroes/",
+     "summary": "Move all zeros to the end of the array in place while keeping the order of non-zero elements. Example: [0,1,0,3,12] -> [1,3,12,0,0].",
+     "approach": "Read/write pointers again. Walk with `read`; whenever `nums[read] != 0`, swap it into position `write` and advance `write`. Swapping (instead of overwrite + zero-fill) does it in one pass and minimizes writes. Non-zeros keep their order because `write <= read` always.",
+     "solution": "class Solution {\n    public void moveZeroes(int[] nums) {\n        int write = 0;\n        for (int read = 0; read < nums.length; read++) {\n            if (nums[read] != 0) {\n                int t = nums[write];\n                nums[write] = nums[read];\n                nums[read] = t;\n                write++;\n            }\n        }\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "sliding-window",
+   "name": "Sliding Window",
+   "order": 3,
+   "intro": "**Sliding Window** maintains a contiguous range `[left, right]` over an array or string and slides it forward, updating a running state (sum, counts, distinct chars) in O(1) per step instead of recomputing each subarray.\n\n**How to recognize it**\n- \"Longest / shortest / count of **contiguous** subarray or substring such that ...\"\n- The constraint is **monotonic**: if a window is invalid, growing it keeps it invalid (or shrinking keeps it valid). Typically: all positive numbers, \"at most K distinct\", \"at most K replacements\", \"contains all chars of T\".\n- Fixed size `k` windows (max of each window, anagram of length k).\n\n**Variable-size template (longest valid window)**\n```java\nint left = 0, best = 0;\nint[] count = new int[128];          // window state\nfor (int right = 0; right < s.length(); right++) {\n    count[s.charAt(right)]++;        // 1. expand: add s[right]\n    while (windowInvalid()) {        // 2. shrink until valid again\n        count[s.charAt(left)]--;\n        left++;\n    }\n    best = Math.max(best, right - left + 1); // 3. record answer\n}\n```\nFor **shortest** valid window, record the answer *inside* the while loop (while it is still valid) and then shrink.\n\n**Fixed-size template**\n```java\nfor (int right = 0; right < n; right++) {\n    add(nums[right]);\n    if (right >= k) remove(nums[right - k]);\n    if (right >= k - 1) record();\n}\n```\n\n**Pitfalls**\n- Sliding window fails with **negative numbers** for sum targets - use prefix sums + HashMap.\n- Off-by-one: window length is `right - left + 1`.\n- For \"exactly K\" problems use `atMost(K) - atMost(K - 1)`.\n- Each element enters and leaves the window once, so total time is O(n) even with the inner `while`.",
+   "problems": [
+    {
+     "id": "longest-substring-without-repeating-characters",
+     "title": "Longest Substring Without Repeating Characters",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Bloomberg",
+      "Adobe",
+      "Flipkart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+     "summary": "Return the length of the longest substring that contains no repeated character. Example: \"abcabcbb\" -> 3 (\"abc\"); \"pwwkew\" -> 3 (\"wke\").",
+     "approach": "**Brute force:** check every substring for uniqueness, O(n³) or O(n²).\n\n**Sliding window:** expand `right`; if `s[right]` already appears inside the window, jump `left` to one past its last occurrence. Store each char's last index in an `int[128]` so the jump is O(1). Use `max(left, last+1)` semantics (here via the `>= left` check) so `left` never moves backward.\n\n**Key insight:** the window always holds a valid answer candidate; record its length each step.",
+     "solution": "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        int[] last = new int[128];\n        Arrays.fill(last, -1);\n        int left = 0, best = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (last[c] >= left) left = last[c] + 1;\n            last[c] = right;\n            best = Math.max(best, right - left + 1);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) (128-size array)",
+     "mustDo": true
+    },
+    {
+     "id": "longest-repeating-character-replacement",
+     "title": "Longest Repeating Character Replacement",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-repeating-character-replacement/",
+     "summary": "You may change at most k characters of an uppercase string to any letter. Return the length of the longest substring that can be made of one repeated letter. Example: s = \"AABABBA\", k = 1 -> 4.",
+     "approach": "A window is valid if `windowLength - maxFreq <= k` (replace everything except the most frequent letter).\n\nExpand `right`, update the count and `maxFreq`. While invalid, shrink from the left. Record the window length.\n\n**Subtle trick:** we never need to decrease `maxFreq` when shrinking. A stale (too-large) `maxFreq` only keeps the window from shrinking, and the answer can only improve when a genuinely larger `maxFreq` appears. Still O(n).",
+     "solution": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int left = 0, maxFreq = 0, best = 0;\n        for (int right = 0; right < s.length(); right++) {\n            maxFreq = Math.max(maxFreq, ++count[s.charAt(right) - 'A']);\n            while (right - left + 1 - maxFreq > k) {\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            best = Math.max(best, right - left + 1);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "permutation-in-string",
+     "title": "Permutation in String",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Facebook",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/permutation-in-string/",
+     "summary": "Return true if some permutation of s1 appears as a contiguous substring of s2. Example: s1 = \"ab\", s2 = \"eidbaooo\" -> true (\"ba\").",
+     "approach": "A permutation of `s1` is any window of length `|s1|` with the **same character counts**. Use a **fixed-size window** over `s2`: maintain counts for the current window, add the incoming char, remove the char that falls out, and compare with `s1`'s counts.\n\nComparing two `int[26]` arrays is O(26), so total O(26·n). (An optimization keeps a `matches` counter of equal slots to make each step O(1).)",
+     "solution": "class Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        int k = s1.length();\n        if (k > s2.length()) return false;\n        int[] need = new int[26], window = new int[26];\n        for (char c : s1.toCharArray()) need[c - 'a']++;\n        for (int right = 0; right < s2.length(); right++) {\n            window[s2.charAt(right) - 'a']++;\n            if (right >= k) window[s2.charAt(right - k) - 'a']--;\n            if (right >= k - 1 && Arrays.equals(need, window)) return true;\n        }\n        return false;\n    }\n}",
+     "time": "O(26 * n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "minimum-window-substring",
+     "title": "Minimum Window Substring",
+     "difficulty": "Hard",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "LinkedIn",
+      "Uber",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/minimum-window-substring/",
+     "summary": "Return the shortest substring of s that contains every character of t (including duplicates); return \"\" if none exists. Example: s = \"ADOBECODEBANC\", t = \"ABC\" -> \"BANC\".",
+     "approach": "Keep `need[c]` = how many more of `c` the window still requires, and `missing` = total characters still required.\n\n- **Expand** `right`: if `need[c] > 0`, this char was useful, so `missing--`. Then `need[c]--` (may go negative = surplus).\n- **While `missing == 0`** the window is valid: record it if smaller, then remove `s[left]`: `need[d]++`; if it becomes positive we lost a needed char, so `missing++`. Advance `left`.\n\nEach index enters/leaves once: O(|s| + |t|).",
+     "solution": "class Solution {\n    public String minWindow(String s, String t) {\n        int[] need = new int[128];\n        for (char c : t.toCharArray()) need[c]++;\n        int missing = t.length();\n        int left = 0, bestStart = 0, bestLen = Integer.MAX_VALUE;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (need[c] > 0) missing--;\n            need[c]--;\n            while (missing == 0) {\n                if (right - left + 1 < bestLen) {\n                    bestLen = right - left + 1;\n                    bestStart = left;\n                }\n                char d = s.charAt(left++);\n                need[d]++;\n                if (need[d] > 0) missing++;\n            }\n        }\n        return bestLen == Integer.MAX_VALUE ? \"\" : s.substring(bestStart, bestStart + bestLen);\n    }\n}",
+     "time": "O(|s| + |t|)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "sliding-window-maximum",
+     "title": "Sliding Window Maximum",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/sliding-window-maximum/",
+     "summary": "For a window of size k sliding one step at a time from left to right, return the maximum of each window. Example: nums = [1,3,-1,-3,5,3,6,7], k = 3 -> [3,3,5,5,6,7].",
+     "approach": "**Brute force:** scan each window, O(nk). **Heap:** O(n log n) with lazy deletion.\n\n**Optimal - monotonic deque:** store **indices** with values in decreasing order.\n- Pop from the front if that index has left the window (`<= i - k`).\n- Pop from the back while the back value `<= nums[i]` - those can never be a max again (a newer, bigger element dominates them).\n- Push `i`. Front of deque is the window max.\n\nEach index is pushed/popped once: O(n).",
+     "solution": "class Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] res = new int[n - k + 1];\n        Deque<Integer> dq = new ArrayDeque<>();\n        for (int i = 0; i < n; i++) {\n            if (!dq.isEmpty() && dq.peekFirst() <= i - k) dq.pollFirst();\n            while (!dq.isEmpty() && nums[dq.peekLast()] <= nums[i]) dq.pollLast();\n            dq.offerLast(i);\n            if (i >= k - 1) res[i - k + 1] = nums[dq.peekFirst()];\n        }\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(k)",
+     "mustDo": true
+    },
+    {
+     "id": "max-consecutive-ones-iii",
+     "title": "Max Consecutive Ones III",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/max-consecutive-ones-iii/",
+     "summary": "In a binary array you may flip at most k zeros to ones. Return the length of the longest run of ones you can obtain. Example: [1,1,1,0,0,0,1,1,1,1,0], k = 2 -> 6.",
+     "approach": "Reframe: find the longest window containing **at most k zeros**. Expand `right`, counting zeros. While zeros exceed `k`, move `left` forward (decrementing the zero count when a zero leaves). The window length is a candidate answer. O(n), O(1).\n\nThis \"longest window with at most K bad elements\" shape appears constantly - memorize it.",
+     "solution": "class Solution {\n    public int longestOnes(int[] nums, int k) {\n        int left = 0, zeros = 0, best = 0;\n        for (int right = 0; right < nums.length; right++) {\n            if (nums[right] == 0) zeros++;\n            while (zeros > k) {\n                if (nums[left] == 0) zeros--;\n                left++;\n            }\n            best = Math.max(best, right - left + 1);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "fruit-into-baskets",
+     "title": "Fruit Into Baskets",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/fruit-into-baskets/",
+     "summary": "Trees in a row produce fruit types fruits[i]. With two baskets that each hold a single type, you pick one fruit from every tree starting at some tree and moving right, stopping when a third type appears. Return the maximum fruits collected. Example: [1,2,3,2,2] -> 4.",
+     "approach": "Strip the story: find the **longest subarray with at most 2 distinct values**.\n\nSliding window with a `HashMap<type, count>`. Add `fruits[right]`; while the map has more than 2 keys, decrement `fruits[left]` (removing the key when its count hits 0) and advance `left`. Track the max window. O(n).\n\nGeneralizes to \"at most K distinct\" (LC 340).",
+     "solution": "class Solution {\n    public int totalFruit(int[] fruits) {\n        Map<Integer, Integer> count = new HashMap<>();\n        int left = 0, best = 0;\n        for (int right = 0; right < fruits.length; right++) {\n            count.merge(fruits[right], 1, Integer::sum);\n            while (count.size() > 2) {\n                int f = fruits[left++];\n                if (count.merge(f, -1, Integer::sum) == 0) count.remove(f);\n            }\n            best = Math.max(best, right - left + 1);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) (at most 3 keys)",
+     "mustDo": false
+    },
+    {
+     "id": "minimum-size-subarray-sum",
+     "title": "Minimum Size Subarray Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Google",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/minimum-size-subarray-sum/",
+     "summary": "Given positive integers and a target, return the minimal length of a contiguous subarray whose sum is at least target, or 0 if none exists. Example: target = 7, [2,3,1,2,4,3] -> 2 ([4,3]).",
+     "approach": "All numbers are **positive**, so adding grows the sum and removing shrinks it - perfect for a variable window. Expand `right` adding to `sum`. While `sum >= target`, record `right - left + 1` and shrink from the left. This is the \"shortest valid window\" form: record inside the loop.\n\nO(n). (An O(n log n) prefix sum + binary search alternative exists as a follow-up.)",
+     "solution": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int left = 0, sum = 0, best = Integer.MAX_VALUE;\n        for (int right = 0; right < nums.length; right++) {\n            sum += nums[right];\n            while (sum >= target) {\n                best = Math.min(best, right - left + 1);\n                sum -= nums[left++];\n            }\n        }\n        return best == Integer.MAX_VALUE ? 0 : best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "stack",
+   "name": "Stack & Monotonic Stack",
+   "order": 4,
+   "intro": "**Stack** problems involve matching or \"most recent unresolved item\" logic (LIFO). A **monotonic stack** is a stack kept in increasing or decreasing order; it answers \"next greater / next smaller element\" questions for every index in O(n) total.\n\n**How to recognize it**\n- Matching pairs: brackets, tags, undo operations, expression evaluation.\n- \"For each element find the next/previous greater/smaller element\" (daily temperatures, stock span).\n- \"Largest rectangle\", \"how far can I see\", \"collisions\" - things resolved when a bigger/smaller element arrives.\n- Design problems needing O(1) extras (min stack).\n\n**Java tip:** use `Deque<Integer> st = new ArrayDeque<>()` with `push/pop/peek`. Avoid the legacy `Stack` class (synchronized, slower).\n\n**Monotonic stack template - next greater element to the right**\n```java\nint[] next = new int[n];\nArrays.fill(next, -1);\nDeque<Integer> st = new ArrayDeque<>();  // holds indices, values decreasing\nfor (int i = 0; i < n; i++) {\n    while (!st.isEmpty() && nums[st.peek()] < nums[i]) {\n        next[st.pop()] = nums[i];        // i is the answer for the popped index\n    }\n    st.push(i);\n}\n```\nVariants: change `<` to `>` for next smaller; iterate right-to-left for \"previous\"; use `<=`/`>=` carefully when duplicates exist.\n\n**Why it's O(n):** every index is pushed once and popped at most once.\n\n**Pitfalls**\n- Store **indices**, not values, when you need distances or widths.\n- Remember to process what is left in the stack at the end (often by appending a sentinel like height 0).\n- In circular arrays, iterate `2n` times using `i % n`.\n- Operand order in expression evaluation: pop `b` first, then `a`, compute `a op b`.",
+   "problems": [
+    {
+     "id": "valid-parentheses",
+     "title": "Valid Parentheses",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Facebook",
+      "Flipkart",
+      "Paytm",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/valid-parentheses/",
+     "summary": "A string contains only ()[]{}; decide whether every opening bracket is closed by the same type in the correct order. Example: \"()[]{}\" -> true; \"(]\" -> false; \"([)]\" -> false.",
+     "approach": "Push each opening bracket. For a closing bracket the stack top must be the matching opener; otherwise invalid. At the end the stack must be empty.\n\n**Neat trick:** push the *expected closing* bracket instead of the opener. Then a closing char just has to equal `pop()`. O(n) time and space. Odd length can return false immediately.",
+     "solution": "class Solution {\n    public boolean isValid(String s) {\n        Deque<Character> st = new ArrayDeque<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') st.push(')');\n            else if (c == '[') st.push(']');\n            else if (c == '{') st.push('}');\n            else if (st.isEmpty() || st.pop() != c) return false;\n        }\n        return st.isEmpty();\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "min-stack",
+     "title": "Min Stack",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Bloomberg",
+      "Goldman Sachs",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/min-stack/",
+     "summary": "Design a stack supporting push, pop, top and getMin, all in O(1) time. Example: push(-2), push(0), push(-3), getMin() -> -3, pop(), top() -> 0, getMin() -> -2.",
+     "approach": "The minimum changes as elements are pushed/popped, so store it **alongside each element**: every stack entry is a pair `(value, minAtThisPoint)`. Push computes `min(val, currentMin)`. Pop removes both together, automatically restoring the previous min.\n\nAlternative: a second stack that only pushes when a new value `<=` current min. Both are O(1) per operation.",
+     "solution": "class MinStack {\n    private final Deque<int[]> st = new ArrayDeque<>(); // {value, minSoFar}\n\n    public MinStack() { }\n\n    public void push(int val) {\n        int min = st.isEmpty() ? val : Math.min(val, st.peek()[1]);\n        st.push(new int[]{val, min});\n    }\n\n    public void pop() {\n        st.pop();\n    }\n\n    public int top() {\n        return st.peek()[0];\n    }\n\n    public int getMin() {\n        return st.peek()[1];\n    }\n}",
+     "time": "O(1) per op",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "evaluate-reverse-polish-notation",
+     "title": "Evaluate Reverse Polish Notation",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "LinkedIn",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
+     "summary": "Evaluate an arithmetic expression given in postfix (Reverse Polish) notation with + - * / on integers; division truncates toward zero. Example: [\"2\",\"1\",\"+\",\"3\",\"*\"] -> 9.",
+     "approach": "Postfix is designed for a stack: numbers are pushed; an operator pops the top two operands, applies itself, and pushes the result.\n\n**Order matters:** the first pop is the *right* operand `b`, the second is the *left* operand `a` -> compute `a - b`, `a / b`. Java integer division already truncates toward zero. Use a `switch` for readability.",
+     "solution": "class Solution {\n    public int evalRPN(String[] tokens) {\n        Deque<Integer> st = new ArrayDeque<>();\n        for (String t : tokens) {\n            switch (t) {\n                case \"+\" -> st.push(st.pop() + st.pop());\n                case \"*\" -> st.push(st.pop() * st.pop());\n                case \"-\" -> { int b = st.pop(), a = st.pop(); st.push(a - b); }\n                case \"/\" -> { int b = st.pop(), a = st.pop(); st.push(a / b); }\n                default -> st.push(Integer.parseInt(t));\n            }\n        }\n        return st.pop();\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "daily-temperatures",
+     "title": "Daily Temperatures",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Facebook",
+      "Uber",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/daily-temperatures/",
+     "summary": "For each day, return how many days you must wait until a strictly warmer temperature, or 0 if it never comes. Example: [73,74,75,71,69,72,76,73] -> [1,1,4,2,1,1,0,0].",
+     "approach": "**Brute force:** for each day scan forward, O(n²).\n\n**Monotonic decreasing stack of indices:** days still waiting for a warmer day. When today's temperature beats the stack top, that earlier day has found its answer: `ans[j] = i - j`. Keep popping while it beats; then push today. Anything left at the end stays 0. O(n).\n\nThis is the canonical \"next greater element\" template.",
+     "solution": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] ans = new int[n];\n        Deque<Integer> st = new ArrayDeque<>();\n        for (int i = 0; i < n; i++) {\n            while (!st.isEmpty() && temperatures[st.peek()] < temperatures[i]) {\n                int j = st.pop();\n                ans[j] = i - j;\n            }\n            st.push(i);\n        }\n        return ans;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "next-greater-element-i",
+     "title": "Next Greater Element I",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Bloomberg",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/next-greater-element-i/",
+     "summary": "nums1 is a subset of nums2 (distinct values). For each x in nums1, find the first element to the right of x in nums2 that is greater than x, or -1. Example: nums1 = [4,1,2], nums2 = [1,3,4,2] -> [-1,3,-1].",
+     "approach": "Precompute the next greater element for **every** value of `nums2` using a monotonic stack, storing results in a `HashMap<value, nextGreater>`. Then answer each query from `nums1` by lookup (default -1).\n\nO(n + m) instead of O(n·m). Follow-ups: Next Greater Element II (circular - loop `2n` times with `i % n`).",
+     "solution": "class Solution {\n    public int[] nextGreaterElement(int[] nums1, int[] nums2) {\n        Map<Integer, Integer> next = new HashMap<>();\n        Deque<Integer> st = new ArrayDeque<>();\n        for (int x : nums2) {\n            while (!st.isEmpty() && st.peek() < x) next.put(st.pop(), x);\n            st.push(x);\n        }\n        int[] res = new int[nums1.length];\n        for (int i = 0; i < nums1.length; i++) {\n            res[i] = next.getOrDefault(nums1[i], -1);\n        }\n        return res;\n    }\n}",
+     "time": "O(n + m)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "largest-rectangle-in-histogram",
+     "title": "Largest Rectangle in Histogram",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
+     "summary": "Given histogram bar heights (each width 1), return the area of the largest rectangle that fits inside the histogram. Example: [2,1,5,6,2,3] -> 10 (bars 5 and 6, width 2).",
+     "approach": "For each bar, the largest rectangle using it as the **shortest** bar extends left and right until a smaller bar. So we need previous-smaller and next-smaller indices.\n\n**One-pass monotonic increasing stack:** when bar `i` is lower than the stack top, the top has found its *next smaller* (`i`), and its *previous smaller* is the element beneath it in the stack. Width = `i - newTop - 1`. Pop and compute. Append a sentinel height 0 at `i = n` to flush the stack. O(n).",
+     "solution": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length, best = 0;\n        Deque<Integer> st = new ArrayDeque<>();\n        for (int i = 0; i <= n; i++) {\n            int h = (i == n) ? 0 : heights[i];\n            while (!st.isEmpty() && heights[st.peek()] >= h) {\n                int height = heights[st.pop()];\n                int leftBoundary = st.isEmpty() ? -1 : st.peek();\n                best = Math.max(best, height * (i - leftBoundary - 1));\n            }\n            st.push(i);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "car-fleet",
+     "title": "Car Fleet",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/car-fleet/",
+     "summary": "Cars at given positions drive toward a target with given speeds; a faster car that catches a slower one ahead joins it and moves at the slower speed, forming a fleet. Count how many fleets arrive. Example: target 12, position [10,8,0,5,3], speed [2,4,1,1,3] -> 3.",
+     "approach": "Compute each car's arrival time if alone: `(target - pos) / speed`. Process cars **from closest to the target to farthest**. A car behind can't pass; if its time is `<=` the time of the fleet ahead, it merges into that fleet. If it takes longer, it forms a new fleet (and becomes the new blocker).\n\nSo sort by position descending and count how many times a strictly larger time appears - a stack in spirit (only the top matters). O(n log n).",
+     "solution": "class Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        Integer[] idx = new Integer[n];\n        for (int i = 0; i < n; i++) idx[i] = i;\n        Arrays.sort(idx, (a, b) -> position[b] - position[a]); // closest to target first\n        int fleets = 0;\n        double slowest = 0;\n        for (int i : idx) {\n            double time = (double) (target - position[i]) / speed[i];\n            if (time > slowest) {\n                fleets++;\n                slowest = time;\n            }\n        }\n        return fleets;\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "asteroid-collision",
+     "title": "Asteroid Collision",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Uber",
+      "Lyft",
+      "Salesforce",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/asteroid-collision/",
+     "summary": "Asteroids move along a line: the sign is direction (+ right, - left) and absolute value is size. When two meet, the smaller explodes; equal sizes both explode. Return the final state. Example: [5,10,-5] -> [5,10]; [8,-8] -> [].",
+     "approach": "Only a **right-moving** asteroid followed by a **left-moving** one collide. Use a stack of survivors. For each new asteroid `a`:\n- While `a < 0` and the top is positive: if top is smaller, pop it and continue; if equal, pop and `a` dies; if larger, `a` dies.\n- If `a` survived, push it.\n\nFinally copy the stack bottom-to-top into an array. O(n) since each asteroid is pushed/popped once.",
+     "solution": "class Solution {\n    public int[] asteroidCollision(int[] asteroids) {\n        Deque<Integer> st = new ArrayDeque<>();\n        for (int a : asteroids) {\n            boolean alive = true;\n            while (alive && a < 0 && !st.isEmpty() && st.peek() > 0) {\n                if (st.peek() < -a) {\n                    st.pop();\n                } else if (st.peek() == -a) {\n                    st.pop();\n                    alive = false;\n                } else {\n                    alive = false;\n                }\n            }\n            if (alive) st.push(a);\n        }\n        int[] res = new int[st.size()];\n        for (int i = res.length - 1; i >= 0; i--) res[i] = st.pop();\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "online-stock-span",
+     "title": "Online Stock Span",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Adobe",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/online-stock-span/",
+     "summary": "Design a class that receives daily stock prices one by one and returns, for each day, the span: the number of consecutive days up to and including today with price <= today's price. Example: prices 100,80,60,70,60,75,85 -> spans 1,1,1,2,1,4,6.",
+     "approach": "This is \"previous greater element\", but online. Keep a monotonic decreasing stack of `(price, span)` pairs. For a new price, pop every entry with price `<=` today and **add their spans** to today's span (they're all covered). Push `(price, span)`.\n\nEach price is pushed and popped once -> amortized O(1) per call.",
+     "solution": "class StockSpanner {\n    private final Deque<int[]> st = new ArrayDeque<>(); // {price, span}\n\n    public StockSpanner() { }\n\n    public int next(int price) {\n        int span = 1;\n        while (!st.isEmpty() && st.peek()[0] <= price) {\n            span += st.pop()[1];\n        }\n        st.push(new int[]{price, span});\n        return span;\n    }\n}",
+     "time": "O(1) amortized",
+     "space": "O(n)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "binary-search",
+   "name": "Binary Search",
+   "order": 5,
+   "intro": "**Binary Search** repeatedly halves a search space whose elements satisfy a **monotonic** condition: everything on one side is \"false\", everything on the other is \"true\". It turns O(n) into O(log n).\n\n**Two kinds of questions**\n1. **Search in a sorted (or rotated / 2D) array** - find a target, first/last occurrence, insertion point, peak.\n2. **Binary search on the answer** - the answer is a number in a range `[lo, hi]`, and there is a `feasible(x)` check that is monotonic (\"if speed x works, any faster speed works too\"). Examples: Koko eating bananas, ship packages in D days, split array largest sum, aggressive cows, allocate books.\n\n**How to recognize \"search on answer\":** the question says *minimize the maximum* / *maximize the minimum* / *smallest X such that...*, and checking a candidate is easy (greedy O(n)).\n\n**Template - first index where condition is true (lower bound)**\n```java\nint lo = 0, hi = n;              // hi = n means \"not found\"\nwhile (lo < hi) {\n    int mid = lo + (hi - lo) / 2; // avoids overflow\n    if (condition(mid)) hi = mid; // mid might be the answer, keep it\n    else lo = mid + 1;            // mid is definitely not it\n}\nreturn lo;\n```\n\n**Template - minimum feasible answer**\n```java\nint lo = minPossible, hi = maxPossible;\nwhile (lo < hi) {\n    int mid = lo + (hi - lo) / 2;\n    if (feasible(mid)) hi = mid;\n    else lo = mid + 1;\n}\nreturn lo;\n```\n\n**Pitfalls**\n- `(lo + hi) / 2` can overflow - use `lo + (hi - lo) / 2`.\n- Infinite loops: with `lo < hi` and `lo = mid`, use an upper mid `lo + (hi - lo + 1) / 2`.\n- Mixing styles: `while (lo <= hi)` pairs with `hi = mid - 1`; `while (lo < hi)` pairs with `hi = mid`. Pick one style and stick to it.\n- Feasibility sums can overflow `int` - use `long`.",
+   "problems": [
+    {
+     "id": "binary-search",
+     "title": "Binary Search",
+     "difficulty": "Easy",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Google",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-search/",
+     "summary": "Given an ascending array of distinct integers and a target, return the target's index or -1, in O(log n). Example: [-1,0,3,5,9,12], target 9 -> 4.",
+     "approach": "Classic closed-interval search: keep `[lo, hi]`. Compare the middle element: equal -> return; smaller than target -> the answer lies right (`lo = mid + 1`); bigger -> left (`hi = mid - 1`). Stop when the interval is empty.\n\nWrite it bug-free in under two minutes - it's the base of every other problem in this section.",
+     "solution": "class Solution {\n    public int search(int[] nums, int target) {\n        int lo = 0, hi = nums.length - 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[mid] < target) lo = mid + 1;\n            else hi = mid - 1;\n        }\n        return -1;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "search-a-2d-matrix",
+     "title": "Search a 2D Matrix",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Bloomberg",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/search-a-2d-matrix/",
+     "summary": "Each row of the matrix is sorted and each row's first value is greater than the previous row's last value. Determine whether target exists, in O(log(m*n)). Example: [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target 3 -> true.",
+     "approach": "The matrix is really one sorted array of length `m*n` laid out row by row. Binary search over virtual indices `0..m*n-1` and map index `k` to `matrix[k / n][k % n]`.\n\n(For LC 240, where only rows and columns are sorted independently, start from the top-right corner and move left/down - O(m + n).)",
+     "solution": "class Solution {\n    public boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        int lo = 0, hi = m * n - 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            int val = matrix[mid / n][mid % n];\n            if (val == target) return true;\n            if (val < target) lo = mid + 1;\n            else hi = mid - 1;\n        }\n        return false;\n    }\n}",
+     "time": "O(log(m*n))",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "search-in-rotated-sorted-array",
+     "title": "Search in Rotated Sorted Array",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Facebook",
+      "Flipkart",
+      "Adobe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+     "summary": "A sorted array of distinct values was rotated at an unknown pivot (e.g. [0,1,2,4,5,6,7] -> [4,5,6,7,0,1,2]). Find target's index or -1 in O(log n). Example: target 0 -> 4.",
+     "approach": "At any `mid`, **at least one half is sorted**. Check which:\n- If `nums[lo] <= nums[mid]`, the left half is sorted. If target lies in `[nums[lo], nums[mid])`, go left; else go right.\n- Otherwise the right half is sorted. If target lies in `(nums[mid], nums[hi]]`, go right; else go left.\n\nEach step still halves the range: O(log n). With duplicates (LC 81), when `nums[lo] == nums[mid] == nums[hi]` you can only shrink both ends by one.",
+     "solution": "class Solution {\n    public int search(int[] nums, int target) {\n        int lo = 0, hi = nums.length - 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] == target) return mid;\n            if (nums[lo] <= nums[mid]) {                 // left half sorted\n                if (nums[lo] <= target && target < nums[mid]) hi = mid - 1;\n                else lo = mid + 1;\n            } else {                                     // right half sorted\n                if (nums[mid] < target && target <= nums[hi]) lo = mid + 1;\n                else hi = mid - 1;\n            }\n        }\n        return -1;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "find-minimum-in-rotated-sorted-array",
+     "title": "Find Minimum in Rotated Sorted Array",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
+     "summary": "Return the minimum element of a rotated sorted array of unique values in O(log n). Example: [3,4,5,1,2] -> 1; [11,13,15,17] -> 11.",
+     "approach": "Compare `nums[mid]` with `nums[hi]`:\n- `nums[mid] > nums[hi]`: the drop (minimum) is strictly right of mid -> `lo = mid + 1`.\n- Otherwise mid..hi is sorted, so the minimum is at mid or to its left -> `hi = mid`.\n\nLoop while `lo < hi`; `lo` ends on the minimum. Comparing with `hi` (not `lo`) avoids the special case of an unrotated array.",
+     "solution": "class Solution {\n    public int findMin(int[] nums) {\n        int lo = 0, hi = nums.length - 1;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] > nums[hi]) lo = mid + 1;\n            else hi = mid;\n        }\n        return nums[lo];\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "find-first-and-last-position-of-element-in-sorted-array",
+     "title": "Find First and Last Position of Element in Sorted Array",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "LinkedIn",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
+     "summary": "In a non-decreasing array, return the first and last index of target, or [-1,-1], in O(log n). Example: [5,7,7,8,8,10], target 8 -> [3,4].",
+     "approach": "Write one **lower-bound** helper: the first index with `nums[i] >= x`.\n- first = `lowerBound(target)`; if it's out of range or not equal to target, return `[-1,-1]`.\n- last = `lowerBound(target + 1) - 1`.\n\nTwo O(log n) searches. Reusing one helper avoids writing two subtly different loops - a common source of bugs.",
+     "solution": "class Solution {\n    public int[] searchRange(int[] nums, int target) {\n        int first = lowerBound(nums, target);\n        if (first == nums.length || nums[first] != target) return new int[]{-1, -1};\n        int last = lowerBound(nums, target + 1) - 1;\n        return new int[]{first, last};\n    }\n\n    private int lowerBound(int[] nums, int x) {\n        int lo = 0, hi = nums.length;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] >= x) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "koko-eating-bananas",
+     "title": "Koko Eating Bananas",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Facebook",
+      "Airbnb",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/koko-eating-bananas/",
+     "summary": "Koko has piles of bananas and h hours. Each hour she picks a pile and eats up to k bananas from it. Find the minimum integer speed k that lets her finish all piles within h hours. Example: piles [3,6,7,11], h = 8 -> 4.",
+     "approach": "**Binary search on the answer.** Speed lies in `[1, max(pile)]`. At speed `k`, hours needed = sum of `ceil(p / k)` = `(p + k - 1) / k`. Hours decrease as `k` grows - monotonic! So find the smallest `k` with `hours(k) <= h`.\n\nEach check is O(n), and there are O(log max) checks. Use `long` for the hour total.",
+     "solution": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int lo = 1, hi = 0;\n        for (int p : piles) hi = Math.max(hi, p);\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (hours(piles, mid) <= h) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private long hours(int[] piles, int k) {\n        long total = 0;\n        for (int p : piles) total += (p + k - 1) / k;\n        return total;\n    }\n}",
+     "time": "O(n log M)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "capacity-to-ship-packages-within-d-days",
+     "title": "Capacity To Ship Packages Within D Days",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Flipkart",
+      "Microsoft",
+      "Swiggy"
+     ],
+     "leetcode": "https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/",
+     "summary": "Packages with given weights must be shipped in order within `days` days; each day the ship loads consecutive packages without exceeding its capacity. Find the least capacity that works. Example: weights [1..10], days 5 -> 15.",
+     "approach": "Search on capacity in `[max(weight), sum(weights)]` - below the max weight a package could never ship; at the sum, one day suffices.\n\n`feasible(cap)`: greedily fill each day until adding the next package would exceed `cap`, then start a new day. If days used `<= days`, it's feasible. Larger capacity never needs more days -> monotonic -> binary search for the smallest feasible capacity.\n\nSame template solves \"Allocate Books\", \"Painter's Partition\", \"Split Array Largest Sum\".",
+     "solution": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int lo = 0, hi = 0;\n        for (int w : weights) {\n            lo = Math.max(lo, w);\n            hi += w;\n        }\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (daysNeeded(weights, mid) <= days) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private int daysNeeded(int[] weights, int cap) {\n        int days = 1, load = 0;\n        for (int w : weights) {\n            if (load + w > cap) {\n                days++;\n                load = 0;\n            }\n            load += w;\n        }\n        return days;\n    }\n}",
+     "time": "O(n log(sum))",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "split-array-largest-sum",
+     "title": "Split Array Largest Sum",
+     "difficulty": "Hard",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/split-array-largest-sum/",
+     "summary": "Split an array of non-negative integers into k non-empty contiguous parts so that the largest part-sum is as small as possible; return that value. Example: [7,2,5,10,8], k = 2 -> 18 ([7,2,5] and [10,8]).",
+     "approach": "\"Minimize the maximum\" -> binary search on the answer `limit` in `[max, sum]`.\n\n`pieces(limit)`: greedily extend the current part while its sum stays `<= limit`; otherwise start a new part. If pieces `<= k`, `limit` is achievable (you can always split further to reach exactly k, since parts are non-empty and k <= n). Find the smallest achievable limit.\n\nThis is identical to Ship Packages, and to the Striver \"Book Allocation\" problem.",
+     "solution": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int lo = 0, hi = 0;\n        for (int x : nums) {\n            lo = Math.max(lo, x);\n            hi += x;\n        }\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (pieces(nums, mid) <= k) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private int pieces(int[] nums, int limit) {\n        int count = 1, sum = 0;\n        for (int x : nums) {\n            if (sum + x > limit) {\n                count++;\n                sum = 0;\n            }\n            sum += x;\n        }\n        return count;\n    }\n}",
+     "time": "O(n log(sum))",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "find-peak-element",
+     "title": "Find Peak Element",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/find-peak-element/",
+     "summary": "Return the index of any element strictly greater than its neighbours (treat out-of-bounds as negative infinity; adjacent values differ) in O(log n). Example: [1,2,1,3,5,6,4] -> 1 or 5.",
+     "approach": "The array isn't sorted, but there's still a monotonic signal: compare `nums[mid]` with `nums[mid + 1]`.\n- If `nums[mid] < nums[mid + 1]`, we're on an **uphill**; a peak must exist to the right (it either keeps rising to the end, which counts as a peak, or turns down somewhere). `lo = mid + 1`.\n- Otherwise a peak is at `mid` or to its left. `hi = mid`.\n\nConverges to a peak in O(log n).",
+     "solution": "class Solution {\n    public int findPeakElement(int[] nums) {\n        int lo = 0, hi = nums.length - 1;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] < nums[mid + 1]) lo = mid + 1;\n            else hi = mid;\n        }\n        return lo;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "time-based-key-value-store",
+     "title": "Time Based Key-Value Store",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Netflix",
+      "Uber",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/time-based-key-value-store/",
+     "summary": "Design a store where set(key, value, timestamp) saves a value at a time, and get(key, timestamp) returns the value set at the largest timestamp <= the given one (or \"\"). Timestamps for set calls are strictly increasing. Example: set(\"foo\",\"bar\",1); get(\"foo\",3) -> \"bar\".",
+     "approach": "Map each key to a list of `(timestamp, value)` pairs. Because set timestamps only increase, each list is **already sorted** - appends keep it sorted for free.\n\n`get` = binary search for the **last** timestamp `<= t` (an upper-bound search, then step back one). O(1) set, O(log n) get.\n\nAlternative: `TreeMap<Integer, String>` per key with `floorEntry(t)` - simpler, also O(log n), worth mentioning.",
+     "solution": "class TimeMap {\n    private final Map<String, List<Integer>> times = new HashMap<>();\n    private final Map<String, List<String>> values = new HashMap<>();\n\n    public TimeMap() { }\n\n    public void set(String key, String value, int timestamp) {\n        times.computeIfAbsent(key, k -> new ArrayList<>()).add(timestamp);\n        values.computeIfAbsent(key, k -> new ArrayList<>()).add(value);\n    }\n\n    public String get(String key, int timestamp) {\n        List<Integer> ts = times.get(key);\n        if (ts == null) return \"\";\n        int lo = 0, hi = ts.size();          // first index with time > timestamp\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (ts.get(mid) > timestamp) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo == 0 ? \"\" : values.get(key).get(lo - 1);\n    }\n}",
+     "time": "O(1) set, O(log n) get",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "median-of-two-sorted-arrays",
+     "title": "Median of Two Sorted Arrays",
+     "difficulty": "Hard",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Goldman Sachs",
+      "Adobe",
+      "Apple",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+     "summary": "Return the median of two sorted arrays combined, in O(log(m+n)). Example: [1,3] and [2] -> 2.0; [1,2] and [3,4] -> 2.5.",
+     "approach": "**Brute force:** merge then pick the middle, O(m+n).\n\n**Optimal - binary search a partition** on the smaller array `a`. Choose `i` elements from `a` and `j = half - i` from `b` for the left half, where `half = (m + n + 1) / 2`. The partition is correct when `aLeft <= bRight` and `bLeft <= aRight` (use ±infinity at edges).\n- If `aLeft > bRight`, too many from `a`: `hi = i - 1`.\n- Else too few: `lo = i + 1`.\n\nMedian = max of left side (odd total) or average of max-left and min-right (even). O(log(min(m, n))).",
+     "solution": "class Solution {\n    public double findMedianSortedArrays(int[] a, int[] b) {\n        if (a.length > b.length) return findMedianSortedArrays(b, a);\n        int m = a.length, n = b.length, half = (m + n + 1) / 2;\n        int lo = 0, hi = m;\n        while (lo <= hi) {\n            int i = lo + (hi - lo) / 2;   // taken from a\n            int j = half - i;             // taken from b\n            int aLeft = i == 0 ? Integer.MIN_VALUE : a[i - 1];\n            int aRight = i == m ? Integer.MAX_VALUE : a[i];\n            int bLeft = j == 0 ? Integer.MIN_VALUE : b[j - 1];\n            int bRight = j == n ? Integer.MAX_VALUE : b[j];\n            if (aLeft <= bRight && bLeft <= aRight) {\n                int leftMax = Math.max(aLeft, bLeft);\n                if (((m + n) & 1) == 1) return leftMax;\n                return (leftMax + (double) Math.min(aRight, bRight)) / 2.0;\n            } else if (aLeft > bRight) {\n                hi = i - 1;\n            } else {\n                lo = i + 1;\n            }\n        }\n        return 0.0;\n    }\n}",
+     "time": "O(log(min(m, n)))",
+     "space": "O(1)",
+     "mustDo": true
+    }
+   ]
+  },
+  {
+   "id": "linked-list",
+   "name": "Linked List",
+   "order": 6,
+   "intro": "**Linked List** problems test pointer manipulation without losing references. Almost every question is built from a few primitives: **dummy head**, **reverse**, **fast/slow pointers**, and **merge**.\n\n**How to recognize the technique**\n- Head might change (delete/insert at front, merging) -> use a **dummy node** pointing at head; return `dummy.next`.\n- Middle of list, cycle detection, \"nth from end\" -> **fast & slow pointers**.\n- Palindrome check, reorder, k-group -> **reverse** part of the list.\n- Sorted lists combined -> **merge** (two pointers or a heap for k lists).\n- O(1) get/put with order (LRU) -> **HashMap + doubly linked list**.\n\nLeetCode's node: `class ListNode { int val; ListNode next; ListNode(int val) {...} ListNode(int val, ListNode next) {...} }` (already defined in the judge).\n\n**Core templates**\n```java\n// Reverse a list iteratively\nListNode prev = null, cur = head;\nwhile (cur != null) {\n    ListNode next = cur.next;\n    cur.next = prev;\n    prev = cur;\n    cur = next;\n}\n// prev is the new head\n\n// Find middle (slow ends at the 2nd middle for even length)\nListNode slow = head, fast = head;\nwhile (fast != null && fast.next != null) {\n    slow = slow.next;\n    fast = fast.next.next;\n}\n\n// Dummy head for building a result\nListNode dummy = new ListNode(0), tail = dummy;\n// ... tail.next = node; tail = tail.next;\nreturn dummy.next;\n```\n\n**Pitfalls**\n- Save `cur.next` **before** you overwrite it.\n- Check `fast != null && fast.next != null` in that order to avoid NPEs.\n- Draw the pointers for a 3-node list on paper before coding - interviewers expect you to walk through an example.\n- Remember to terminate lists (set `tail.next = null`) when splitting, or you'll create cycles.",
+   "problems": [
+    {
+     "id": "reverse-linked-list",
+     "title": "Reverse Linked List",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Apple",
+      "Google",
+      "Adobe",
+      "Flipkart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/reverse-linked-list/",
+     "summary": "Reverse a singly linked list and return the new head. Example: 1->2->3->4->5 -> 5->4->3->2->1.",
+     "approach": "**Iterative (preferred):** walk the list with `prev` and `cur`; for each node save `next`, point `cur.next` back to `prev`, then advance both. When `cur` is null, `prev` is the new head. O(n) time, O(1) space.\n\n**Recursive:** reverse the rest, then make `head.next.next = head` and `head.next = null`. O(n) stack space. Know both - interviewers often ask for the second after the first.",
+     "solution": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        ListNode prev = null, cur = head;\n        while (cur != null) {\n            ListNode next = cur.next;\n            cur.next = prev;\n            prev = cur;\n            cur = next;\n        }\n        return prev;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "merge-two-sorted-lists",
+     "title": "Merge Two Sorted Lists",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Apple",
+      "Google",
+      "Adobe",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/merge-two-sorted-lists/",
+     "summary": "Splice two sorted linked lists into one sorted list and return its head. Example: 1->2->4 and 1->3->4 -> 1->1->2->3->4->4.",
+     "approach": "Use a **dummy** node and a `tail` pointer. While both lists are non-empty, attach the smaller head to `tail` and advance that list. When one list runs out, attach the remainder of the other in one step (it's already sorted). Return `dummy.next`. O(n + m) time, O(1) extra space (we reuse nodes).",
+     "solution": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        ListNode dummy = new ListNode(0), tail = dummy;\n        while (list1 != null && list2 != null) {\n            if (list1.val <= list2.val) {\n                tail.next = list1;\n                list1 = list1.next;\n            } else {\n                tail.next = list2;\n                list2 = list2.next;\n            }\n            tail = tail.next;\n        }\n        tail.next = (list1 != null) ? list1 : list2;\n        return dummy.next;\n    }\n}",
+     "time": "O(n + m)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "linked-list-cycle",
+     "title": "Linked List Cycle",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Goldman Sachs",
+      "Oracle",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/linked-list-cycle/",
+     "summary": "Determine whether a linked list contains a cycle (some node's next eventually points back to an earlier node). Example: 3->2->0->-4 with -4 pointing back to 2 -> true.",
+     "approach": "**HashSet** of visited nodes works in O(n) space.\n\n**Floyd's tortoise and hare:** `slow` moves 1 step, `fast` moves 2. If there's no cycle, `fast` hits null. If there is, `fast` gains one node per step on `slow` inside the cycle, so they must meet. O(n) time, O(1) space.",
+     "solution": "public class Solution {\n    public boolean hasCycle(ListNode head) {\n        ListNode slow = head, fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            if (slow == fast) return true;\n        }\n        return false;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "linked-list-cycle-ii",
+     "title": "Linked List Cycle II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Goldman Sachs",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/linked-list-cycle-ii/",
+     "summary": "Return the node where a cycle begins in a linked list, or null if there's no cycle, without modifying the list. Example: 3->2->0->-4 with tail linking to node 2 -> returns node 2.",
+     "approach": "Run Floyd's algorithm until `slow` and `fast` meet. Then reset one pointer to `head` and move **both one step at a time**; they meet exactly at the cycle start.\n\n**Why:** if `a` = distance from head to start and `b` = distance from start to meeting point, with cycle length `c`, then `2(a + b) = a + b + kc`, so `a = kc - b`: walking `a` steps from the meeting point lands on the start. O(n), O(1).",
+     "solution": "public class Solution {\n    public ListNode detectCycle(ListNode head) {\n        ListNode slow = head, fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            if (slow == fast) {\n                ListNode p = head;\n                while (p != slow) {\n                    p = p.next;\n                    slow = slow.next;\n                }\n                return p;\n            }\n        }\n        return null;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "remove-nth-node-from-end-of-list",
+     "title": "Remove Nth Node From End of List",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "Google",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/",
+     "summary": "Delete the n-th node counted from the end of a linked list and return the head, ideally in one pass. Example: 1->2->3->4->5, n = 2 -> 1->2->3->5.",
+     "approach": "**Two passes:** count length L, then remove node L-n+1.\n\n**One pass:** start a `fast` pointer `n + 1` steps ahead of `slow`, both starting at a **dummy** node. Move both until `fast` is null; now `slow` sits just **before** the target, so `slow.next = slow.next.next`. The dummy handles removing the head itself (n = length).",
+     "solution": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode fast = dummy, slow = dummy;\n        for (int i = 0; i <= n; i++) fast = fast.next;\n        while (fast != null) {\n            fast = fast.next;\n            slow = slow.next;\n        }\n        slow.next = slow.next.next;\n        return dummy.next;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "reorder-list",
+     "title": "Reorder List",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/reorder-list/",
+     "summary": "Rearrange L0->L1->...->Ln into L0->Ln->L1->Ln-1->L2->... in place (change links, not values). Example: 1->2->3->4->5 -> 1->5->2->4->3.",
+     "approach": "Combine three primitives:\n1. **Find the middle** with slow/fast pointers.\n2. **Reverse the second half** (and cut it off from the first half).\n3. **Merge alternately**: take one from the first half, one from the reversed second half.\n\nO(n) time, O(1) space. (Using a stack/array is simpler but O(n) space.)",
+     "solution": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null || head.next == null) return;\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        // reverse second half\n        ListNode prev = null, cur = slow.next;\n        slow.next = null;\n        while (cur != null) {\n            ListNode next = cur.next;\n            cur.next = prev;\n            prev = cur;\n            cur = next;\n        }\n        // merge\n        ListNode first = head, second = prev;\n        while (second != null) {\n            ListNode n1 = first.next, n2 = second.next;\n            first.next = second;\n            second.next = n1;\n            first = n1;\n            second = n2;\n        }\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "add-two-numbers",
+     "title": "Add Two Numbers",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Bloomberg",
+      "Adobe",
+      "Apple",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/add-two-numbers/",
+     "summary": "Two non-negative numbers are stored as linked lists of digits in reverse order. Return their sum as a linked list in the same format. Example: 2->4->3 + 5->6->4 (342 + 465) -> 7->0->8 (807).",
+     "approach": "Simulate grade-school addition. Walk both lists together with a `carry`. At each step `sum = carry + (l1 digit or 0) + (l2 digit or 0)`; append `sum % 10`, set `carry = sum / 10`. Continue while either list remains **or carry is non-zero** (e.g. 5 + 5 = 10 needs an extra node). Dummy head keeps it clean.",
+     "solution": "class Solution {\n    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {\n        ListNode dummy = new ListNode(0), tail = dummy;\n        int carry = 0;\n        while (l1 != null || l2 != null || carry != 0) {\n            int sum = carry;\n            if (l1 != null) { sum += l1.val; l1 = l1.next; }\n            if (l2 != null) { sum += l2.val; l2 = l2.next; }\n            tail.next = new ListNode(sum % 10);\n            tail = tail.next;\n            carry = sum / 10;\n        }\n        return dummy.next;\n    }\n}",
+     "time": "O(max(n, m))",
+     "space": "O(1) extra",
+     "mustDo": false
+    },
+    {
+     "id": "copy-list-with-random-pointer",
+     "title": "Copy List with Random Pointer",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Bloomberg",
+      "Goldman Sachs",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/copy-list-with-random-pointer/",
+     "summary": "Each node has next and a random pointer (to any node or null). Return a deep copy where the new nodes' pointers reference only new nodes, mirroring the original structure.",
+     "approach": "**HashMap approach:** map each original node to its clone in one pass, then set `clone.next = map.get(orig.next)` and `clone.random = map.get(orig.random)`. O(n) space.\n\n**O(1) space interleaving:**\n1. Insert each clone right after its original: A->A'->B->B'.\n2. Set `clone.random = orig.random.next` (the clone of the random target).\n3. Unweave: restore originals and extract clones.",
+     "solution": "class Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) return null;\n        // 1. interleave clones\n        for (Node cur = head; cur != null; cur = cur.next.next) {\n            Node clone = new Node(cur.val);\n            clone.next = cur.next;\n            cur.next = clone;\n        }\n        // 2. set random pointers of clones\n        for (Node cur = head; cur != null; cur = cur.next.next) {\n            if (cur.random != null) cur.next.random = cur.random.next;\n        }\n        // 3. separate the two lists\n        Node dummy = new Node(0), tail = dummy;\n        for (Node cur = head; cur != null; cur = cur.next) {\n            Node clone = cur.next;\n            cur.next = clone.next;\n            tail.next = clone;\n            tail = clone;\n        }\n        return dummy.next;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) extra",
+     "mustDo": true
+    },
+    {
+     "id": "lru-cache",
+     "title": "LRU Cache",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Facebook",
+      "Uber",
+      "Flipkart",
+      "PhonePe",
+      "Swiggy",
+      "Atlassian",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/lru-cache/",
+     "summary": "Design a fixed-capacity cache with get(key) and put(key, value), both O(1). When full, inserting a new key evicts the least recently used key; both get and put count as a use.",
+     "approach": "Need O(1) lookup **and** O(1) reorder/evict:\n- `HashMap<key, Node>` for lookup.\n- **Doubly linked list** ordered by recency, with sentinel `head` (most recent side) and `tail` (least recent side). Unlinking and inserting a node is O(1) given the node.\n\n`get`: if present, move node to front. `put`: update + move to front, or insert new at front; if size exceeds capacity, remove `tail.prev` and delete it from the map.\n\nIn Java you can mention `LinkedHashMap(cap, 0.75f, true)` with `removeEldestEntry`, but interviewers usually want the manual version.",
+     "solution": "class LRUCache {\n    private static class Node {\n        int key, val;\n        Node prev, next;\n        Node(int k, int v) { key = k; val = v; }\n    }\n\n    private final int capacity;\n    private final Map<Integer, Node> map = new HashMap<>();\n    private final Node head = new Node(0, 0), tail = new Node(0, 0);\n\n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        head.next = tail;\n        tail.prev = head;\n    }\n\n    public int get(int key) {\n        Node node = map.get(key);\n        if (node == null) return -1;\n        remove(node);\n        addFront(node);\n        return node.val;\n    }\n\n    public void put(int key, int value) {\n        Node node = map.get(key);\n        if (node != null) {\n            node.val = value;\n            remove(node);\n            addFront(node);\n            return;\n        }\n        if (map.size() == capacity) {\n            Node lru = tail.prev;\n            remove(lru);\n            map.remove(lru.key);\n        }\n        Node fresh = new Node(key, value);\n        map.put(key, fresh);\n        addFront(fresh);\n    }\n\n    private void remove(Node n) {\n        n.prev.next = n.next;\n        n.next.prev = n.prev;\n    }\n\n    private void addFront(Node n) {\n        n.next = head.next;\n        n.prev = head;\n        head.next.prev = n;\n        head.next = n;\n    }\n}",
+     "time": "O(1) per op",
+     "space": "O(capacity)",
+     "mustDo": true
+    },
+    {
+     "id": "merge-k-sorted-lists",
+     "title": "Merge k Sorted Lists",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Facebook",
+      "Uber",
+      "Flipkart",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/merge-k-sorted-lists/",
+     "summary": "Merge k sorted linked lists into one sorted linked list. Example: [1->4->5, 1->3->4, 2->6] -> 1->1->2->3->4->4->5->6.",
+     "approach": "**Naive:** merge lists one by one, O(kN).\n\n**Min-heap:** push the head of every list into a `PriorityQueue` ordered by value. Repeatedly poll the smallest, append it, and push its `next`. The heap never holds more than k nodes, so each of N nodes costs O(log k): **O(N log k)**.\n\n**Alternative:** divide and conquer - pair up and merge lists like merge sort, also O(N log k) with O(1) extra space.",
+     "solution": "class Solution {\n    public ListNode mergeKLists(ListNode[] lists) {\n        PriorityQueue<ListNode> pq = new PriorityQueue<>((a, b) -> Integer.compare(a.val, b.val));\n        for (ListNode node : lists) {\n            if (node != null) pq.offer(node);\n        }\n        ListNode dummy = new ListNode(0), tail = dummy;\n        while (!pq.isEmpty()) {\n            ListNode node = pq.poll();\n            tail.next = node;\n            tail = node;\n            if (node.next != null) pq.offer(node.next);\n        }\n        return dummy.next;\n    }\n}",
+     "time": "O(N log k)",
+     "space": "O(k)",
+     "mustDo": true
+    },
+    {
+     "id": "reverse-nodes-in-k-group",
+     "title": "Reverse Nodes in k-Group",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Google",
+      "Adobe",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
+     "summary": "Reverse the nodes of a linked list k at a time; a final group with fewer than k nodes stays as is. Only links may change. Example: 1->2->3->4->5, k = 2 -> 2->1->4->3->5; k = 3 -> 3->2->1->4->5.",
+     "approach": "Process group by group with a `groupPrev` pointer (starts at a dummy).\n1. Walk k steps from `groupPrev` to find `kth`. If fewer than k nodes remain, stop.\n2. Remember `groupNext = kth.next`. Reverse the group, initializing `prev = groupNext` so the reversed group's tail automatically links to the rest.\n3. Connect: `groupPrev.next = kth` (new group head); the old first node is now the group's tail - it becomes the next `groupPrev`.\n\nO(n) time, O(1) space.",
+     "solution": "class Solution {\n    public ListNode reverseKGroup(ListNode head, int k) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode groupPrev = dummy;\n        while (true) {\n            ListNode kth = groupPrev;\n            for (int i = 0; i < k && kth != null; i++) kth = kth.next;\n            if (kth == null) break;\n            ListNode groupNext = kth.next;\n\n            ListNode prev = groupNext, cur = groupPrev.next;\n            while (cur != groupNext) {\n                ListNode next = cur.next;\n                cur.next = prev;\n                prev = cur;\n                cur = next;\n            }\n            ListNode oldFirst = groupPrev.next;\n            groupPrev.next = kth;\n            groupPrev = oldFirst;\n        }\n        return dummy.next;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "palindrome-linked-list",
+     "title": "Palindrome Linked List",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "Adobe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/palindrome-linked-list/",
+     "summary": "Decide whether a singly linked list reads the same forwards and backwards, ideally in O(n) time and O(1) space. Example: 1->2->2->1 -> true; 1->2 -> false.",
+     "approach": "Copying to an array is O(n) space. For O(1):\n1. Find the middle with slow/fast pointers.\n2. Reverse the second half.\n3. Compare the first half with the reversed second half node by node.\n4. (Good practice) reverse the second half back to restore the input.\n\nFor odd length, the middle node ends up in the second half and is simply compared against nothing extra - the loop runs while the reversed half is non-null.",
+     "solution": "class Solution {\n    public boolean isPalindrome(ListNode head) {\n        ListNode slow = head, fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        ListNode second = reverse(slow);\n        ListNode p1 = head, p2 = second;\n        boolean ok = true;\n        while (p2 != null) {\n            if (p1.val != p2.val) { ok = false; break; }\n            p1 = p1.next;\n            p2 = p2.next;\n        }\n        reverse(second); // restore (optional)\n        return ok;\n    }\n\n    private ListNode reverse(ListNode head) {\n        ListNode prev = null;\n        while (head != null) {\n            ListNode next = head.next;\n            head.next = prev;\n            prev = head;\n            head = next;\n        }\n        return prev;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "intersection-of-two-linked-lists",
+     "title": "Intersection of Two Linked Lists",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Bloomberg",
+      "Goldman Sachs",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/intersection-of-two-linked-lists/",
+     "summary": "Return the node at which two singly linked lists merge (same node object, not same value), or null if they never meet. Lists have no cycles.",
+     "approach": "**HashSet:** store all nodes of A, scan B - O(n) space. **Length difference:** advance the longer list by the difference, then walk together.\n\n**Elegant two pointers:** `a` walks A then B; `b` walks B then A. Both travel `lenA + lenB` steps, so they arrive at the intersection at the same time - or both reach null together if there is none. O(n + m), O(1).",
+     "solution": "public class Solution {\n    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {\n        ListNode a = headA, b = headB;\n        while (a != b) {\n            a = (a == null) ? headB : a.next;\n            b = (b == null) ? headA : b.next;\n        }\n        return a;\n    }\n}",
+     "time": "O(n + m)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "trees",
+   "name": "Binary Trees & BST",
+   "order": 7,
+   "intro": "**Binary Trees & BSTs** are the most-asked topic at product companies. Nearly every tree problem is either a **DFS (recursion)** or a **BFS (level order with a queue)**.\n\n**How to choose**\n- Answer depends on subtrees (height, diameter, balanced, path sums, LCA) -> **post-order DFS**: compute children first, combine at the parent, return something upward.\n- Need info passed down from ancestors (max so far, valid range for BST, path so far) -> **pre-order DFS** with extra parameters.\n- Anything \"per level\" (level order, right view, zigzag, width, min depth) -> **BFS**, processing `queue.size()` nodes at a time.\n- BST -> exploit ordering: **in-order traversal yields sorted values**; search goes left or right only.\n\nLeetCode's node: `TreeNode { int val; TreeNode left, right; }` (already defined).\n\n**DFS template (return value + global answer)**\n```java\nint best = 0;\nint dfs(TreeNode node) {\n    if (node == null) return 0;              // base case\n    int left = dfs(node.left);\n    int right = dfs(node.right);\n    best = Math.max(best, left + right);     // answer that \"bends\" through node\n    return 1 + Math.max(left, right);        // value passed to parent\n}\n```\n\n**BFS template**\n```java\nDeque<TreeNode> q = new ArrayDeque<>();\nif (root != null) q.offer(root);\nwhile (!q.isEmpty()) {\n    int size = q.size();\n    for (int i = 0; i < size; i++) {\n        TreeNode node = q.poll();\n        // process node\n        if (node.left != null) q.offer(node.left);\n        if (node.right != null) q.offer(node.right);\n    }\n    // a level is finished here\n}\n```\n\n**Pitfalls**\n- Distinguish what you **return** to the parent vs what you **record** as the global answer (diameter, max path sum).\n- Validating a BST by only checking immediate children is wrong - pass down `(min, max)` bounds (use `long` or nullable bounds for `Integer.MIN_VALUE` edge cases).\n- Recursion depth on skewed trees can be O(n) - mention iterative alternatives.\n- `ArrayDeque` cannot hold `null`; check children before offering.",
+   "problems": [
+    {
+     "id": "maximum-depth-of-binary-tree",
+     "title": "Maximum Depth of Binary Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "LinkedIn",
+      "Apple",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+     "summary": "Return the number of nodes on the longest path from the root down to a leaf. Example: [3,9,20,null,null,15,7] -> 3.",
+     "approach": "Recursive definition: depth(null) = 0; depth(node) = 1 + max(depth(left), depth(right)). That's a post-order DFS in one line.\n\nIterative alternative: BFS and count levels. Both O(n) time; DFS uses O(h) stack, BFS uses O(width) queue.",
+     "solution": "class Solution {\n    public int maxDepth(TreeNode root) {\n        if (root == null) return 0;\n        return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "invert-binary-tree",
+     "title": "Invert Binary Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/invert-binary-tree/",
+     "summary": "Mirror a binary tree by swapping every node's left and right children, and return the root. Example: [4,2,7,1,3,6,9] -> [4,7,2,9,6,3,1].",
+     "approach": "At each node swap the two children, then invert both subtrees (order doesn't matter - pre-order or post-order both work). Base case: null returns null.\n\nIterative version: BFS, swapping children of every polled node. O(n) time.",
+     "solution": "class Solution {\n    public TreeNode invertTree(TreeNode root) {\n        if (root == null) return null;\n        TreeNode left = invertTree(root.left);\n        root.left = invertTree(root.right);\n        root.right = left;\n        return root;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "same-tree",
+     "title": "Same Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Bloomberg"
+     ],
+     "leetcode": "https://leetcode.com/problems/same-tree/",
+     "summary": "Check whether two binary trees are structurally identical with equal values at every node. Example: [1,2,3] and [1,2,3] -> true; [1,2] and [1,null,2] -> false.",
+     "approach": "Compare recursively: both null -> true; exactly one null or values differ -> false; otherwise both left subtrees and both right subtrees must match. O(n) time.\n\nThis helper is reused in Subtree of Another Tree.",
+     "solution": "class Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        if (p == null && q == null) return true;\n        if (p == null || q == null || p.val != q.val) return false;\n        return isSameTree(p.left, q.left) && isSameTree(p.right, q.right);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "subtree-of-another-tree",
+     "title": "Subtree of Another Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Google"
+     ],
+     "leetcode": "https://leetcode.com/problems/subtree-of-another-tree/",
+     "summary": "Return true if subRoot appears inside root as a subtree: some node of root together with all its descendants is identical to subRoot.",
+     "approach": "For every node in `root`, check `isSame(node, subRoot)`. Recurse: answer is `isSame(root, subRoot) || isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot)`. Worst case O(n·m).\n\n**Optimal follow-up:** serialize both trees (with null markers and delimiters) and do a substring search with KMP - O(n + m).",
+     "solution": "class Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        if (root == null) return false;\n        if (isSame(root, subRoot)) return true;\n        return isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot);\n    }\n\n    private boolean isSame(TreeNode a, TreeNode b) {\n        if (a == null && b == null) return true;\n        if (a == null || b == null || a.val != b.val) return false;\n        return isSame(a.left, b.left) && isSame(a.right, b.right);\n    }\n}",
+     "time": "O(n * m)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "diameter-of-binary-tree",
+     "title": "Diameter of Binary Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/diameter-of-binary-tree/",
+     "summary": "Return the number of edges on the longest path between any two nodes of a binary tree (the path need not pass through the root). Example: [1,2,3,4,5] -> 3 (4-2-1-3).",
+     "approach": "The longest path through a node = height(left) + height(right) (in edges). Compute heights with post-order DFS and, at each node, update a global `best` with `left + right`. Return `1 + max(left, right)` upward.\n\n**Classic trap:** the answer isn't necessarily through the root, which is why we check every node. O(n) instead of the naive O(n²) (recomputing heights).",
+     "solution": "class Solution {\n    private int best = 0;\n\n    public int diameterOfBinaryTree(TreeNode root) {\n        height(root);\n        return best;\n    }\n\n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        int l = height(node.left), r = height(node.right);\n        best = Math.max(best, l + r);\n        return 1 + Math.max(l, r);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": true
+    },
+    {
+     "id": "balanced-binary-tree",
+     "title": "Balanced Binary Tree",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Bloomberg"
+     ],
+     "leetcode": "https://leetcode.com/problems/balanced-binary-tree/",
+     "summary": "A tree is height-balanced if at every node the left and right subtree heights differ by at most 1. Determine whether the given tree is balanced.",
+     "approach": "**Naive:** at every node compute both heights separately - O(n²) on skewed trees.\n\n**Optimal:** one post-order pass returning the height, or **-1** as a sentinel meaning \"already unbalanced\". If either child returns -1 or the heights differ by more than 1, return -1 immediately. The tree is balanced iff the root doesn't return -1. O(n).",
+     "solution": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        return check(root) != -1;\n    }\n\n    private int check(TreeNode node) {\n        if (node == null) return 0;\n        int l = check(node.left);\n        if (l == -1) return -1;\n        int r = check(node.right);\n        if (r == -1 || Math.abs(l - r) > 1) return -1;\n        return 1 + Math.max(l, r);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "binary-tree-level-order-traversal",
+     "title": "Binary Tree Level Order Traversal",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "LinkedIn",
+      "Flipkart",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+     "summary": "Return the node values level by level, left to right, as a list of lists. Example: [3,9,20,null,null,15,7] -> [[3],[9,20],[15,7]].",
+     "approach": "Standard BFS with a queue. The trick for grouping by level: at the start of each iteration, record `size = queue.size()` - exactly the nodes of the current level - and poll that many, adding their children for the next level.\n\nDFS alternative: pass `depth` and append to `result.get(depth)`. Both O(n).",
+     "solution": "class Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        List<List<Integer>> res = new ArrayList<>();\n        if (root == null) return res;\n        Deque<TreeNode> q = new ArrayDeque<>();\n        q.offer(root);\n        while (!q.isEmpty()) {\n            int size = q.size();\n            List<Integer> level = new ArrayList<>(size);\n            for (int i = 0; i < size; i++) {\n                TreeNode node = q.poll();\n                level.add(node.val);\n                if (node.left != null) q.offer(node.left);\n                if (node.right != null) q.offer(node.right);\n            }\n            res.add(level);\n        }\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "binary-tree-right-side-view",
+     "title": "Binary Tree Right Side View",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Bloomberg",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-tree-right-side-view/",
+     "summary": "Imagine standing to the right of the tree: return the values you can see from top to bottom (the rightmost node of each level). Example: [1,2,3,null,5,null,4] -> [1,3,4].",
+     "approach": "**BFS:** level order, and take the **last** node of each level.\n\n**DFS (elegant):** visit right child before left, passing depth. The first time you reach a new depth (`depth == result.size()`), that node is the rightmost of that level. O(n).\n\nThe left view is the same with left-first traversal.",
+     "solution": "class Solution {\n    public List<Integer> rightSideView(TreeNode root) {\n        List<Integer> res = new ArrayList<>();\n        dfs(root, 0, res);\n        return res;\n    }\n\n    private void dfs(TreeNode node, int depth, List<Integer> res) {\n        if (node == null) return;\n        if (depth == res.size()) res.add(node.val);\n        dfs(node.right, depth + 1, res);\n        dfs(node.left, depth + 1, res);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": true
+    },
+    {
+     "id": "binary-tree-zigzag-level-order-traversal",
+     "title": "Binary Tree Zigzag Level Order Traversal",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Bloomberg",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/",
+     "summary": "Return level-order values but alternate direction each level: left-to-right, then right-to-left, and so on. Example: [3,9,20,null,null,15,7] -> [[3],[20,9],[15,7]].",
+     "approach": "Do normal BFS, but build each level in a `LinkedList`: on left-to-right levels `addLast`, on right-to-left levels `addFirst`. Flip a boolean after each level. Children are still enqueued left then right, so the queue order is unchanged. O(n).",
+     "solution": "class Solution {\n    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {\n        List<List<Integer>> res = new ArrayList<>();\n        if (root == null) return res;\n        Deque<TreeNode> q = new ArrayDeque<>();\n        q.offer(root);\n        boolean leftToRight = true;\n        while (!q.isEmpty()) {\n            int size = q.size();\n            LinkedList<Integer> level = new LinkedList<>();\n            for (int i = 0; i < size; i++) {\n                TreeNode node = q.poll();\n                if (leftToRight) level.addLast(node.val);\n                else level.addFirst(node.val);\n                if (node.left != null) q.offer(node.left);\n                if (node.right != null) q.offer(node.right);\n            }\n            res.add(level);\n            leftToRight = !leftToRight;\n        }\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "lowest-common-ancestor-of-a-binary-search-tree",
+     "title": "Lowest Common Ancestor of a Binary Search Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "LinkedIn",
+      "Twitter"
+     ],
+     "leetcode": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
+     "summary": "In a BST, find the lowest node that has both given nodes p and q as descendants (a node counts as its own descendant). Example: root [6,2,8,0,4,7,9], p = 2, q = 8 -> 6.",
+     "approach": "Use the BST ordering. Starting from the root:\n- If both `p` and `q` are smaller than the node, the LCA is in the left subtree.\n- If both are larger, go right.\n- Otherwise they split here (or one equals the node) - this node is the LCA.\n\nIterative, O(h) time, O(1) space.",
+     "solution": "class Solution {\n    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {\n        TreeNode node = root;\n        while (node != null) {\n            if (p.val < node.val && q.val < node.val) node = node.left;\n            else if (p.val > node.val && q.val > node.val) node = node.right;\n            else return node;\n        }\n        return null;\n    }\n}",
+     "time": "O(h)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "lowest-common-ancestor-of-a-binary-tree",
+     "title": "Lowest Common Ancestor of a Binary Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Atlassian",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/",
+     "summary": "In a general binary tree (no ordering), return the lowest node that has both p and q as descendants (a node may be its own descendant). Both nodes exist in the tree.",
+     "approach": "Post-order DFS returning \"the p or q (or LCA) found in this subtree\":\n- If node is null, p, or q -> return node.\n- Recurse left and right.\n- If **both** sides return non-null, p and q are in different subtrees -> current node is the LCA.\n- Otherwise return whichever side is non-null.\n\nO(n) time, O(h) space. Know this one cold - it's among the most asked tree questions.",
+     "solution": "class Solution {\n    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {\n        if (root == null || root == p || root == q) return root;\n        TreeNode left = lowestCommonAncestor(root.left, p, q);\n        TreeNode right = lowestCommonAncestor(root.right, p, q);\n        if (left != null && right != null) return root;\n        return left != null ? left : right;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": true
+    },
+    {
+     "id": "validate-binary-search-tree",
+     "title": "Validate Binary Search Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Facebook",
+      "Bloomberg",
+      "Adobe",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/validate-binary-search-tree/",
+     "summary": "Check whether a binary tree is a valid BST: every node's left subtree has only smaller values, its right subtree only larger values, and both subtrees are BSTs. Example: [5,1,4,null,null,3,6] -> false.",
+     "approach": "**Wrong approach:** only comparing each node with its direct children - a deep node can violate an ancestor's constraint.\n\n**Correct:** pass down an allowed open range `(low, high)`. Going left tightens `high = node.val`; going right tightens `low = node.val`. Use `long` bounds so nodes with `Integer.MIN_VALUE`/`MAX_VALUE` work.\n\n**Alternative:** in-order traversal must be strictly increasing - track the previous value. Both O(n).",
+     "solution": "class Solution {\n    public boolean isValidBST(TreeNode root) {\n        return valid(root, Long.MIN_VALUE, Long.MAX_VALUE);\n    }\n\n    private boolean valid(TreeNode node, long low, long high) {\n        if (node == null) return true;\n        if (node.val <= low || node.val >= high) return false;\n        return valid(node.left, low, node.val) && valid(node.right, node.val, high);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": true
+    },
+    {
+     "id": "kth-smallest-element-in-a-bst",
+     "title": "Kth Smallest Element in a BST",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Google",
+      "Uber",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/",
+     "summary": "Return the k-th smallest value (1-indexed) in a binary search tree. Example: root [3,1,4,null,2], k = 1 -> 1.",
+     "approach": "In-order traversal of a BST visits values in sorted order, so the k-th visited node is the answer. Do it **iteratively** with an explicit stack so you can stop as soon as you've popped k nodes - O(h + k) time instead of traversing everything.\n\n**Follow-up (frequent inserts/deletes):** augment each node with its subtree size, then descend in O(h).",
+     "solution": "class Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        Deque<TreeNode> st = new ArrayDeque<>();\n        TreeNode cur = root;\n        while (cur != null || !st.isEmpty()) {\n            while (cur != null) {\n                st.push(cur);\n                cur = cur.left;\n            }\n            cur = st.pop();\n            if (--k == 0) return cur.val;\n            cur = cur.right;\n        }\n        return -1;\n    }\n}",
+     "time": "O(h + k)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "construct-binary-tree-from-preorder-and-inorder-traversal",
+     "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Facebook",
+      "Bloomberg"
+     ],
+     "leetcode": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
+     "summary": "Given the preorder and inorder traversals of a tree with unique values, rebuild the tree and return its root. Example: preorder [3,9,20,15,7], inorder [9,3,15,20,7] -> [3,9,20,null,null,15,7].",
+     "approach": "Preorder's first element is the root. Find it in inorder: everything left of it is the left subtree, everything right is the right subtree. Recurse.\n\n**Optimization:** a HashMap from value -> inorder index makes the lookup O(1), and a global pointer into preorder avoids slicing arrays. Build left before right (preorder order). O(n) total.",
+     "solution": "class Solution {\n    private int preIdx = 0;\n    private final Map<Integer, Integer> inPos = new HashMap<>();\n\n    public TreeNode buildTree(int[] preorder, int[] inorder) {\n        for (int i = 0; i < inorder.length; i++) inPos.put(inorder[i], i);\n        return build(preorder, 0, inorder.length - 1);\n    }\n\n    private TreeNode build(int[] preorder, int lo, int hi) {\n        if (lo > hi) return null;\n        int rootVal = preorder[preIdx++];\n        TreeNode root = new TreeNode(rootVal);\n        int mid = inPos.get(rootVal);\n        root.left = build(preorder, lo, mid - 1);\n        root.right = build(preorder, mid + 1, hi);\n        return root;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "binary-tree-maximum-path-sum",
+     "title": "Binary Tree Maximum Path Sum",
+     "difficulty": "Hard",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
+     "summary": "A path is any sequence of connected nodes, each used once, not necessarily through the root. Return the largest possible sum of node values on a non-empty path. Example: [-10,9,20,null,null,15,7] -> 42 (15+20+7).",
+     "approach": "Same shape as Diameter. Define `gain(node)` = best sum of a downward path **starting** at node (what the parent can extend). Ignore negative child gains: `l = max(0, gain(left))`, `r = max(0, gain(right))`.\n- The best path that **bends** at this node is `node.val + l + r` - update the global max.\n- Return `node.val + max(l, r)` to the parent (a path can only continue down one side).\n\nInitialize the global max with `Integer.MIN_VALUE` for all-negative trees. O(n).",
+     "solution": "class Solution {\n    private int best = Integer.MIN_VALUE;\n\n    public int maxPathSum(TreeNode root) {\n        gain(root);\n        return best;\n    }\n\n    private int gain(TreeNode node) {\n        if (node == null) return 0;\n        int l = Math.max(0, gain(node.left));\n        int r = Math.max(0, gain(node.right));\n        best = Math.max(best, node.val + l + r);\n        return node.val + Math.max(l, r);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": true
+    },
+    {
+     "id": "serialize-and-deserialize-binary-tree",
+     "title": "Serialize and Deserialize Binary Tree",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "Google",
+      "LinkedIn",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
+     "summary": "Design methods to convert a binary tree into a string and rebuild the identical tree from that string. Any format is allowed as long as it round-trips.",
+     "approach": "**Pre-order with null markers:** write each value followed by a comma, and `#` for null children. Because nulls are explicit, pre-order alone uniquely identifies the tree.\n\nTo deserialize, split on commas into a queue and rebuild recursively: poll a token; `#` -> null; otherwise create the node and build its left then right subtree. Both O(n).\n\nBFS (level-order) serialization is an equally valid alternative.",
+     "solution": "public class Codec {\n    public String serialize(TreeNode root) {\n        StringBuilder sb = new StringBuilder();\n        write(root, sb);\n        return sb.toString();\n    }\n\n    private void write(TreeNode node, StringBuilder sb) {\n        if (node == null) {\n            sb.append(\"#,\");\n            return;\n        }\n        sb.append(node.val).append(',');\n        write(node.left, sb);\n        write(node.right, sb);\n    }\n\n    public TreeNode deserialize(String data) {\n        Deque<String> tokens = new ArrayDeque<>(Arrays.asList(data.split(\",\")));\n        return read(tokens);\n    }\n\n    private TreeNode read(Deque<String> tokens) {\n        String t = tokens.poll();\n        if (t.equals(\"#\")) return null;\n        TreeNode node = new TreeNode(Integer.parseInt(t));\n        node.left = read(tokens);\n        node.right = read(tokens);\n        return node;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "count-good-nodes-in-binary-tree",
+     "title": "Count Good Nodes in Binary Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/",
+     "summary": "A node is good if no node on the path from the root to it has a greater value. Count the good nodes. Example: [3,1,4,3,null,1,5] -> 4.",
+     "approach": "Pre-order DFS carrying `maxSoFar` - the largest value seen on the path from the root. A node is good if `node.val >= maxSoFar`. Recurse into children with `max(maxSoFar, node.val)`.\n\nThis is the template for \"information flows down from ancestors\". O(n).",
+     "solution": "class Solution {\n    public int goodNodes(TreeNode root) {\n        return dfs(root, Integer.MIN_VALUE);\n    }\n\n    private int dfs(TreeNode node, int maxSoFar) {\n        if (node == null) return 0;\n        int good = node.val >= maxSoFar ? 1 : 0;\n        int nextMax = Math.max(maxSoFar, node.val);\n        return good + dfs(node.left, nextMax) + dfs(node.right, nextMax);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "binary-tree-inorder-traversal",
+     "title": "Binary Tree Inorder Traversal",
+     "difficulty": "Easy",
+     "companies": [
+      "Microsoft",
+      "Amazon",
+      "Google",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/binary-tree-inorder-traversal/",
+     "summary": "Return the in-order (left, node, right) sequence of node values. Example: [1,null,2,3] -> [1,3,2]. Interviewers usually ask for the iterative version.",
+     "approach": "Recursive is trivial. **Iterative:** push nodes while going as far left as possible; pop one, record it, then move to its right child and repeat. This simulates the call stack.\n\nKnow pre-order (push right then left) and post-order (reverse of a modified pre-order) iteratively too. **Morris traversal** gives O(1) space by temporarily threading right pointers - a good bonus mention.",
+     "solution": "class Solution {\n    public List<Integer> inorderTraversal(TreeNode root) {\n        List<Integer> res = new ArrayList<>();\n        Deque<TreeNode> st = new ArrayDeque<>();\n        TreeNode cur = root;\n        while (cur != null || !st.isEmpty()) {\n            while (cur != null) {\n                st.push(cur);\n                cur = cur.left;\n            }\n            cur = st.pop();\n            res.add(cur.val);\n            cur = cur.right;\n        }\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(h)",
+     "mustDo": false
+    },
+    {
+     "id": "maximum-width-of-binary-tree",
+     "title": "Maximum Width of Binary Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/maximum-width-of-binary-tree/",
+     "summary": "The width of a level is the distance between its leftmost and rightmost non-null nodes, counting the null positions between them as in a complete tree. Return the maximum width. Example: [1,3,2,5,3,null,9] -> 4.",
+     "approach": "Number nodes like a heap: root `0`, left child `2i`, right child `2i + 1`. Width of a level = `lastIndex - firstIndex + 1`.\n\nBFS level by level. Indices double every level and would overflow on deep, sparse trees, so **normalize**: subtract the level's first index from every index before computing children. O(n).",
+     "solution": "class Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n        Deque<TreeNode> nodes = new ArrayDeque<>();\n        Deque<Integer> idx = new ArrayDeque<>();\n        nodes.offer(root);\n        idx.offer(0);\n        int best = 0;\n        while (!nodes.isEmpty()) {\n            int size = nodes.size();\n            int first = idx.peekFirst();\n            int last = 0;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = nodes.poll();\n                int id = idx.poll() - first;   // normalized index\n                last = id;\n                if (node.left != null) { nodes.offer(node.left); idx.offer(2 * id); }\n                if (node.right != null) { nodes.offer(node.right); idx.offer(2 * id + 1); }\n            }\n            best = Math.max(best, last + 1);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "all-nodes-distance-k-in-binary-tree",
+     "title": "All Nodes Distance K in Binary Tree",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Google",
+      "Microsoft",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/",
+     "summary": "Return the values of all nodes exactly k edges away from a given target node, in any order. Example: root [3,5,1,6,2,0,8,null,null,7,4], target 5, k = 2 -> [7,4,1].",
+     "approach": "A tree only has child pointers, but distance can go **upward** too. So:\n1. DFS once to record each node's **parent** in a HashMap - the tree is now an undirected graph.\n2. BFS from `target` over neighbours (left, right, parent) with a visited set, stopping after k levels. The nodes in the queue are the answer.\n\nO(n) time and space. This \"convert tree to graph\" trick also solves \"Burn a tree\" problems.",
+     "solution": "class Solution {\n    public List<Integer> distanceK(TreeNode root, TreeNode target, int k) {\n        Map<TreeNode, TreeNode> parent = new HashMap<>();\n        fillParents(root, null, parent);\n\n        Deque<TreeNode> q = new ArrayDeque<>();\n        Set<TreeNode> seen = new HashSet<>();\n        q.offer(target);\n        seen.add(target);\n        for (int dist = 0; dist < k && !q.isEmpty(); dist++) {\n            int size = q.size();\n            for (int i = 0; i < size; i++) {\n                TreeNode node = q.poll();\n                for (TreeNode nb : new TreeNode[]{node.left, node.right, parent.get(node)}) {\n                    if (nb != null && seen.add(nb)) q.offer(nb);\n                }\n            }\n        }\n        List<Integer> res = new ArrayList<>();\n        for (TreeNode node : q) res.add(node.val);\n        return res;\n    }\n\n    private void fillParents(TreeNode node, TreeNode par, Map<TreeNode, TreeNode> parent) {\n        if (node == null) return;\n        parent.put(node, par);\n        fillParents(node.left, node, parent);\n        fillParents(node.right, node, parent);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "flatten-binary-tree-to-linked-list",
+     "title": "Flatten Binary Tree to Linked List",
+     "difficulty": "Medium",
+     "companies": [
+      "Microsoft",
+      "Facebook",
+      "Amazon",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/flatten-binary-tree-to-linked-list/",
+     "summary": "Flatten a binary tree in place into a right-skewed \"linked list\" following pre-order, where each node's left child is null. Example: [1,2,5,3,4,null,6] -> 1->2->3->4->5->6.",
+     "approach": "**Recursive:** flatten subtrees, then splice. **Reverse post-order** (right, left, node) with a `prev` pointer is also neat.\n\n**O(1) space (Morris-like):** at each node with a left child, find the rightmost node of the left subtree (its pre-order predecessor of the right subtree), attach the current right subtree there, move the left subtree to the right, and null out left. Then step right. Each edge is walked a constant number of times: O(n).",
+     "solution": "class Solution {\n    public void flatten(TreeNode root) {\n        TreeNode cur = root;\n        while (cur != null) {\n            if (cur.left != null) {\n                TreeNode pred = cur.left;\n                while (pred.right != null) pred = pred.right;\n                pred.right = cur.right;\n                cur.right = cur.left;\n                cur.left = null;\n            }\n            cur = cur.right;\n        }\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "tries",
+   "name": "Tries",
+   "order": 8,
+   "intro": "A **Trie** (prefix tree) stores strings character by character: each node has up to 26 children (for lowercase letters) and a flag marking the end of a word. Inserting or searching a word of length L costs O(L), independent of how many words are stored, and all words sharing a prefix share a path.\n\n**How to recognize it**\n- \"Starts with / prefix\", autocomplete, search suggestions.\n- Searching **many words at once** in a grid or text (Word Search II) - a trie lets one DFS prune all words simultaneously.\n- Wildcard matching with `.`.\n- **Bitwise tries** (each node has children 0/1) for maximum XOR problems.\n\n**Template**\n```java\nclass TrieNode {\n    TrieNode[] next = new TrieNode[26];\n    boolean isEnd;          // or String word; for Word Search II\n}\n\nvoid insert(TrieNode root, String word) {\n    TrieNode node = root;\n    for (char c : word.toCharArray()) {\n        int i = c - 'a';\n        if (node.next[i] == null) node.next[i] = new TrieNode();\n        node = node.next[i];\n    }\n    node.isEnd = true;\n}\n\nTrieNode walk(TrieNode root, String s) {   // returns node for prefix s or null\n    TrieNode node = root;\n    for (char c : s.toCharArray()) {\n        node = node.next[c - 'a'];\n        if (node == null) return null;\n    }\n    return node;\n}\n```\n`search(word)` = `walk` != null && `isEnd`; `startsWith(prefix)` = `walk` != null.\n\n**Pitfalls**\n- Forgetting the end-of-word flag (then \"app\" is \"found\" after inserting only \"apple\").\n- Memory: an array of 26 per node is fast but heavy; use a `HashMap<Character, TrieNode>` for large alphabets.\n- In grid DFS, mark cells visited and restore them on backtrack; remove found words (null out `word`) to avoid duplicates.",
+   "problems": [
+    {
+     "id": "implement-trie-prefix-tree",
+     "title": "Implement Trie (Prefix Tree)",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Twitter",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/implement-trie-prefix-tree/",
+     "summary": "Implement a Trie class with insert(word), search(word) (exact word present?) and startsWith(prefix) (any word with this prefix?). Example: insert(\"apple\"); search(\"app\") -> false; startsWith(\"app\") -> true.",
+     "approach": "Each node holds `children[26]` and an `isEnd` flag. `insert` walks/creates nodes for each character and marks the last one. Both `search` and `startsWith` walk the path with a shared helper; `search` additionally requires `isEnd`. Every operation is O(L) for a word of length L.",
+     "solution": "class Trie {\n    private static class Node {\n        Node[] next = new Node[26];\n        boolean isEnd;\n    }\n\n    private final Node root = new Node();\n\n    public Trie() { }\n\n    public void insert(String word) {\n        Node node = root;\n        for (char c : word.toCharArray()) {\n            int i = c - 'a';\n            if (node.next[i] == null) node.next[i] = new Node();\n            node = node.next[i];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        Node node = walk(word);\n        return node != null && node.isEnd;\n    }\n\n    public boolean startsWith(String prefix) {\n        return walk(prefix) != null;\n    }\n\n    private Node walk(String s) {\n        Node node = root;\n        for (char c : s.toCharArray()) {\n            node = node.next[c - 'a'];\n            if (node == null) return null;\n        }\n        return node;\n    }\n}",
+     "time": "O(L) per op",
+     "space": "O(total chars)",
+     "mustDo": true
+    },
+    {
+     "id": "design-add-and-search-words-data-structure",
+     "title": "Design Add and Search Words Data Structure",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/design-add-and-search-words-data-structure/",
+     "summary": "Design a WordDictionary with addWord(word) and search(word), where the search pattern may contain '.' matching any single letter. Example: add \"bad\", \"dad\"; search(\".ad\") -> true; search(\"b..\") -> true.",
+     "approach": "Store words in a trie. Search with DFS over the pattern index:\n- Normal letter: follow that single child.\n- `.`: try **every** non-null child; succeed if any branch matches.\n- At the end of the pattern, return `isEnd`.\n\nAdding is O(L). Search is O(L) without dots and up to O(26^d · L) with d dots in the worst case - fine for the constraints (at most a few dots).",
+     "solution": "class WordDictionary {\n    private static class Node {\n        Node[] next = new Node[26];\n        boolean isEnd;\n    }\n\n    private final Node root = new Node();\n\n    public WordDictionary() { }\n\n    public void addWord(String word) {\n        Node node = root;\n        for (char c : word.toCharArray()) {\n            int i = c - 'a';\n            if (node.next[i] == null) node.next[i] = new Node();\n            node = node.next[i];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        return dfs(word, 0, root);\n    }\n\n    private boolean dfs(String word, int pos, Node node) {\n        if (node == null) return false;\n        if (pos == word.length()) return node.isEnd;\n        char c = word.charAt(pos);\n        if (c == '.') {\n            for (Node child : node.next) {\n                if (child != null && dfs(word, pos + 1, child)) return true;\n            }\n            return false;\n        }\n        return dfs(word, pos + 1, node.next[c - 'a']);\n    }\n}",
+     "time": "O(L) add, O(26^d * L) search",
+     "space": "O(total chars)",
+     "mustDo": false
+    },
+    {
+     "id": "word-search-ii",
+     "title": "Word Search II",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Airbnb",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/word-search-ii/",
+     "summary": "Given a letter grid and a list of words, return all words that can be formed by paths of horizontally/vertically adjacent cells, using each cell at most once per word. Example: a 4x4 board with words [\"oath\",\"pea\",\"eat\",\"rain\"] -> [\"eat\",\"oath\"].",
+     "approach": "**Naive:** run Word Search I for every word - too slow for many words.\n\n**Trie + backtracking:** insert all words into a trie (store the full word at its end node). DFS from every cell, moving down the trie alongside the grid path; if the current letter has no child, prune immediately. When a node holds a word, record it and set `node.word = null` to avoid duplicates. Mark cells with `#` while on the path and restore afterward.\n\n**Extra pruning:** remove leaf trie nodes after their word is found, so exhausted branches are skipped.",
+     "solution": "class Solution {\n    private static class Node {\n        Node[] next = new Node[26];\n        String word;\n    }\n\n    public List<String> findWords(char[][] board, String[] words) {\n        Node root = new Node();\n        for (String w : words) {\n            Node node = root;\n            for (char c : w.toCharArray()) {\n                int i = c - 'a';\n                if (node.next[i] == null) node.next[i] = new Node();\n                node = node.next[i];\n            }\n            node.word = w;\n        }\n        List<String> res = new ArrayList<>();\n        for (int r = 0; r < board.length; r++) {\n            for (int c = 0; c < board[0].length; c++) {\n                dfs(board, r, c, root, res);\n            }\n        }\n        return res;\n    }\n\n    private void dfs(char[][] board, int r, int c, Node parent, List<String> res) {\n        if (r < 0 || c < 0 || r >= board.length || c >= board[0].length) return;\n        char ch = board[r][c];\n        if (ch == '#') return;\n        Node node = parent.next[ch - 'a'];\n        if (node == null) return;\n        if (node.word != null) {\n            res.add(node.word);\n            node.word = null;           // avoid duplicates\n        }\n        board[r][c] = '#';\n        dfs(board, r + 1, c, node, res);\n        dfs(board, r - 1, c, node, res);\n        dfs(board, r, c + 1, node, res);\n        dfs(board, r, c - 1, node, res);\n        board[r][c] = ch;\n    }\n}",
+     "time": "O(m * n * 4^L)",
+     "space": "O(total chars)",
+     "mustDo": true
+    },
+    {
+     "id": "maximum-xor-of-two-numbers-in-an-array",
+     "title": "Maximum XOR of Two Numbers in an Array",
+     "difficulty": "Medium",
+     "companies": [
+      "Google",
+      "Amazon",
+      "Adobe",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/",
+     "summary": "Return the maximum value of nums[i] XOR nums[j] over all pairs. Example: [3,10,5,25,2,8] -> 28 (5 XOR 25).",
+     "approach": "**Brute force:** all pairs, O(n²).\n\n**Binary trie:** insert each number bit by bit from bit 30 down to 0 (each node has children 0 and 1). To maximize XOR with `x`, walk the trie greedily: at each bit prefer the **opposite** bit (which makes that XOR bit 1); if absent, take the same bit. Higher bits dominate lower ones, so greedy is optimal. O(31·n).",
+     "solution": "class Solution {\n    private static class Node {\n        Node[] child = new Node[2];\n    }\n\n    public int findMaximumXOR(int[] nums) {\n        Node root = new Node();\n        for (int x : nums) {\n            Node node = root;\n            for (int b = 30; b >= 0; b--) {\n                int bit = (x >> b) & 1;\n                if (node.child[bit] == null) node.child[bit] = new Node();\n                node = node.child[bit];\n            }\n        }\n        int best = 0;\n        for (int x : nums) {\n            Node node = root;\n            int cur = 0;\n            for (int b = 30; b >= 0; b--) {\n                int bit = (x >> b) & 1;\n                if (node.child[1 - bit] != null) {\n                    cur |= (1 << b);\n                    node = node.child[1 - bit];\n                } else {\n                    node = node.child[bit];\n                }\n            }\n            best = Math.max(best, cur);\n        }\n        return best;\n    }\n}",
+     "time": "O(31 * n)",
+     "space": "O(31 * n)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "heap",
+   "name": "Heap / Priority Queue",
+   "order": 9,
+   "intro": "A **Heap / Priority Queue** gives O(log n) insert and O(log n) removal of the smallest (or largest) element, with O(1) peek. In Java: `PriorityQueue<Integer>` is a **min-heap** by default; for a max-heap use `new PriorityQueue<>(Collections.reverseOrder())` or a comparator.\n\n**How to recognize it**\n- \"K largest / K smallest / K closest / K most frequent\" -> keep a heap of size **k**.\n- \"Running median\" or \"balance two halves\" -> **two heaps** (max-heap for the lower half, min-heap for the upper).\n- Repeatedly take the best available item (scheduling, merging k sorted lists, greedy simulation like Last Stone Weight / Reorganize String).\n- Dijkstra and other \"process cheapest next\" graph algorithms.\n\n**Top-K template - k largest using a min-heap of size k**\n```java\nPriorityQueue<Integer> pq = new PriorityQueue<>();   // min-heap\nfor (int x : nums) {\n    pq.offer(x);\n    if (pq.size() > k) pq.poll();   // drop the smallest; k largest remain\n}\n// pq.peek() is the k-th largest\n```\nWhy a *min*-heap for the *largest*? The root is the weakest of the current top-k, so it's the one to evict. Cost: O(n log k), better than sorting when k is small.\n\n**Comparators**\n```java\n// by frequency descending, then by key ascending\nPriorityQueue<int[]> pq = new PriorityQueue<>(\n    (a, b) -> a[1] != b[1] ? Integer.compare(b[1], a[1]) : Integer.compare(a[0], b[0]));\n```\n\n**Pitfalls**\n- `(a, b) -> a - b` can overflow for large/negative values - prefer `Integer.compare`.\n- Iterating a `PriorityQueue` does **not** give sorted order; only `poll()` does.\n- `remove(Object)` is O(n); use lazy deletion if you need to remove arbitrary elements often.\n- Mention **Quickselect** (average O(n)) as an alternative for a single k-th element.",
+   "problems": [
+    {
+     "id": "kth-largest-element-in-a-stream",
+     "title": "Kth Largest Element in a Stream",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/kth-largest-element-in-a-stream/",
+     "summary": "Design a class initialized with k and an array; each add(val) call inserts a number into the stream and returns the current k-th largest element. Example: k = 3, nums [4,5,8,2]; add(3) -> 4, add(5) -> 5.",
+     "approach": "Keep a **min-heap of size k** holding the k largest values seen so far. Its root is the k-th largest. On `add`, offer the value and poll if the size exceeds k. Each add is O(log k), much better than re-sorting.",
+     "solution": "class KthLargest {\n    private final int k;\n    private final PriorityQueue<Integer> pq = new PriorityQueue<>();\n\n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        for (int x : nums) add(x);\n    }\n\n    public int add(int val) {\n        pq.offer(val);\n        if (pq.size() > k) pq.poll();\n        return pq.peek();\n    }\n}",
+     "time": "O(log k) per add",
+     "space": "O(k)",
+     "mustDo": false
+    },
+    {
+     "id": "last-stone-weight",
+     "title": "Last Stone Weight",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/last-stone-weight/",
+     "summary": "Repeatedly smash the two heaviest stones: equal weights destroy both; otherwise the lighter is destroyed and the heavier loses that much weight. Return the last stone's weight or 0. Example: [2,7,4,1,8,1] -> 1.",
+     "approach": "A direct simulation needs the two largest elements each round - exactly what a **max-heap** provides. Poll two, push the difference if non-zero, repeat while more than one stone remains. O(n log n).",
+     "solution": "class Solution {\n    public int lastStoneWeight(int[] stones) {\n        PriorityQueue<Integer> pq = new PriorityQueue<>(Collections.reverseOrder());\n        for (int s : stones) pq.offer(s);\n        while (pq.size() > 1) {\n            int y = pq.poll(), x = pq.poll();\n            if (y != x) pq.offer(y - x);\n        }\n        return pq.isEmpty() ? 0 : pq.peek();\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "k-closest-points-to-origin",
+     "title": "K Closest Points to Origin",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Facebook",
+      "Google",
+      "Uber",
+      "Swiggy",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/k-closest-points-to-origin/",
+     "summary": "Return any k points closest to the origin (0,0) by Euclidean distance. Example: points [[3,3],[5,-1],[-2,4]], k = 2 -> [[3,3],[-2,4]].",
+     "approach": "Compare squared distances `x*x + y*y` (no `sqrt` needed). Keep a **max-heap of size k** ordered by distance: push each point and evict the farthest when size exceeds k. What's left are the k closest. O(n log k).\n\nAlternatives: sort all points O(n log n), or Quickselect average O(n).",
+     "solution": "class Solution {\n    public int[][] kClosest(int[][] points, int k) {\n        PriorityQueue<int[]> pq = new PriorityQueue<>(\n            (a, b) -> Integer.compare(b[0] * b[0] + b[1] * b[1], a[0] * a[0] + a[1] * a[1]));\n        for (int[] p : points) {\n            pq.offer(p);\n            if (pq.size() > k) pq.poll();\n        }\n        int[][] res = new int[k][];\n        for (int i = 0; i < k; i++) res[i] = pq.poll();\n        return res;\n    }\n}",
+     "time": "O(n log k)",
+     "space": "O(k)",
+     "mustDo": true
+    },
+    {
+     "id": "kth-largest-element-in-an-array",
+     "title": "Kth Largest Element in an Array",
+     "difficulty": "Medium",
+     "companies": [
+      "Facebook",
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Walmart",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
+     "summary": "Return the k-th largest element of an unsorted array (by sorted position, so duplicates count). Can you avoid fully sorting? Example: [3,2,1,5,6,4], k = 2 -> 5.",
+     "approach": "**Sort:** O(n log n). **Min-heap of size k:** O(n log k) - the root ends as the answer. This is the expected baseline.\n\n**Quickselect:** partition around a random pivot like quicksort, but recurse only into the side containing index `n - k`. Average O(n), worst O(n²). Mention it as the follow-up; the heap is safer to code under pressure.",
+     "solution": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        PriorityQueue<Integer> pq = new PriorityQueue<>();\n        for (int x : nums) {\n            pq.offer(x);\n            if (pq.size() > k) pq.poll();\n        }\n        return pq.peek();\n    }\n}",
+     "time": "O(n log k)",
+     "space": "O(k)",
+     "mustDo": true
+    },
+    {
+     "id": "find-median-from-data-stream",
+     "title": "Find Median from Data Stream",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Facebook",
+      "Uber",
+      "Flipkart",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/find-median-from-data-stream/",
+     "summary": "Design a MedianFinder with addNum(num) and findMedian() returning the median of all numbers added so far. Example: add 1, add 2 -> 1.5; add 3 -> 2.0.",
+     "approach": "**Two heaps:** a **max-heap `low`** for the smaller half and a **min-heap `high`** for the larger half. Keep `low.size()` equal to `high.size()` or one larger.\n\n`addNum`: push into `low`, then move `low`'s max into `high` (keeps ordering), then if `high` became bigger, move its min back to `low`. Median = `low.peek()` if sizes differ, else the average of both tops. O(log n) add, O(1) median.\n\nFollow-up (values in 0..100): use a counting array.",
+     "solution": "class MedianFinder {\n    private final PriorityQueue<Integer> low = new PriorityQueue<>(Collections.reverseOrder());\n    private final PriorityQueue<Integer> high = new PriorityQueue<>();\n\n    public MedianFinder() { }\n\n    public void addNum(int num) {\n        low.offer(num);\n        high.offer(low.poll());\n        if (high.size() > low.size()) low.offer(high.poll());\n    }\n\n    public double findMedian() {\n        if (low.size() > high.size()) return low.peek();\n        return (low.peek() + (double) high.peek()) / 2.0;\n    }\n}",
+     "time": "O(log n) add, O(1) median",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "top-k-frequent-words",
+     "title": "Top K Frequent Words",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Bloomberg",
+      "Uber",
+      "Yelp",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/top-k-frequent-words/",
+     "summary": "Return the k most frequent words, sorted by frequency descending; ties are broken alphabetically. Example: [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2 -> [\"i\",\"love\"].",
+     "approach": "Count with a HashMap. Then keep a **min-heap of size k** whose comparator ranks the \"worst\" word at the top: lower frequency first, and for equal frequency the alphabetically **larger** word first (it's the one to evict). After processing, poll everything and reverse to get best-first order. O(n log k).\n\nSimpler alternative: sort all unique words with the comparator - O(n log n).",
+     "solution": "class Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> freq = new HashMap<>();\n        for (String w : words) freq.merge(w, 1, Integer::sum);\n\n        PriorityQueue<String> pq = new PriorityQueue<>((a, b) -> {\n            int fa = freq.get(a), fb = freq.get(b);\n            if (fa != fb) return Integer.compare(fa, fb); // lower freq = worse\n            return b.compareTo(a);                        // later alphabetically = worse\n        });\n        for (String w : freq.keySet()) {\n            pq.offer(w);\n            if (pq.size() > k) pq.poll();\n        }\n        LinkedList<String> res = new LinkedList<>();\n        while (!pq.isEmpty()) res.addFirst(pq.poll());\n        return res;\n    }\n}",
+     "time": "O(n log k)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "reorganize-string",
+     "title": "Reorganize String",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Facebook",
+      "Uber",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/reorganize-string/",
+     "summary": "Rearrange the characters of a string so that no two adjacent characters are equal; return any valid arrangement or \"\" if impossible. Example: \"aab\" -> \"aba\"; \"aaab\" -> \"\".",
+     "approach": "If any character appears more than `(n + 1) / 2` times, it's impossible.\n\n**Greedy with a max-heap by count:** repeatedly take the two most frequent characters, append both (they differ, so no conflict), decrement their counts, and push them back if still positive. If one character remains at the end, append it (its count must be 1). Always placing the most frequent remaining characters prevents getting stuck. O(n log 26) = O(n).",
+     "solution": "class Solution {\n    public String reorganizeString(String s) {\n        int[] count = new int[26];\n        for (char c : s.toCharArray()) count[c - 'a']++;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(b[1], a[1]));\n        for (int i = 0; i < 26; i++) {\n            if (count[i] > (s.length() + 1) / 2) return \"\";\n            if (count[i] > 0) pq.offer(new int[]{i, count[i]});\n        }\n        StringBuilder sb = new StringBuilder();\n        while (pq.size() >= 2) {\n            int[] a = pq.poll(), b = pq.poll();\n            sb.append((char) ('a' + a[0])).append((char) ('a' + b[0]));\n            if (--a[1] > 0) pq.offer(a);\n            if (--b[1] > 0) pq.offer(b);\n        }\n        if (!pq.isEmpty()) sb.append((char) ('a' + pq.poll()[0]));\n        return sb.toString();\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  }
+ ]
+}

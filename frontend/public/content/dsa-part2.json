@@ -1,0 +1,1411 @@
+{
+ "patterns": [
+  {
+   "id": "backtracking",
+   "name": "Backtracking",
+   "order": 10,
+   "intro": "**Backtracking** is a controlled brute force: you build a candidate answer one choice at a time, and as soon as a partial choice can't lead to a valid answer you *undo* it and try the next option. Think of it as DFS over a \"decision tree\".\n\n**How to recognize it**\n- The question says *all*, *every*, *generate*, *list all combinations/permutations/partitions*.\n- Constraints are small (n ≤ 10–20) because output itself is exponential.\n- You need to place things under constraints (N-Queens, Sudoku, word on a grid).\n\n**Reusable template**\n```java\nvoid backtrack(int start, List<Integer> path, List<List<Integer>> res, int[] nums) {\n    if (isComplete(path)) {               // base case\n        res.add(new ArrayList<>(path));   // COPY the path!\n        return;\n    }\n    for (int i = start; i < nums.length; i++) {\n        if (i > start && nums[i] == nums[i - 1]) continue; // skip duplicates (sorted input)\n        if (!isValid(nums[i])) continue;                     // prune\n        path.add(nums[i]);                // choose\n        backtrack(i + 1, path, res, nums); // explore (i for reuse, i+1 for no reuse)\n        path.remove(path.size() - 1);     // un-choose\n    }\n}\n```\n\n**Three questions to answer before coding**\n1. What is one *choice* at each level? (include/exclude, which number next, where to cut the string)\n2. When is the path *complete*?\n3. What can I *prune* early? (sum exceeded, invalid placement)\n\n**Pitfalls**\n- Adding `path` itself instead of `new ArrayList<>(path)` — all results end up empty.\n- Forgetting to undo state (remove from path, unmark visited, restore grid cell).\n- Duplicates: sort first, then skip `nums[i] == nums[i-1]` only when `i > start`.\n- `start` index vs `used[]` array: combinations/subsets use `start`; permutations use `used[]`.\n\n**Complexity talk**: subsets O(n·2^n), permutations O(n·n!). Interviewers accept this — just state it.",
+   "problems": [
+    {
+     "id": "subsets",
+     "title": "Subsets",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/subsets/",
+     "summary": "Given an array of distinct integers, return every possible subset (the power set) in any order. For `[1,2,3]` the answer has 8 subsets: `[], [1], [2], [3], [1,2], [1,3], [2,3], [1,2,3]`.",
+     "approach": "**Intuition:** every element is either in or out, so there are 2^n subsets. Backtracking with a `start` index generates each subset exactly once: at each call, the current path *is* a valid subset, so record it, then try extending it with each later element.\n\n**Key insight:** record the path at every node of the recursion tree, not only at leaves. Using `start` prevents generating `[2,1]` after `[1,2]`.\n\nAn alternative is the bitmask approach: for `mask` from 0 to 2^n − 1, include `nums[i]` when bit `i` is set.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(nums, 0, new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> res) {\n        res.add(new ArrayList<>(path));\n        for (int i = start; i < nums.length; i++) {\n            path.add(nums[i]);\n            backtrack(nums, i + 1, path, res);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+     "time": "O(n · 2^n)",
+     "space": "O(n) recursion (excluding output)",
+     "mustDo": true
+    },
+    {
+     "id": "subsets-ii",
+     "title": "Subsets II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/subsets-ii/",
+     "summary": "Same as Subsets, but the array may contain duplicates and the result must not contain duplicate subsets. For `[1,2,2]` the answer is `[], [1], [1,2], [1,2,2], [2], [2,2]`.",
+     "approach": "**Intuition:** sort the array so equal values sit together. In the loop of a given recursion level, picking the second `2` at the same level as the first `2` would produce an identical subtree — so skip it.\n\n**Rule:** `if (i > start && nums[i] == nums[i-1]) continue;` The `i > start` condition still allows using a duplicate as the *next deeper* element (that's how `[2,2]` appears), but blocks using it as an alternative at the same level.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsetsWithDup(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(nums, 0, new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> res) {\n        res.add(new ArrayList<>(path));\n        for (int i = start; i < nums.length; i++) {\n            if (i > start && nums[i] == nums[i - 1]) continue;\n            path.add(nums[i]);\n            backtrack(nums, i + 1, path, res);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+     "time": "O(n · 2^n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "permutations",
+     "title": "Permutations",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/permutations/",
+     "summary": "Given an array of distinct integers, return all possible orderings. For `[1,2,3]` there are 6: `[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]`.",
+     "approach": "**Intuition:** at each position you may place any number not already used. Unlike subsets, order matters, so the loop always starts from index 0 and a `boolean[] used` tracks what's in the path.\n\n**Base case:** path length equals n → record a copy.\n\nAlternative: swap-based permutation (swap `nums[start]` with each `nums[i]`, recurse on `start+1`, swap back) which avoids the extra `used` array.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(nums, new boolean[nums.length], new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> res) {\n        if (path.size() == nums.length) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (used[i]) continue;\n            used[i] = true;\n            path.add(nums[i]);\n            backtrack(nums, used, path, res);\n            path.remove(path.size() - 1);\n            used[i] = false;\n        }\n    }\n}",
+     "time": "O(n · n!)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "combination-sum",
+     "title": "Combination Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Uber",
+      "Adobe",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/combination-sum/",
+     "summary": "Given distinct positive candidates and a target, return all unique combinations that add up to the target; each candidate can be used unlimited times. For `candidates = [2,3,6,7], target = 7` the answer is `[[2,2,3],[7]]`.",
+     "approach": "**Intuition:** choose a number, subtract it from the remaining target, recurse. Because reuse is allowed, recurse with the *same* index `i` (not `i+1`). Passing `start` prevents the same combination in different orders (`[2,2,3]` vs `[3,2,2]`).\n\n**Pruning:** sort candidates; once `candidates[i] > remaining`, every later candidate is also too large, so `break`.\n\n**Base cases:** remaining == 0 → record; the sort+break handles the negative case.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(candidates, 0, target, new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(int[] c, int start, int remain, List<Integer> path, List<List<Integer>> res) {\n        if (remain == 0) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < c.length; i++) {\n            if (c[i] > remain) break;\n            path.add(c[i]);\n            backtrack(c, i, remain - c[i], path, res); // i: reuse allowed\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+     "time": "O(2^t) roughly, t = target / min(candidate)",
+     "space": "O(target / min)",
+     "mustDo": true
+    },
+    {
+     "id": "combination-sum-ii",
+     "title": "Combination Sum II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/combination-sum-ii/",
+     "summary": "Candidates may contain duplicates and each element can be used at most once; return unique combinations that sum to target. For `[10,1,2,7,6,1,5], target = 8` → `[[1,1,6],[1,2,5],[1,7],[2,6]]`.",
+     "approach": "This is Combination Sum + Subsets II combined.\n\n- Each element used once → recurse with `i + 1`.\n- Duplicates in input → sort and skip `c[i] == c[i-1]` when `i > start` so that the same value isn't tried twice at one level.\n- Prune with `break` when `c[i] > remain` (sorted).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(candidates, 0, target, new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(int[] c, int start, int remain, List<Integer> path, List<List<Integer>> res) {\n        if (remain == 0) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < c.length; i++) {\n            if (i > start && c[i] == c[i - 1]) continue;\n            if (c[i] > remain) break;\n            path.add(c[i]);\n            backtrack(c, i + 1, remain - c[i], path, res);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+     "time": "O(2^n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "letter-combinations-of-a-phone-number",
+     "title": "Letter Combinations of a Phone Number",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Uber",
+      "Microsoft",
+      "Swiggy"
+     ],
+     "leetcode": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/",
+     "summary": "Given a string of digits 2–9, return all letter strings it could represent on an old phone keypad (2 = abc, 3 = def, ...). For `\"23\"` → `[\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]`. Empty input returns an empty list.",
+     "approach": "**Intuition:** the recursion depth equals the number of digits; at depth `i` you branch over the 3–4 letters mapped to `digits[i]`. Use a `StringBuilder` and delete the last char after recursing.\n\n**Edge case:** empty input must return `[]`, not `[\"\"]`.\n\nTotal outputs are up to 4^n, each of length n.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAP = {\"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"};\n\n    public List<String> letterCombinations(String digits) {\n        List<String> res = new ArrayList<>();\n        if (digits == null || digits.isEmpty()) return res;\n        backtrack(digits, 0, new StringBuilder(), res);\n        return res;\n    }\n\n    private void backtrack(String digits, int idx, StringBuilder sb, List<String> res) {\n        if (idx == digits.length()) {\n            res.add(sb.toString());\n            return;\n        }\n        for (char ch : MAP[digits.charAt(idx) - '0'].toCharArray()) {\n            sb.append(ch);\n            backtrack(digits, idx + 1, sb, res);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n    }\n}",
+     "time": "O(n · 4^n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "palindrome-partitioning",
+     "title": "Palindrome Partitioning",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Adobe",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/palindrome-partitioning/",
+     "summary": "Split a string into pieces so every piece is a palindrome, and return all such splits. For `\"aab\"` → `[[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]`.",
+     "approach": "**Intuition:** the choice at each step is *where to cut next*. From index `start`, try every end `i`; if `s[start..i]` is a palindrome, take it and recurse from `i+1`. When `start == n`, the path is a full partition.\n\n**Optimization:** precompute `isPal[i][j]` with DP (`isPal[i][j] = s[i]==s[j] && (j-i<2 || isPal[i+1][j-1]`) so each palindrome check is O(1). The two-pointer check also passes for interview purposes.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        int n = s.length();\n        boolean[][] pal = new boolean[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = i; j < n; j++) {\n                pal[i][j] = s.charAt(i) == s.charAt(j) && (j - i < 2 || pal[i + 1][j - 1]);\n            }\n        }\n        List<List<String>> res = new ArrayList<>();\n        backtrack(s, 0, pal, new ArrayList<>(), res);\n        return res;\n    }\n\n    private void backtrack(String s, int start, boolean[][] pal, List<String> path, List<List<String>> res) {\n        if (start == s.length()) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start; end < s.length(); end++) {\n            if (!pal[start][end]) continue;\n            path.add(s.substring(start, end + 1));\n            backtrack(s, end + 1, pal, path, res);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+     "time": "O(n · 2^n)",
+     "space": "O(n^2)",
+     "mustDo": false
+    },
+    {
+     "id": "word-search",
+     "title": "Word Search",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Uber",
+      "Atlassian",
+      "Flipkart",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/word-search/",
+     "summary": "Given a grid of letters and a word, decide whether the word can be traced through horizontally/vertically adjacent cells without reusing a cell. Grid `[[\"A\",\"B\"],[\"C\",\"D\"]]` contains `\"ABD\"` but not `\"ABCD\"` (C isn't adjacent to B).",
+     "approach": "**Intuition:** try every cell as a starting point and run DFS that matches `word[k]` at step k. Mark the current cell as visited (e.g. overwrite it with `'#'`) before exploring its 4 neighbors, and restore it afterwards — that's the backtracking step.\n\n**Prune:** return false immediately on out-of-bounds or character mismatch. Return true as soon as `k == word.length()`.\n\nOptional speedups: if the word has more of some letter than the board, return false; or reverse the word if its last char is rarer than its first.",
+     "solution": "class Solution {\n    public boolean exist(char[][] board, String word) {\n        for (int r = 0; r < board.length; r++) {\n            for (int c = 0; c < board[0].length; c++) {\n                if (dfs(board, word, r, c, 0)) return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean dfs(char[][] b, String word, int r, int c, int k) {\n        if (k == word.length()) return true;\n        if (r < 0 || c < 0 || r >= b.length || c >= b[0].length || b[r][c] != word.charAt(k)) return false;\n        char saved = b[r][c];\n        b[r][c] = '#'; // mark visited\n        boolean found = dfs(b, word, r + 1, c, k + 1) || dfs(b, word, r - 1, c, k + 1)\n                     || dfs(b, word, r, c + 1, k + 1) || dfs(b, word, r, c - 1, k + 1);\n        b[r][c] = saved; // backtrack\n        return found;\n    }\n}",
+     "time": "O(m · n · 3^L)",
+     "space": "O(L) recursion",
+     "mustDo": true
+    },
+    {
+     "id": "n-queens",
+     "title": "N-Queens",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Adobe",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/n-queens/",
+     "summary": "Place n queens on an n×n board so that no two attack each other (same row, column or diagonal) and return every valid board as a list of strings using `'Q'` and `'.'`. For n = 4 there are 2 solutions.",
+     "approach": "**Intuition:** each row gets exactly one queen, so recurse row by row and choose a column. A placement is safe if its column, its main diagonal (`r - c`) and anti-diagonal (`r + c`) are all free.\n\n**Key insight:** keep three boolean arrays — `cols[n]`, `diag1[2n]` indexed by `r - c + n`, `diag2[2n]` indexed by `r + c` — giving O(1) safety checks instead of scanning the board.\n\nWhen `row == n`, convert the board to strings and record it. Undo all three marks on return.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> res = new ArrayList<>();\n        char[][] board = new char[n][n];\n        for (char[] row : board) Arrays.fill(row, '.');\n        place(0, n, board, new boolean[n], new boolean[2 * n], new boolean[2 * n], res);\n        return res;\n    }\n\n    private void place(int r, int n, char[][] board, boolean[] cols, boolean[] d1, boolean[] d2,\n                       List<List<String>> res) {\n        if (r == n) {\n            List<String> snapshot = new ArrayList<>();\n            for (char[] row : board) snapshot.add(new String(row));\n            res.add(snapshot);\n            return;\n        }\n        for (int c = 0; c < n; c++) {\n            if (cols[c] || d1[r - c + n] || d2[r + c]) continue;\n            cols[c] = d1[r - c + n] = d2[r + c] = true;\n            board[r][c] = 'Q';\n            place(r + 1, n, board, cols, d1, d2, res);\n            board[r][c] = '.';\n            cols[c] = d1[r - c + n] = d2[r + c] = false;\n        }\n    }\n}",
+     "time": "O(n!)",
+     "space": "O(n^2)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "graphs",
+   "name": "Graphs (BFS/DFS)",
+   "order": 11,
+   "intro": "A **graph** is nodes + edges. In interviews it appears either explicitly (edge list, adjacency list, prerequisites) or implicitly (a 2D grid where each cell is a node connected to its 4 neighbours, or words connected by one-letter changes).\n\n**How to recognize it**\n- \"connected\", \"islands\", \"regions\", \"reachable\", \"spread\", \"minimum steps\", \"order of tasks\", \"dependencies\".\n- Grid + \"count groups\" → DFS/BFS flood fill. Grid + \"minimum time/steps\" → **BFS** (multi-source if many starts).\n- \"Can all tasks finish / give an order\" → **topological sort** (Kahn's BFS on in-degrees).\n\n**DFS vs BFS**\n- DFS: simpler to write, good for counting components and marking regions.\n- BFS: gives the **shortest path in an unweighted graph** — level by level.\n\n**Grid BFS template**\n```java\nint[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};\nDeque<int[]> q = new ArrayDeque<>();\nboolean[][] seen = new boolean[m][n];\nq.offer(new int[]{sr, sc}); seen[sr][sc] = true;\nint steps = 0;\nwhile (!q.isEmpty()) {\n    for (int size = q.size(); size > 0; size--) {   // one level\n        int[] cur = q.poll();\n        if (isTarget(cur)) return steps;\n        for (int[] d : DIRS) {\n            int r = cur[0] + d[0], c = cur[1] + d[1];\n            if (r < 0 || c < 0 || r >= m || c >= n || seen[r][c] || blocked(r, c)) continue;\n            seen[r][c] = true;                 // mark when ENQUEUING\n            q.offer(new int[]{r, c});\n        }\n    }\n    steps++;\n}\n```\n\n**Building an adjacency list**\n```java\nList<List<Integer>> adj = new ArrayList<>();\nfor (int i = 0; i < n; i++) adj.add(new ArrayList<>());\nfor (int[] e : edges) { adj.get(e[0]).add(e[1]); adj.get(e[1]).add(e[0]); }\n```\n\n**Pitfalls**\n- Marking visited when *dequeuing* instead of enqueuing → same node queued many times (TLE).\n- Recursive DFS on a 10^5-node path can overflow the stack — mention iterative BFS as backup.\n- Directed cycle detection needs 3 states (unvisited / visiting / done), not just a visited flag.\n- Complexity is O(V + E); for a grid that's O(m·n).",
+   "problems": [
+    {
+     "id": "number-of-islands",
+     "title": "Number of Islands",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Uber",
+      "Swiggy",
+      "PhonePe",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/number-of-islands/",
+     "summary": "Given a grid of `'1'` (land) and `'0'` (water), count the islands, where an island is a group of land cells joined horizontally or vertically. A grid with two separate blobs of 1s returns 2.",
+     "approach": "**Intuition:** scan every cell; when you hit unvisited land, that's a new island — increment the count and flood-fill (DFS/BFS) all land connected to it so it's never counted again.\n\n**Trick:** sink visited land by setting it to `'0'` — no extra visited array needed (mention you're mutating input; copy it if that's not allowed).\n\nEach cell is visited a constant number of times → O(m·n). Union-Find is an alternative and shines when cells are added dynamically (Number of Islands II).",
+     "solution": "class Solution {\n    public int numIslands(char[][] grid) {\n        int count = 0;\n        for (int r = 0; r < grid.length; r++) {\n            for (int c = 0; c < grid[0].length; c++) {\n                if (grid[r][c] == '1') {\n                    count++;\n                    sink(grid, r, c);\n                }\n            }\n        }\n        return count;\n    }\n\n    private void sink(char[][] g, int r, int c) {\n        if (r < 0 || c < 0 || r >= g.length || c >= g[0].length || g[r][c] != '1') return;\n        g[r][c] = '0';\n        sink(g, r + 1, c);\n        sink(g, r - 1, c);\n        sink(g, r, c + 1);\n        sink(g, r, c - 1);\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n) worst-case recursion",
+     "mustDo": true
+    },
+    {
+     "id": "max-area-of-island",
+     "title": "Max Area of Island",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/max-area-of-island/",
+     "summary": "In a 0/1 grid, the area of an island is its number of connected 1-cells (4-directional). Return the largest area, or 0 if there's no land.",
+     "approach": "Same skeleton as Number of Islands, but the DFS **returns the size** of what it sinks: `1 + dfs(up) + dfs(down) + dfs(left) + dfs(right)`. Track the maximum over all starting cells.",
+     "solution": "class Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int best = 0;\n        for (int r = 0; r < grid.length; r++)\n            for (int c = 0; c < grid[0].length; c++)\n                if (grid[r][c] == 1) best = Math.max(best, area(grid, r, c));\n        return best;\n    }\n\n    private int area(int[][] g, int r, int c) {\n        if (r < 0 || c < 0 || r >= g.length || c >= g[0].length || g[r][c] != 1) return 0;\n        g[r][c] = 0;\n        return 1 + area(g, r + 1, c) + area(g, r - 1, c) + area(g, r, c + 1) + area(g, r, c - 1);\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "clone-graph",
+     "title": "Clone Graph",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/clone-graph/",
+     "summary": "Given a reference to one node of a connected undirected graph (each node has a value and a list of neighbours), return a deep copy of the whole graph. The copy must use brand-new node objects with the same structure.",
+     "approach": "**Intuition:** traverse the graph and keep a `HashMap<Node, Node>` from original to clone. The map does double duty: it's the visited set *and* lets you wire up edges to clones that already exist (cycles!).\n\nDFS: if the node is in the map, return its clone; otherwise create the clone, put it in the map **before** recursing (prevents infinite loops), then clone each neighbour and add it.",
+     "solution": "import java.util.*;\n\n/*\n// Definition for a Node (provided by LeetCode).\nclass Node {\n    public int val;\n    public List<Node> neighbors;\n    public Node() { val = 0; neighbors = new ArrayList<Node>(); }\n    public Node(int _val) { val = _val; neighbors = new ArrayList<Node>(); }\n    public Node(int _val, ArrayList<Node> _neighbors) { val = _val; neighbors = _neighbors; }\n}\n*/\n\nclass Solution {\n    private final Map<Node, Node> copies = new HashMap<>();\n\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        if (copies.containsKey(node)) return copies.get(node);\n        Node copy = new Node(node.val);\n        copies.put(node, copy); // register before visiting neighbours\n        for (Node nb : node.neighbors) {\n            copy.neighbors.add(cloneGraph(nb));\n        }\n        return copy;\n    }\n}",
+     "time": "O(V + E)",
+     "space": "O(V)",
+     "mustDo": false
+    },
+    {
+     "id": "rotting-oranges",
+     "title": "Rotting Oranges",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Zomato",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/rotting-oranges/",
+     "summary": "A grid has empty cells (0), fresh oranges (1) and rotten oranges (2). Each minute, every fresh orange next to a rotten one rots. Return the minutes until no fresh orange remains, or −1 if some can never rot.",
+     "approach": "**Intuition:** rot spreads simultaneously from *all* rotten oranges — that's **multi-source BFS**. Put every rotten orange in the queue at time 0 and count fresh oranges.\n\nProcess level by level; each level is one minute. When you rot a neighbour, decrement `fresh`. At the end, return `minutes` if `fresh == 0`, else −1.\n\n**Pitfall:** only increment minutes if the level actually rotted something (or loop while `fresh > 0`), otherwise you'll overcount by one.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int m = grid.length, n = grid[0].length, fresh = 0;\n        Deque<int[]> q = new ArrayDeque<>();\n        for (int r = 0; r < m; r++)\n            for (int c = 0; c < n; c++) {\n                if (grid[r][c] == 2) q.offer(new int[]{r, c});\n                else if (grid[r][c] == 1) fresh++;\n            }\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        int minutes = 0;\n        while (!q.isEmpty() && fresh > 0) {\n            for (int size = q.size(); size > 0; size--) {\n                int[] cur = q.poll();\n                for (int[] d : dirs) {\n                    int r = cur[0] + d[0], c = cur[1] + d[1];\n                    if (r < 0 || c < 0 || r >= m || c >= n || grid[r][c] != 1) continue;\n                    grid[r][c] = 2;\n                    fresh--;\n                    q.offer(new int[]{r, c});\n                }\n            }\n            minutes++;\n        }\n        return fresh == 0 ? minutes : -1;\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": true
+    },
+    {
+     "id": "01-matrix",
+     "title": "01 Matrix",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/01-matrix/",
+     "summary": "Given a binary matrix, return a matrix where each cell holds the distance (in 4-directional steps) to its nearest 0. Cells that are 0 have distance 0.",
+     "approach": "**Brute force:** BFS from every 1 → O((mn)^2).\n\n**Optimal — reverse the direction:** run one multi-source BFS starting from **all zeros** at distance 0. Initialize 1-cells to −1 (unvisited). When BFS first reaches a cell, that's its shortest distance: `dist[nb] = dist[cur] + 1`.\n\nThis \"start from targets, not sources\" trick appears often (walls and gates, nearest exit).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int[][] updateMatrix(int[][] mat) {\n        int m = mat.length, n = mat[0].length;\n        int[][] dist = new int[m][n];\n        Deque<int[]> q = new ArrayDeque<>();\n        for (int r = 0; r < m; r++)\n            for (int c = 0; c < n; c++) {\n                if (mat[r][c] == 0) q.offer(new int[]{r, c});\n                else dist[r][c] = -1;\n            }\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        while (!q.isEmpty()) {\n            int[] cur = q.poll();\n            for (int[] d : dirs) {\n                int r = cur[0] + d[0], c = cur[1] + d[1];\n                if (r < 0 || c < 0 || r >= m || c >= n || dist[r][c] != -1) continue;\n                dist[r][c] = dist[cur[0]][cur[1]] + 1;\n                q.offer(new int[]{r, c});\n            }\n        }\n        return dist;\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "course-schedule",
+     "title": "Course Schedule",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Flipkart",
+      "Atlassian",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/course-schedule/",
+     "summary": "There are `numCourses` courses and pairs `[a, b]` meaning you must take b before a. Decide whether it's possible to finish all courses. `[[1,0],[0,1]]` is impossible because the two courses depend on each other.",
+     "approach": "**Reframe:** courses are nodes, prerequisites are directed edges `b → a`. All courses can be finished iff the graph has **no cycle**.\n\n**Kahn's algorithm (BFS topological sort):** compute in-degrees; push every node with in-degree 0; repeatedly pop a node, count it, and decrement neighbours' in-degree, pushing any that drop to 0. If the count of processed nodes equals `numCourses`, there's no cycle.\n\nAlternative: DFS with 3 colours — a back edge to a \"visiting\" node means a cycle.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        int[] indeg = new int[numCourses];\n        for (int[] p : prerequisites) {\n            adj.get(p[1]).add(p[0]);\n            indeg[p[0]]++;\n        }\n        Deque<Integer> q = new ArrayDeque<>();\n        for (int i = 0; i < numCourses; i++) if (indeg[i] == 0) q.offer(i);\n        int done = 0;\n        while (!q.isEmpty()) {\n            int cur = q.poll();\n            done++;\n            for (int next : adj.get(cur)) {\n                if (--indeg[next] == 0) q.offer(next);\n            }\n        }\n        return done == numCourses;\n    }\n}",
+     "time": "O(V + E)",
+     "space": "O(V + E)",
+     "mustDo": true
+    },
+    {
+     "id": "course-schedule-ii",
+     "title": "Course Schedule II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/course-schedule-ii/",
+     "summary": "Same setup as Course Schedule, but return one valid order in which to take all courses, or an empty array if it's impossible. For 4 courses with `[[1,0],[2,0],[3,1],[3,2]]`, `[0,1,2,3]` and `[0,2,1,3]` are both valid.",
+     "approach": "Run Kahn's algorithm exactly as in Course Schedule, but **append each popped node to the result**. The pop order is a topological order. If the result has fewer than `numCourses` entries, a cycle blocked some courses → return an empty array.\n\nThis is the standard **topological sort** template; it also solves build-order, task dependency and \"parallel courses\" questions.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int[] findOrder(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        int[] indeg = new int[numCourses];\n        for (int[] p : prerequisites) {\n            adj.get(p[1]).add(p[0]);\n            indeg[p[0]]++;\n        }\n        Deque<Integer> q = new ArrayDeque<>();\n        for (int i = 0; i < numCourses; i++) if (indeg[i] == 0) q.offer(i);\n        int[] order = new int[numCourses];\n        int idx = 0;\n        while (!q.isEmpty()) {\n            int cur = q.poll();\n            order[idx++] = cur;\n            for (int next : adj.get(cur)) {\n                if (--indeg[next] == 0) q.offer(next);\n            }\n        }\n        return idx == numCourses ? order : new int[0];\n    }\n}",
+     "time": "O(V + E)",
+     "space": "O(V + E)",
+     "mustDo": true
+    },
+    {
+     "id": "pacific-atlantic-water-flow",
+     "title": "Pacific Atlantic Water Flow",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/pacific-atlantic-water-flow/",
+     "summary": "A height grid touches the Pacific on its top/left edges and the Atlantic on its bottom/right edges. Water flows from a cell to a neighbour of equal or lower height. Return all cells from which water can reach both oceans.",
+     "approach": "**Brute force:** DFS from every cell to see whether it reaches both oceans → O((mn)^2).\n\n**Key insight — reverse the flow:** start from the ocean borders and walk **uphill** (to neighbours with height ≥ current). Every cell reached from the Pacific border can drain into the Pacific. Do the same for the Atlantic. The answer is the intersection of the two visited sets.\n\nTwo DFS passes, each O(m·n).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    private int m, n;\n\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        m = heights.length;\n        n = heights[0].length;\n        boolean[][] pac = new boolean[m][n], atl = new boolean[m][n];\n        for (int r = 0; r < m; r++) {\n            dfs(heights, pac, r, 0, Integer.MIN_VALUE);\n            dfs(heights, atl, r, n - 1, Integer.MIN_VALUE);\n        }\n        for (int c = 0; c < n; c++) {\n            dfs(heights, pac, 0, c, Integer.MIN_VALUE);\n            dfs(heights, atl, m - 1, c, Integer.MIN_VALUE);\n        }\n        List<List<Integer>> res = new ArrayList<>();\n        for (int r = 0; r < m; r++)\n            for (int c = 0; c < n; c++)\n                if (pac[r][c] && atl[r][c]) res.add(List.of(r, c));\n        return res;\n    }\n\n    private void dfs(int[][] h, boolean[][] seen, int r, int c, int prev) {\n        if (r < 0 || c < 0 || r >= m || c >= n || seen[r][c] || h[r][c] < prev) return;\n        seen[r][c] = true;\n        dfs(h, seen, r + 1, c, h[r][c]);\n        dfs(h, seen, r - 1, c, h[r][c]);\n        dfs(h, seen, r, c + 1, h[r][c]);\n        dfs(h, seen, r, c - 1, h[r][c]);\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "surrounded-regions",
+     "title": "Surrounded Regions",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/surrounded-regions/",
+     "summary": "A board contains `'X'` and `'O'`. Flip every `'O'` that is completely enclosed by `'X'` into `'X'` (in place). An `'O'` region that touches the border, directly or through other `'O'`s, survives.",
+     "approach": "**Key insight — think in reverse:** instead of finding enclosed regions, find the *safe* ones. Any `'O'` connected to the border can't be captured.\n\n1. DFS from every border `'O'`, marking reachable cells as a temporary `'#'`.\n2. Sweep the board: remaining `'O'` → `'X'` (captured), `'#'` → `'O'` (restored).\n\nSame \"start from the boundary\" idea as Pacific Atlantic.",
+     "solution": "class Solution {\n    public void solve(char[][] board) {\n        int m = board.length, n = board[0].length;\n        for (int r = 0; r < m; r++) {\n            mark(board, r, 0);\n            mark(board, r, n - 1);\n        }\n        for (int c = 0; c < n; c++) {\n            mark(board, 0, c);\n            mark(board, m - 1, c);\n        }\n        for (int r = 0; r < m; r++)\n            for (int c = 0; c < n; c++) {\n                if (board[r][c] == 'O') board[r][c] = 'X';\n                else if (board[r][c] == '#') board[r][c] = 'O';\n            }\n    }\n\n    private void mark(char[][] b, int r, int c) {\n        if (r < 0 || c < 0 || r >= b.length || c >= b[0].length || b[r][c] != 'O') return;\n        b[r][c] = '#';\n        mark(b, r + 1, c);\n        mark(b, r - 1, c);\n        mark(b, r, c + 1);\n        mark(b, r, c - 1);\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "word-ladder",
+     "title": "Word Ladder",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/word-ladder/",
+     "summary": "Given a start word, an end word and a dictionary, find the length of the shortest transformation sequence where each step changes exactly one letter and every intermediate word is in the dictionary (count includes both ends). `hit → hot → dot → dog → cog` gives 5; return 0 if impossible.",
+     "approach": "**Intuition:** words are nodes, an edge joins words differing by one letter, and we want the shortest path → **BFS**.\n\nDon't build the graph explicitly (O(N²·L)). Instead, for each word popped, try replacing every position with `'a'..'z'` and check the dictionary `HashSet` — O(26·L) neighbours. Remove words from the set when enqueued (acts as visited).\n\nReturn the level when you reach `endWord`. Bidirectional BFS is a good follow-up optimization.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> dict = new HashSet<>(wordList);\n        if (!dict.contains(endWord)) return 0;\n        Deque<String> q = new ArrayDeque<>();\n        q.offer(beginWord);\n        dict.remove(beginWord);\n        int level = 1;\n        while (!q.isEmpty()) {\n            for (int size = q.size(); size > 0; size--) {\n                char[] w = q.poll().toCharArray();\n                for (int i = 0; i < w.length; i++) {\n                    char orig = w[i];\n                    for (char ch = 'a'; ch <= 'z'; ch++) {\n                        if (ch == orig) continue;\n                        w[i] = ch;\n                        String next = new String(w);\n                        if (next.equals(endWord)) return level + 1;\n                        if (dict.remove(next)) q.offer(next);\n                    }\n                    w[i] = orig;\n                }\n            }\n            level++;\n        }\n        return 0;\n    }\n}",
+     "time": "O(N · L · 26)",
+     "space": "O(N · L)",
+     "mustDo": false
+    },
+    {
+     "id": "is-graph-bipartite",
+     "title": "Is Graph Bipartite?",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/is-graph-bipartite/",
+     "summary": "Given an undirected graph as an adjacency list, decide whether its nodes can be split into two groups so that every edge connects nodes from different groups. A triangle is not bipartite; a square is.",
+     "approach": "**Intuition:** try to 2-colour the graph. BFS/DFS from each uncoloured node (the graph may be disconnected), colour it 0, and give every neighbour the opposite colour. If you ever find a neighbour already painted the **same** colour as the current node, the graph isn't bipartite.\n\nEquivalent fact: a graph is bipartite iff it has no odd-length cycle.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n        for (int start = 0; start < n; start++) {\n            if (color[start] != -1) continue;\n            Deque<Integer> q = new ArrayDeque<>();\n            q.offer(start);\n            color[start] = 0;\n            while (!q.isEmpty()) {\n                int u = q.poll();\n                for (int v : graph[u]) {\n                    if (color[v] == -1) {\n                        color[v] = 1 - color[u];\n                        q.offer(v);\n                    } else if (color[v] == color[u]) {\n                        return false;\n                    }\n                }\n            }\n        }\n        return true;\n    }\n}",
+     "time": "O(V + E)",
+     "space": "O(V)",
+     "mustDo": false
+    },
+    {
+     "id": "shortest-path-in-binary-matrix",
+     "title": "Shortest Path in Binary Matrix",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Swiggy"
+     ],
+     "leetcode": "https://leetcode.com/problems/shortest-path-in-binary-matrix/",
+     "summary": "In an n×n 0/1 grid, find the length (number of cells) of the shortest path from the top-left to the bottom-right moving through 0-cells in any of 8 directions. Return −1 if no such path exists.",
+     "approach": "Unweighted shortest path → **BFS**. Start at (0,0) with distance 1 (if it's 0). Explore 8 neighbours; mark visited by setting the cell to 1 when enqueuing. The first time you pop (n−1, n−1), its distance is the answer.\n\n**Edge cases:** start or end blocked → −1; a 1×1 grid with `0` → 1.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] == 1 || grid[n - 1][n - 1] == 1) return -1;\n        Deque<int[]> q = new ArrayDeque<>();\n        q.offer(new int[]{0, 0});\n        grid[0][0] = 1;\n        int dist = 1;\n        while (!q.isEmpty()) {\n            for (int size = q.size(); size > 0; size--) {\n                int[] cur = q.poll();\n                if (cur[0] == n - 1 && cur[1] == n - 1) return dist;\n                for (int dr = -1; dr <= 1; dr++)\n                    for (int dc = -1; dc <= 1; dc++) {\n                        int r = cur[0] + dr, c = cur[1] + dc;\n                        if (r < 0 || c < 0 || r >= n || c >= n || grid[r][c] != 0) continue;\n                        grid[r][c] = 1;\n                        q.offer(new int[]{r, c});\n                    }\n            }\n            dist++;\n        }\n        return -1;\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(n^2)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "advanced-graphs",
+   "name": "Advanced Graphs",
+   "order": 12,
+   "intro": "Once BFS/DFS is comfortable, three more tools cover almost every remaining graph question at SDE-1/SDE-2 level.\n\n**1. Dijkstra — shortest path with non-negative weights.** Recognize: \"minimum time/cost/effort\", weighted edges. Use a min-heap of `{dist, node}`; pop the smallest, skip stale entries, relax neighbours.\n```java\nint[] dist = new int[n]; Arrays.fill(dist, Integer.MAX_VALUE); dist[src] = 0;\nPriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));\npq.offer(new int[]{0, src});\nwhile (!pq.isEmpty()) {\n    int[] top = pq.poll(); int d = top[0], u = top[1];\n    if (d > dist[u]) continue;                       // stale entry\n    for (int[] e : adj.get(u)) {                      // e = {v, w}\n        if (d + e[1] < dist[e[0]]) { dist[e[0]] = d + e[1]; pq.offer(new int[]{dist[e[0]], e[0]}); }\n    }\n}\n```\nO((V + E) log V). Doesn't work with negative weights (use Bellman-Ford). If the path has an extra constraint like \"at most K edges\", Bellman-Ford with K rounds is simpler.\n\n**2. Union-Find (Disjoint Set Union).** Recognize: \"connected groups\", \"merge\", \"is there a cycle in an undirected graph\", \"redundant edge\", Kruskal's MST.\n```java\nint[] parent, rank;\nint find(int x) { return parent[x] == x ? x : (parent[x] = find(parent[x])); } // path compression\nboolean union(int a, int b) {\n    int ra = find(a), rb = find(b);\n    if (ra == rb) return false;                       // already connected → cycle\n    if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n    parent[rb] = ra;\n    if (rank[ra] == rank[rb]) rank[ra]++;\n    return true;\n}\n```\nNear O(1) per operation (inverse Ackermann).\n\n**3. Minimum Spanning Tree.** Connect all nodes with minimum total cost: **Kruskal** (sort edges + union-find) or **Prim** (min-heap growing from one node — better for dense graphs).\n\n**Pitfalls**\n- Forgetting the `if (d > dist[u]) continue;` stale check (still correct, but slower).\n- Integer overflow when adding to `Integer.MAX_VALUE` — check for \"unreached\" first.\n- Topological sort on characters (Alien Dictionary): handle the invalid prefix case (`\"abc\"` before `\"ab\"`).",
+   "problems": [
+    {
+     "id": "network-delay-time",
+     "title": "Network Delay Time",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/network-delay-time/",
+     "summary": "A network has n nodes and directed weighted edges `(u, v, time)`. A signal starts at node k; return the time until every node has received it, or −1 if some node is unreachable.",
+     "approach": "**Intuition:** each node receives the signal at its shortest-path distance from k; the answer is the **maximum** of those distances. Weights are non-negative → **Dijkstra**.\n\nBuild an adjacency list, run Dijkstra from k, then take the max distance; if any is still infinity, return −1.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int networkDelayTime(int[][] times, int n, int k) {\n        List<List<int[]>> adj = new ArrayList<>();\n        for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());\n        for (int[] t : times) adj.get(t[0]).add(new int[]{t[1], t[2]});\n\n        int[] dist = new int[n + 1];\n        Arrays.fill(dist, Integer.MAX_VALUE);\n        dist[k] = 0;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));\n        pq.offer(new int[]{0, k});\n        while (!pq.isEmpty()) {\n            int[] top = pq.poll();\n            int d = top[0], u = top[1];\n            if (d > dist[u]) continue;\n            for (int[] e : adj.get(u)) {\n                int v = e[0], nd = d + e[1];\n                if (nd < dist[v]) {\n                    dist[v] = nd;\n                    pq.offer(new int[]{nd, v});\n                }\n            }\n        }\n        int ans = 0;\n        for (int i = 1; i <= n; i++) {\n            if (dist[i] == Integer.MAX_VALUE) return -1;\n            ans = Math.max(ans, dist[i]);\n        }\n        return ans;\n    }\n}",
+     "time": "O((V + E) log V)",
+     "space": "O(V + E)",
+     "mustDo": true
+    },
+    {
+     "id": "cheapest-flights-within-k-stops",
+     "title": "Cheapest Flights Within K Stops",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Swiggy",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
+     "summary": "Given flights `[from, to, price]`, find the cheapest price from `src` to `dst` using at most k intermediate stops (i.e. at most k+1 flights). Return −1 if no such route exists.",
+     "approach": "**Why plain Dijkstra fails:** the cheapest path might use too many stops; a pricier path with fewer stops can still be the right answer, but Dijkstra discards it.\n\n**Bellman-Ford limited to k+1 rounds:** after round i, `dist[v]` is the cheapest cost using at most i edges. In each round, relax all edges using a **copy** of the previous round's array — otherwise one round could chain several edges and break the stop limit.\n\nO(k·E), simple and bug-resistant. (A BFS by levels or Dijkstra with state `(node, stops)` also work.)",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {\n        int[] dist = new int[n];\n        Arrays.fill(dist, Integer.MAX_VALUE);\n        dist[src] = 0;\n        for (int round = 0; round <= k; round++) {\n            int[] next = dist.clone();\n            for (int[] f : flights) {\n                int u = f[0], v = f[1], w = f[2];\n                if (dist[u] == Integer.MAX_VALUE) continue;\n                if (dist[u] + w < next[v]) next[v] = dist[u] + w;\n            }\n            dist = next;\n        }\n        return dist[dst] == Integer.MAX_VALUE ? -1 : dist[dst];\n    }\n}",
+     "time": "O(k · E)",
+     "space": "O(V)",
+     "mustDo": false
+    },
+    {
+     "id": "min-cost-to-connect-all-points",
+     "title": "Min Cost to Connect All Points",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/min-cost-to-connect-all-points/",
+     "summary": "Given points on a 2D plane, connecting two points costs their Manhattan distance `|x1-x2| + |y1-y2|`. Return the minimum total cost to connect all points so there's a path between every pair.",
+     "approach": "This is a textbook **Minimum Spanning Tree** on a complete graph (every pair is an edge).\n\n**Prim's algorithm (O(n²), no heap):** since the graph is dense, keep `minDist[i]` = cheapest edge from the growing tree to point i. Repeat n times: pick the unvisited point with the smallest `minDist`, add it to the tree (add its cost), and update `minDist` for the rest using distances from the new point.\n\nKruskal (sort all n² edges + union-find) works too but is O(n² log n).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length, total = 0;\n        int[] minDist = new int[n];\n        Arrays.fill(minDist, Integer.MAX_VALUE);\n        boolean[] inTree = new boolean[n];\n        minDist[0] = 0;\n        for (int iter = 0; iter < n; iter++) {\n            int u = -1;\n            for (int i = 0; i < n; i++)\n                if (!inTree[i] && (u == -1 || minDist[i] < minDist[u])) u = i;\n            inTree[u] = true;\n            total += minDist[u];\n            for (int v = 0; v < n; v++) {\n                if (inTree[v]) continue;\n                int d = Math.abs(points[u][0] - points[v][0]) + Math.abs(points[u][1] - points[v][1]);\n                if (d < minDist[v]) minDist[v] = d;\n            }\n        }\n        return total;\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "redundant-connection",
+     "title": "Redundant Connection",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/redundant-connection/",
+     "summary": "A tree with n nodes had one extra edge added, creating exactly one cycle. Given the edge list, return the edge that can be removed to make it a tree again; if several qualify, return the one appearing last in the input.",
+     "approach": "**Union-Find** is the cleanest tool: process edges in order and union their endpoints. The first edge whose endpoints are **already in the same set** closes a cycle — that's the redundant one (and, being the edge that completes the cycle, it's the last cycle edge in input order).\n\nWith path compression + union by rank, each operation is nearly O(1).",
+     "solution": "class Solution {\n    private int[] parent, rank;\n\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        parent = new int[n + 1];\n        rank = new int[n + 1];\n        for (int i = 0; i <= n; i++) parent[i] = i;\n        for (int[] e : edges) {\n            if (!union(e[0], e[1])) return e;\n        }\n        return new int[0];\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n\n    private boolean union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return false;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) rank[ra]++;\n        return true;\n    }\n}",
+     "time": "O(n · α(n))",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "number-of-provinces",
+     "title": "Number of Provinces",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Goldman Sachs",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/number-of-provinces/",
+     "summary": "Given an n×n adjacency matrix where `isConnected[i][j] = 1` means cities i and j are directly connected, count the provinces — groups of cities connected directly or indirectly.",
+     "approach": "Count connected components. Two equally good approaches:\n\n- **DFS:** for each unvisited city, start a DFS over the matrix row and increment the count.\n- **Union-Find:** start with n components; every successful union reduces the count by 1.\n\nShown below with Union-Find since it's the reusable template. Only scan `j > i` because the matrix is symmetric.",
+     "solution": "class Solution {\n    private int[] parent;\n\n    public int findCircleNum(int[][] isConnected) {\n        int n = isConnected.length, components = n;\n        parent = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++)\n                if (isConnected[i][j] == 1) {\n                    int ri = find(i), rj = find(j);\n                    if (ri != rj) {\n                        parent[ri] = rj;\n                        components--;\n                    }\n                }\n        return components;\n    }\n\n    private int find(int x) {\n        while (parent[x] != x) {\n            parent[x] = parent[parent[x]]; // path halving\n            x = parent[x];\n        }\n        return x;\n    }\n}",
+     "time": "O(n^2 · α(n))",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "accounts-merge",
+     "title": "Accounts Merge",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Atlassian",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/accounts-merge/",
+     "summary": "Each account is `[name, email1, email2, ...]`. Two accounts belong to the same person if they share any email. Merge them and return each person as `[name, sorted unique emails...]`.",
+     "approach": "**Intuition:** emails are nodes; all emails in one account are connected. Merged people = connected components.\n\n**Union-Find on email strings:** map each email to an id (first time seen) and remember its owner name. For every account, union each email with the account's first email. Then group emails by their root, sort each group, and prepend the name.\n\nDFS on an email graph works equally well; Union-Find avoids building the adjacency list.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    private int[] parent;\n\n    public List<List<String>> accountsMerge(List<List<String>> accounts) {\n        Map<String, Integer> id = new HashMap<>();\n        Map<String, String> owner = new HashMap<>();\n        int total = 0;\n        for (List<String> acc : accounts) total += acc.size() - 1;\n        parent = new int[total];\n        for (int i = 0; i < total; i++) parent[i] = i;\n\n        for (List<String> acc : accounts) {\n            String name = acc.get(0);\n            for (int i = 1; i < acc.size(); i++) {\n                String email = acc.get(i);\n                id.putIfAbsent(email, id.size());\n                owner.put(email, name);\n                union(id.get(acc.get(1)), id.get(email));\n            }\n        }\n\n        Map<Integer, List<String>> groups = new HashMap<>();\n        for (String email : id.keySet()) {\n            groups.computeIfAbsent(find(id.get(email)), k -> new ArrayList<>()).add(email);\n        }\n        List<List<String>> res = new ArrayList<>();\n        for (List<String> emails : groups.values()) {\n            Collections.sort(emails);\n            List<String> row = new ArrayList<>();\n            row.add(owner.get(emails.get(0)));\n            row.addAll(emails);\n            res.add(row);\n        }\n        return res;\n    }\n\n    private int find(int x) {\n        while (parent[x] != x) {\n            parent[x] = parent[parent[x]];\n            x = parent[x];\n        }\n        return x;\n    }\n\n    private void union(int a, int b) {\n        parent[find(a)] = find(b);\n    }\n}",
+     "time": "O(N log N), N = total emails (sorting dominates)",
+     "space": "O(N)",
+     "mustDo": true
+    },
+    {
+     "id": "alien-dictionary",
+     "title": "Alien Dictionary",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/alien-dictionary/",
+     "summary": "A list of words is sorted according to an unknown alphabet. Derive a valid ordering of the letters that appear, or return `\"\"` if the order is contradictory. From `[\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]` one valid answer is `\"wertf\"`. (LeetCode Premium; the same problem is free on GeeksforGeeks / NeetCode.)",
+     "approach": "**Intuition:** compare each pair of adjacent words. The first position where they differ tells you `a[j]` comes before `b[j]` → a directed edge. Everything after that position tells you nothing.\n\n**Invalid case:** if `a` is longer than `b` and `b` is a prefix of `a` (e.g. `\"abc\"` before `\"ab\"`), no alphabet works → return `\"\"`.\n\nThen **topological sort** (Kahn's) over all letters that appear. If the output contains fewer letters than exist, there's a cycle → `\"\"`.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        Map<Character, Set<Character>> adj = new HashMap<>();\n        Map<Character, Integer> indeg = new HashMap<>();\n        for (String w : words)\n            for (char c : w.toCharArray()) {\n                adj.putIfAbsent(c, new HashSet<>());\n                indeg.putIfAbsent(c, 0);\n            }\n\n        for (int i = 0; i + 1 < words.length; i++) {\n            String a = words[i], b = words[i + 1];\n            if (a.length() > b.length() && a.startsWith(b)) return \"\";\n            for (int j = 0; j < Math.min(a.length(), b.length()); j++) {\n                char x = a.charAt(j), y = b.charAt(j);\n                if (x != y) {\n                    if (adj.get(x).add(y)) indeg.merge(y, 1, Integer::sum);\n                    break;\n                }\n            }\n        }\n\n        Deque<Character> q = new ArrayDeque<>();\n        for (Map.Entry<Character, Integer> e : indeg.entrySet())\n            if (e.getValue() == 0) q.offer(e.getKey());\n        StringBuilder sb = new StringBuilder();\n        while (!q.isEmpty()) {\n            char c = q.poll();\n            sb.append(c);\n            for (char nb : adj.get(c)) {\n                if (indeg.merge(nb, -1, Integer::sum) == 0) q.offer(nb);\n            }\n        }\n        return sb.length() == indeg.size() ? sb.toString() : \"\";\n    }\n}",
+     "time": "O(C), C = total characters in all words",
+     "space": "O(1) (at most 26 letters)",
+     "mustDo": false
+    },
+    {
+     "id": "swim-in-rising-water",
+     "title": "Swim in Rising Water",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/swim-in-rising-water/",
+     "summary": "In an n×n grid of distinct elevations, at time t you can swim between adjacent cells if both elevations are ≤ t. Return the minimum t at which you can get from the top-left to the bottom-right.",
+     "approach": "**Reframe:** the cost of a path is the **maximum** elevation on it; minimize that. This is Dijkstra where the path cost is `max` instead of `sum` (a \"minimax\" path).\n\nMin-heap of `{maxSoFar, r, c}`: pop the cell with the smallest bottleneck, mark it visited; when you pop the destination, its value is the answer. Push each unvisited neighbour with `max(maxSoFar, grid[nr][nc])`.\n\nAlternatives: binary search on t + BFS (O(n² log n)), or Union-Find adding cells in elevation order.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        boolean[][] seen = new boolean[n][n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));\n        pq.offer(new int[]{grid[0][0], 0, 0});\n        seen[0][0] = true;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int t = cur[0], r = cur[1], c = cur[2];\n            if (r == n - 1 && c == n - 1) return t;\n            for (int[] d : dirs) {\n                int nr = r + d[0], nc = c + d[1];\n                if (nr < 0 || nc < 0 || nr >= n || nc >= n || seen[nr][nc]) continue;\n                seen[nr][nc] = true;\n                pq.offer(new int[]{Math.max(t, grid[nr][nc]), nr, nc});\n            }\n        }\n        return -1;\n    }\n}",
+     "time": "O(n^2 log n)",
+     "space": "O(n^2)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "dp-1d",
+   "name": "Dynamic Programming 1D",
+   "order": 13,
+   "intro": "**Dynamic Programming** = recursion + remembering answers to overlapping subproblems. 1D DP means the state is a single index (position in array/string, or an amount).\n\n**How to recognize it**\n- \"Number of ways\", \"minimum/maximum cost\", \"is it possible\", \"longest/shortest ...\" — and greedy choices clearly fail.\n- The answer for position i depends on answers for smaller positions (i−1, i−2, or some j < i).\n\n**The 4-step recipe (say this out loud in interviews)**\n1. **State:** `dp[i]` = answer for the prefix ending at / starting from i (define it in words!).\n2. **Recurrence:** how `dp[i]` is built from smaller states.\n3. **Base cases:** `dp[0]`, `dp[1]`, empty string, amount 0.\n4. **Order & answer:** fill left→right; answer is `dp[n]` or `max(dp)`.\n\n**Template (bottom-up)**\n```java\nint[] dp = new int[n + 1];\ndp[0] = BASE;\nfor (int i = 1; i <= n; i++) {\n    dp[i] = INITIAL;                       // e.g. 0, Integer.MAX_VALUE\n    for (/* each choice that leads to i */) {\n        dp[i] = combine(dp[i], dp[prev] + cost);   // min / max / sum\n    }\n}\nreturn dp[n];\n```\nStart with top-down (recursion + `memo[]`) if that's how you think, then convert. When `dp[i]` only needs `dp[i-1]` and `dp[i-2]`, replace the array with two variables (O(1) space) — interviewers love this follow-up.\n\n**Families in this section**\n- Fibonacci-style: climbing stairs, house robber, decode ways.\n- Unbounded choices: coin change, word break.\n- Subset sum (0/1 knapsack in 1D): partition equal subset — iterate the sum **backwards**.\n- \"Ending at i\": LIS, max product subarray (track both min and max).\n- Expand-around-centre: palindromic substrings.\n\n**Pitfalls**\n- `Integer.MAX_VALUE + 1` overflow in min-DP → use `amount + 1` as infinity.\n- Off-by-one between `dp[i]` meaning \"first i chars\" vs \"char at i\".\n- Forgetting the base case that makes everything else work (`dp[0] = 1` for counting ways, `true` for word break).",
+   "problems": [
+    {
+     "id": "climbing-stairs",
+     "title": "Climbing Stairs",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Adobe",
+      "Microsoft",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/climbing-stairs/",
+     "summary": "You climb a staircase of n steps, taking 1 or 2 steps at a time. Count the distinct ways to reach the top. For n = 3: `1+1+1, 1+2, 2+1` → 3.",
+     "approach": "**State:** `ways(i)` = number of ways to reach step i.\n\n**Recurrence:** the last move was either 1 step (from i−1) or 2 steps (from i−2), so `ways(i) = ways(i−1) + ways(i−2)`. Base: `ways(0)=1, ways(1)=1`. It's Fibonacci.\n\nPlain recursion is O(2^n); memoisation or bottom-up is O(n); two rolling variables bring space to O(1).",
+     "solution": "class Solution {\n    public int climbStairs(int n) {\n        int prev2 = 1, prev1 = 1; // ways(0), ways(1)\n        for (int i = 2; i <= n; i++) {\n            int cur = prev1 + prev2;\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "house-robber",
+     "title": "House Robber",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart",
+      "Walmart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/house-robber/",
+     "summary": "Houses in a row hold some money; you can't rob two adjacent houses. Return the maximum amount you can rob. For `[2,7,9,3,1]` → 2 + 9 + 1 = 12.",
+     "approach": "**State:** `dp[i]` = best total using houses `0..i`.\n\n**Recurrence:** either skip house i (`dp[i−1]`) or rob it (`dp[i−2] + nums[i]`): `dp[i] = max(dp[i−1], dp[i−2] + nums[i])`.\n\nOnly two previous values are needed, so keep `prev2`, `prev1`. Brute force tries all non-adjacent subsets (O(2^n)).",
+     "solution": "class Solution {\n    public int rob(int[] nums) {\n        int prev2 = 0, prev1 = 0; // best up to i-2, best up to i-1\n        for (int x : nums) {\n            int cur = Math.max(prev1, prev2 + x);\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "house-robber-ii",
+     "title": "House Robber II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/house-robber-ii/",
+     "summary": "Same as House Robber, but the houses form a circle, so the first and last houses are adjacent. For `[2,3,2]` the answer is 3 (can't take both 2s).",
+     "approach": "**Key insight:** the first and last house can't both be robbed, so the answer is the better of two linear problems:\n- rob among houses `0..n−2` (exclude last), or\n- rob among houses `1..n−1` (exclude first).\n\nReuse the House Robber helper on index ranges. Edge case: a single house → return it.",
+     "solution": "class Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) return nums[0];\n        return Math.max(robRange(nums, 0, n - 2), robRange(nums, 1, n - 1));\n    }\n\n    private int robRange(int[] nums, int lo, int hi) {\n        int prev2 = 0, prev1 = 0;\n        for (int i = lo; i <= hi; i++) {\n            int cur = Math.max(prev1, prev2 + nums[i]);\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "coin-change",
+     "title": "Coin Change",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart",
+      "Goldman Sachs",
+      "PhonePe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/coin-change/",
+     "summary": "Given coin denominations (unlimited supply) and an amount, return the fewest coins that make up the amount, or −1 if impossible. Coins `[1,2,5]`, amount 11 → 3 (5+5+1).",
+     "approach": "**Why not greedy?** Coins `[1,3,4]`, amount 6: greedy picks 4+1+1 (3 coins) but 3+3 (2 coins) is better.\n\n**State:** `dp[a]` = min coins to make amount a.\n\n**Recurrence:** `dp[a] = min over coins c ≤ a of dp[a − c] + 1`. Base `dp[0] = 0`. Use `amount + 1` as \"infinity\" (no answer can need more coins than the amount) to avoid overflow.\n\nAnswer: `dp[amount]` if it's ≤ amount, else −1.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int coinChange(int[] coins, int amount) {\n        int[] dp = new int[amount + 1];\n        Arrays.fill(dp, amount + 1);\n        dp[0] = 0;\n        for (int a = 1; a <= amount; a++) {\n            for (int c : coins) {\n                if (c <= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);\n            }\n        }\n        return dp[amount] > amount ? -1 : dp[amount];\n    }\n}",
+     "time": "O(amount · coins)",
+     "space": "O(amount)",
+     "mustDo": true
+    },
+    {
+     "id": "longest-increasing-subsequence",
+     "title": "Longest Increasing Subsequence",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart",
+      "Uber",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-increasing-subsequence/",
+     "summary": "Return the length of the longest strictly increasing subsequence (not necessarily contiguous). For `[10,9,2,5,3,7,101,18]` → 4, e.g. `[2,3,7,101]`.",
+     "approach": "**O(n²) DP:** `dp[i]` = length of the LIS ending at i. `dp[i] = 1 + max(dp[j])` over `j < i` with `nums[j] < nums[i]`. Answer = `max(dp)`.\n\n**O(n log n) — patience sorting:** maintain `tails`, where `tails[k]` = smallest possible tail of an increasing subsequence of length k+1. For each number, binary-search the first tail ≥ it and replace it (or append if none). `tails` stays sorted; its size is the LIS length. Know both — interviewers usually start with O(n²) and ask for the optimization.",
+     "solution": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] tails = new int[nums.length];\n        int size = 0;\n        for (int x : nums) {\n            int lo = 0, hi = size;\n            while (lo < hi) {               // first index with tails[idx] >= x\n                int mid = (lo + hi) >>> 1;\n                if (tails[mid] < x) lo = mid + 1;\n                else hi = mid;\n            }\n            tails[lo] = x;\n            if (lo == size) size++;\n        }\n        return size;\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "word-break",
+     "title": "Word Break",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "Walmart",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/word-break/",
+     "summary": "Given a string and a dictionary, decide whether the string can be split into a sequence of one or more dictionary words (words can repeat). `\"leetcode\"` with `[\"leet\",\"code\"]` → true.",
+     "approach": "**Brute force:** try every prefix that's a word and recurse on the rest — exponential because suffixes repeat.\n\n**State:** `dp[i]` = true if the first i characters can be segmented.\n\n**Recurrence:** `dp[i] = true` if some `j < i` has `dp[j] == true` and `s[j..i)` is in the dictionary. Base `dp[0] = true` (empty prefix).\n\nPut the dictionary in a `HashSet`. Optionally limit `j` to `i − maxWordLen` to speed it up.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> dict = new HashSet<>(wordDict);\n        int maxLen = 0;\n        for (String w : wordDict) maxLen = Math.max(maxLen, w.length());\n        int n = s.length();\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int i = 1; i <= n; i++) {\n            for (int j = Math.max(0, i - maxLen); j < i; j++) {\n                if (dp[j] && dict.contains(s.substring(j, i))) {\n                    dp[i] = true;\n                    break;\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+     "time": "O(n · L · L), L = max word length",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "decode-ways",
+     "title": "Decode Ways",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Goldman Sachs"
+     ],
+     "leetcode": "https://leetcode.com/problems/decode-ways/",
+     "summary": "Letters are encoded as `A=1 ... Z=26`. Given a digit string, count how many ways it can be decoded. `\"226\"` → 3 (`2 2 6`, `22 6`, `2 26`); `\"06\"` → 0 because `06` isn't valid.",
+     "approach": "**State:** `dp[i]` = ways to decode the first i characters.\n\n**Recurrence:**\n- If `s[i−1] != '0'`, the last char alone is a letter: `dp[i] += dp[i−1]`.\n- If the last two chars form 10..26: `dp[i] += dp[i−2]`.\n\nBase: `dp[0] = 1`. Like climbing stairs but with validity conditions. Zeros are the trap — `'0'` can only appear as part of `10` or `20`. Rolling variables give O(1) space.",
+     "solution": "class Solution {\n    public int numDecodings(String s) {\n        int n = s.length();\n        int prev2 = 1;                              // dp[0]\n        int prev1 = s.charAt(0) == '0' ? 0 : 1;      // dp[1]\n        for (int i = 2; i <= n; i++) {\n            int cur = 0;\n            if (s.charAt(i - 1) != '0') cur += prev1;\n            int two = (s.charAt(i - 2) - '0') * 10 + (s.charAt(i - 1) - '0');\n            if (two >= 10 && two <= 26) cur += prev2;\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "partition-equal-subset-sum",
+     "title": "Partition Equal Subset Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/partition-equal-subset-sum/",
+     "summary": "Decide whether an array of positive integers can be split into two subsets with equal sums. `[1,5,11,5]` → true (`[1,5,5]` and `[11]`); `[1,2,3,5]` → false.",
+     "approach": "**Reduce:** if the total is odd → false. Otherwise ask: is there a subset summing to `total / 2`? That's **0/1 knapsack / subset sum**.\n\n**State:** `dp[s]` = can some subset of the numbers seen so far sum to s.\n\n**Recurrence:** for each number x, for s from target **down to** x: `dp[s] |= dp[s − x]`. Iterating backwards ensures each number is used at most once (iterating forward would let x be reused — that's the unbounded version). Base `dp[0] = true`.",
+     "solution": "class Solution {\n    public boolean canPartition(int[] nums) {\n        int total = 0;\n        for (int x : nums) total += x;\n        if (total % 2 != 0) return false;\n        int target = total / 2;\n        boolean[] dp = new boolean[target + 1];\n        dp[0] = true;\n        for (int x : nums) {\n            for (int s = target; s >= x; s--) {\n                dp[s] = dp[s] || dp[s - x];\n            }\n            if (dp[target]) return true;\n        }\n        return dp[target];\n    }\n}",
+     "time": "O(n · sum)",
+     "space": "O(sum)",
+     "mustDo": false
+    },
+    {
+     "id": "maximum-product-subarray",
+     "title": "Maximum Product Subarray",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Goldman Sachs",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/maximum-product-subarray/",
+     "summary": "Find the contiguous subarray with the largest product and return that product. `[2,3,-2,4]` → 6 (`[2,3]`); `[-2,0,-1]` → 0.",
+     "approach": "**Why Kadane alone fails:** a negative number can turn the *smallest* product into the *largest* one.\n\n**State:** for the subarray ending at i, track both `maxEnd` and `minEnd`.\n\n**Recurrence:** for current x, candidates are `x`, `maxEnd·x`, `minEnd·x`. New `maxEnd` = max of the three; new `minEnd` = min of the three (compute both from the old values). Answer = max `maxEnd` seen. Zero naturally resets both.",
+     "solution": "class Solution {\n    public int maxProduct(int[] nums) {\n        int maxEnd = nums[0], minEnd = nums[0], best = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            int x = nums[i];\n            int a = maxEnd * x, b = minEnd * x;\n            maxEnd = Math.max(x, Math.max(a, b));\n            minEnd = Math.min(x, Math.min(a, b));\n            best = Math.max(best, maxEnd);\n        }\n        return best;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "longest-palindromic-substring",
+     "title": "Longest Palindromic Substring",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Adobe",
+      "Oracle",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-palindromic-substring/",
+     "summary": "Return the longest contiguous substring that reads the same forwards and backwards. `\"babad\"` → `\"bab\"` (or `\"aba\"`); `\"cbbd\"` → `\"bb\"`.",
+     "approach": "**Brute force:** check all O(n²) substrings, each in O(n) → O(n³).\n\n**DP:** `pal[i][j] = s[i]==s[j] && (j−i < 2 || pal[i+1][j−1])` → O(n²) time and space.\n\n**Expand around centre (best in interviews):** every palindrome has a centre — either a character (odd length) or a gap between two characters (even length). For each of the 2n−1 centres, expand outward while both ends match, and track the longest. O(n²) time, O(1) space.",
+     "solution": "class Solution {\n    public String longestPalindrome(String s) {\n        int bestStart = 0, bestLen = 0;\n        for (int c = 0; c < s.length(); c++) {\n            int odd = expand(s, c, c);\n            int even = expand(s, c, c + 1);\n            int len = Math.max(odd, even);\n            if (len > bestLen) {\n                bestLen = len;\n                bestStart = c - (len - 1) / 2;\n            }\n        }\n        return s.substring(bestStart, bestStart + bestLen);\n    }\n\n    private int expand(String s, int l, int r) {\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            l--;\n            r++;\n        }\n        return r - l - 1;\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "palindromic-substrings",
+     "title": "Palindromic Substrings",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/palindromic-substrings/",
+     "summary": "Count how many substrings of a string are palindromes (substrings at different positions count separately). `\"aaa\"` → 6: three `a`, two `aa`, one `aaa`.",
+     "approach": "Same technique as Longest Palindromic Substring: **expand around each of the 2n−1 centres**. Every successful expansion step is one more palindrome, so add 1 to the count each time the ends match.\n\nThe DP table `pal[i][j]` also works (count the true cells) but uses O(n²) space.",
+     "solution": "class Solution {\n    public int countSubstrings(String s) {\n        int count = 0;\n        for (int c = 0; c < s.length(); c++) {\n            count += expand(s, c, c);     // odd length\n            count += expand(s, c, c + 1); // even length\n        }\n        return count;\n    }\n\n    private int expand(String s, int l, int r) {\n        int found = 0;\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            found++;\n            l--;\n            r++;\n        }\n        return found;\n    }\n}",
+     "time": "O(n^2)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "dp-2d",
+   "name": "Dynamic Programming 2D",
+   "order": 14,
+   "intro": "**2D DP** uses two indices for the state. It shows up in three main shapes:\n\n1. **Grid DP** — `dp[r][c]` = answer for reaching cell (r, c). (Unique Paths, min path sum.)\n2. **Two-sequence DP** — `dp[i][j]` = answer for the first i chars of A and first j chars of B. (LCS, Edit Distance, Interleaving String, Distinct Subsequences.)\n3. **Item × capacity (knapsack)** — `dp[i][s]` = using the first i items, can we / how many ways to reach s. (Target Sum, Coin Change II.)\n4. Plus two special ones: **interval DP** `dp[l][r]` over a range (Burst Balloons) and **state-machine DP** `dp[i][state]` (stock with cooldown).\n\n**How to recognize it**: two strings compared character by character; a grid with only right/down moves; \"number of ways to pick items to reach a sum\"; choosing the *last* operation in a range.\n\n**Two-string template**\n```java\nint m = a.length(), n = b.length();\nint[][] dp = new int[m + 1][n + 1];          // row 0 / col 0 = empty prefix\nfor (int i = 0; i <= m; i++) dp[i][0] = BASE_COL;\nfor (int j = 0; j <= n; j++) dp[0][j] = BASE_ROW;\nfor (int i = 1; i <= m; i++) {\n    for (int j = 1; j <= n; j++) {\n        if (a.charAt(i - 1) == b.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1] + MATCH;\n        else dp[i][j] = combine(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);\n    }\n}\nreturn dp[m][n];\n```\n\n**Space optimization**: if row i only reads row i−1, keep one or two 1D arrays. Explain it after giving the 2D version — clarity first.\n\n**Knapsack loop order (very common trap)**\n- 0/1 (each item once): items outer, sum loop **descending**.\n- Unbounded (reuse allowed), counting *combinations*: coins outer, sum **ascending**.\n- Counting *permutations* (order matters): sum outer, coins inner.\n\n**Pitfalls**\n- Using `i`/`j` directly on the string instead of `i−1`/`j−1` when dp has a padding row.\n- Drawing the table on paper for a tiny example before coding catches 90% of bugs — do it in the interview too.",
+   "problems": [
+    {
+     "id": "unique-paths",
+     "title": "Unique Paths",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Walmart",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/unique-paths/",
+     "summary": "A robot starts at the top-left of an m×n grid and can only move right or down. Count the distinct paths to the bottom-right corner. For a 3×7 grid the answer is 28.",
+     "approach": "**State:** `dp[r][c]` = number of paths to cell (r, c).\n\n**Recurrence:** you arrive from above or from the left: `dp[r][c] = dp[r−1][c] + dp[r][c−1]`. First row and first column are all 1.\n\n**Space:** each row only needs the previous row, so a single 1D array works: `dp[c] += dp[c−1]`.\n\nMath alternative: choose which (m−1) of the (m+n−2) moves are \"down\" → C(m+n−2, m−1).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int uniquePaths(int m, int n) {\n        int[] dp = new int[n];\n        Arrays.fill(dp, 1);\n        for (int r = 1; r < m; r++) {\n            for (int c = 1; c < n; c++) {\n                dp[c] += dp[c - 1]; // from above (old dp[c]) + from left\n            }\n        }\n        return dp[n - 1];\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "longest-common-subsequence",
+     "title": "Longest Common Subsequence",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Goldman Sachs",
+      "Oracle"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-common-subsequence/",
+     "summary": "Return the length of the longest sequence of characters that appears in both strings in the same relative order (not necessarily contiguous). `\"abcde\"` and `\"ace\"` → 3.",
+     "approach": "**State:** `dp[i][j]` = LCS of `a[0..i)` and `b[0..j)`.\n\n**Recurrence:**\n- If `a[i−1] == b[j−1]`: `dp[i][j] = dp[i−1][j−1] + 1` (use the match).\n- Else: `dp[i][j] = max(dp[i−1][j], dp[i][j−1])` (drop one char from either string).\n\nBase: row/column 0 = 0. This is the **parent problem** of many string DPs (shortest common supersequence, min deletions to make strings equal, longest palindromic subsequence = LCS(s, reverse(s))).",
+     "solution": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length(), n = text2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1] + 1;\n                } else {\n                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": true
+    },
+    {
+     "id": "edit-distance",
+     "title": "Edit Distance",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Goldman Sachs",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/edit-distance/",
+     "summary": "Return the minimum number of single-character insertions, deletions or replacements to convert word1 into word2. `\"horse\"` → `\"ros\"` takes 3 operations.",
+     "approach": "**State:** `dp[i][j]` = min edits to turn `word1[0..i)` into `word2[0..j)`.\n\n**Base:** `dp[i][0] = i` (delete everything), `dp[0][j] = j` (insert everything).\n\n**Recurrence:**\n- Last chars equal → `dp[i][j] = dp[i−1][j−1]` (no cost).\n- Else `1 + min(dp[i−1][j] (delete), dp[i][j−1] (insert), dp[i−1][j−1] (replace))`.\n\nClassic interview DP — be able to explain what each of the three neighbours means.",
+     "solution": "class Solution {\n    public int minDistance(String word1, String word2) {\n        int m = word1.length(), n = word2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) dp[i][0] = i;\n        for (int j = 0; j <= n; j++) dp[0][j] = j;\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else {\n                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": true
+    },
+    {
+     "id": "target-sum",
+     "title": "Target Sum",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/target-sum/",
+     "summary": "Put a `+` or `-` sign in front of each number and count the sign assignments whose expression equals target. `[1,1,1,1,1]`, target 3 → 5.",
+     "approach": "**Brute force:** 2^n sign choices.\n\n**Key insight — reduce to subset sum:** let P = sum of numbers with `+`, N = those with `−`. Then `P − N = target` and `P + N = total`, so `P = (total + target) / 2`. Count subsets with that sum. If `total + target` is odd or `|target| > total`, the answer is 0.\n\n**0/1 knapsack counting:** `dp[s]` = number of subsets with sum s; `dp[0] = 1`; for each x, for s from P down to x: `dp[s] += dp[s − x]`. (Zeros are handled correctly — they double the count.)",
+     "solution": "class Solution {\n    public int findTargetSumWays(int[] nums, int target) {\n        int total = 0;\n        for (int x : nums) total += x;\n        if (Math.abs(target) > total || (total + target) % 2 != 0) return 0;\n        int p = (total + target) / 2;\n        int[] dp = new int[p + 1];\n        dp[0] = 1;\n        for (int x : nums) {\n            for (int s = p; s >= x; s--) {\n                dp[s] += dp[s - x];\n            }\n        }\n        return dp[p];\n    }\n}",
+     "time": "O(n · sum)",
+     "space": "O(sum)",
+     "mustDo": false
+    },
+    {
+     "id": "coin-change-ii",
+     "title": "Coin Change II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Walmart",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/coin-change-ii/",
+     "summary": "Given coin denominations with unlimited supply, count the number of **combinations** that make up an amount (order doesn't matter). Amount 5 with `[1,2,5]` → 4: `5, 2+2+1, 2+1+1+1, 1+1+1+1+1`.",
+     "approach": "**State:** `dp[i][a]` = ways to make a using the first i coin types → compresses to `dp[a]`.\n\n**Recurrence:** for each coin c (outer loop), for a from c up to amount (ascending, because reuse is allowed): `dp[a] += dp[a − c]`. Base `dp[0] = 1`.\n\n**Why coins outer?** It fixes an order of coin types, so `1+2` and `2+1` are counted once. Swapping the loops counts permutations instead (that's Combination Sum IV) — a favourite follow-up question.",
+     "solution": "class Solution {\n    public int change(int amount, int[] coins) {\n        int[] dp = new int[amount + 1];\n        dp[0] = 1;\n        for (int c : coins) {\n            for (int a = c; a <= amount; a++) {\n                dp[a] += dp[a - c];\n            }\n        }\n        return dp[amount];\n    }\n}",
+     "time": "O(coins · amount)",
+     "space": "O(amount)",
+     "mustDo": false
+    },
+    {
+     "id": "interleaving-string",
+     "title": "Interleaving String",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/interleaving-string/",
+     "summary": "Decide whether s3 can be formed by interleaving s1 and s2 — i.e. merging them while keeping each string's own character order. `s1=\"aabcc\"`, `s2=\"dbbca\"`, `s3=\"aadbbcbcac\"` → true.",
+     "approach": "**State:** `dp[i][j]` = can the first i chars of s1 and first j chars of s2 form the first i+j chars of s3.\n\n**Recurrence:** the last char of `s3[0..i+j)` came from s1 or from s2:\n`dp[i][j] = (dp[i−1][j] && s1[i−1] == s3[i+j−1]) || (dp[i][j−1] && s2[j−1] == s3[i+j−1])`.\n\nBase `dp[0][0] = true`. If lengths don't add up, return false immediately. Greedy (take from whichever matches) fails when both match.",
+     "solution": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int i = 0; i <= m; i++) {\n            for (int j = 0; j <= n; j++) {\n                if (i > 0 && dp[i - 1][j] && s1.charAt(i - 1) == s3.charAt(i + j - 1)) dp[i][j] = true;\n                if (j > 0 && dp[i][j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1)) dp[i][j] = true;\n            }\n        }\n        return dp[m][n];\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "distinct-subsequences",
+     "title": "Distinct Subsequences",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/distinct-subsequences/",
+     "summary": "Count how many distinct subsequences of s are equal to t (distinct by the positions chosen). `s = \"rabbbit\"`, `t = \"rabbit\"` → 3 (pick any two of the three b's).",
+     "approach": "**State:** `dp[i][j]` = number of ways the first i chars of s can form the first j chars of t.\n\n**Base:** `dp[i][0] = 1` (empty t is formed once by deleting everything); `dp[0][j>0] = 0`.\n\n**Recurrence:**\n- Always: `dp[i][j] = dp[i−1][j]` (don't use `s[i−1]`).\n- If `s[i−1] == t[j−1]`: also add `dp[i−1][j−1]` (use it to match `t[j−1]`).\n\n1D version: iterate j **backwards** so `dp[j−1]` still holds the previous row.",
+     "solution": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length(), n = t.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1;\n        for (int i = 1; i <= m; i++) {\n            for (int j = Math.min(i, n); j >= 1; j--) {\n                if (s.charAt(i - 1) == t.charAt(j - 1)) dp[j] += dp[j - 1];\n            }\n        }\n        return dp[n];\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "longest-increasing-path-in-a-matrix",
+     "title": "Longest Increasing Path in a Matrix",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+     "summary": "In an integer matrix, move up/down/left/right to a strictly larger neighbour. Return the length of the longest such increasing path. For `[[9,9,4],[6,6,8],[2,1,1]]` → 4 (`1→2→6→9`).",
+     "approach": "**Brute force:** DFS from every cell exploring all increasing paths — exponential.\n\n**Key insight:** because moves must strictly increase, there are **no cycles**, so the longest path starting at a cell is fixed → **DFS + memoisation**.\n\n**State:** `memo[r][c]` = longest increasing path starting at (r, c).\n**Recurrence:** `memo[r][c] = 1 + max(memo[neighbour])` over neighbours with a larger value.\n\nEach cell is computed once → O(m·n). No visited array needed (strict increase prevents revisiting).",
+     "solution": "class Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    private int[][] memo;\n\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length, best = 0;\n        memo = new int[m][n];\n        for (int r = 0; r < m; r++)\n            for (int c = 0; c < n; c++)\n                best = Math.max(best, dfs(matrix, r, c));\n        return best;\n    }\n\n    private int dfs(int[][] g, int r, int c) {\n        if (memo[r][c] != 0) return memo[r][c];\n        int longest = 1;\n        for (int[] d : DIRS) {\n            int nr = r + d[0], nc = c + d[1];\n            if (nr < 0 || nc < 0 || nr >= g.length || nc >= g[0].length || g[nr][nc] <= g[r][c]) continue;\n            longest = Math.max(longest, 1 + dfs(g, nr, nc));\n        }\n        return memo[r][c] = longest;\n    }\n}",
+     "time": "O(m · n)",
+     "space": "O(m · n)",
+     "mustDo": false
+    },
+    {
+     "id": "burst-balloons",
+     "title": "Burst Balloons",
+     "difficulty": "Hard",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/burst-balloons/",
+     "summary": "Balloons have numbers; bursting balloon i earns `left · nums[i] · right`, where left/right are its current neighbours (treat outside as 1). Burst all balloons in the best order and return the maximum coins. `[3,1,5,8]` → 167.",
+     "approach": "**Why it's hard:** choosing which balloon to burst *first* changes neighbours unpredictably.\n\n**Key insight — think about the LAST balloon burst in a range.** Pad the array with 1 at both ends. For an open interval `(l, r)`, if k is the last balloon burst inside it, its neighbours at that moment are exactly `l` and `r`, and the two sides are independent.\n\n**State:** `dp[l][r]` = max coins from bursting all balloons strictly between l and r.\n**Recurrence:** `dp[l][r] = max over l<k<r of dp[l][k] + a[l]·a[k]·a[r] + dp[k][r]`.\n\nFill by increasing interval length. Answer `dp[0][n+1]`. This is the template for **interval DP** (matrix chain multiplication is the same shape).",
+     "solution": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] a = new int[n + 2];\n        a[0] = a[n + 1] = 1;\n        for (int i = 0; i < n; i++) a[i + 1] = nums[i];\n        int[][] dp = new int[n + 2][n + 2];\n        for (int len = 2; len <= n + 1; len++) {\n            for (int l = 0; l + len <= n + 1; l++) {\n                int r = l + len;\n                for (int k = l + 1; k < r; k++) {\n                    dp[l][r] = Math.max(dp[l][r], dp[l][k] + a[l] * a[k] * a[r] + dp[k][r]);\n                }\n            }\n        }\n        return dp[0][n + 1];\n    }\n}",
+     "time": "O(n^3)",
+     "space": "O(n^2)",
+     "mustDo": false
+    },
+    {
+     "id": "best-time-to-buy-and-sell-stock-with-cooldown",
+     "title": "Best Time to Buy and Sell Stock with Cooldown",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Goldman Sachs",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/",
+     "summary": "Given daily prices, make as many buy/sell transactions as you like (one share at a time), but after selling you must wait one day before buying again. Return the max profit. `[1,2,3,0,2]` → 3 (buy, sell, cooldown, buy, sell).",
+     "approach": "**State-machine DP.** On each day you're in one of three states:\n- `hold` — you own a share,\n- `sold` — you sold today (tomorrow is cooldown),\n- `rest` — you own nothing and are free to buy.\n\n**Transitions for price p:**\n- `hold' = max(hold, rest − p)` (keep holding, or buy from rest)\n- `sold' = hold + p` (sell today)\n- `rest' = max(rest, sold)` (stay idle, or finish cooldown)\n\nStart `hold = −∞, sold = 0, rest = 0`. Answer `max(sold, rest)`. This framework solves the whole stock series (fees, k transactions) by changing states.",
+     "solution": "class Solution {\n    public int maxProfit(int[] prices) {\n        int hold = Integer.MIN_VALUE / 2, sold = 0, rest = 0;\n        for (int p : prices) {\n            int prevSold = sold;\n            sold = hold + p;\n            hold = Math.max(hold, rest - p);\n            rest = Math.max(rest, prevSold);\n        }\n        return Math.max(sold, rest);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "greedy",
+   "name": "Greedy",
+   "order": 15,
+   "intro": "A **greedy** algorithm makes the locally best choice at each step and never revisits it. It's fast and short — but only correct when you can argue that a local choice never hurts the global answer.\n\n**How to recognize it**\n- You can sort or scan once and decide on the spot (furthest reach, earliest end time, largest frequency first).\n- A DP solution exists but feels like overkill, and there's a simple \"always pick X\" rule.\n- Phrases: \"minimum number of jumps/arrows/rooms\", \"can you reach\", \"maximize by choosing\".\n\n**How to justify a greedy choice (interviewers will ask \"why does this work?\")**\n- *Exchange argument:* take any optimal solution; swapping its choice for the greedy choice doesn't make it worse.\n- *Stays-ahead argument:* after every step, greedy is at least as good as any other strategy.\n- If you can't argue it, try a counterexample of size 3–4. If greedy breaks, switch to DP.\n\n**Common greedy shapes**\n```java\n// 1. Track the furthest reachable point (Jump Game)\nint reach = 0;\nfor (int i = 0; i < n; i++) {\n    if (i > reach) return false;\n    reach = Math.max(reach, i + nums[i]);\n}\n\n// 2. Running balance that resets (Gas Station, Kadane)\nint tank = 0, start = 0;\nfor (int i = 0; i < n; i++) {\n    tank += gain[i];\n    if (tank < 0) { start = i + 1; tank = 0; }\n}\n\n// 3. Sort, then sweep (intervals, hand of straights)\nArrays.sort(arr);\n```\n\n**Pitfalls**\n- Greedy feels right for Coin Change but is wrong for arbitrary coins — always test a small counterexample.\n- Track a *range* when a single value isn't enough (Valid Parenthesis String keeps min/max open count).\n- Off-by-one in BFS-like greedy (Jump Game II: don't jump at the last index).",
+   "problems": [
+    {
+     "id": "jump-game",
+     "title": "Jump Game",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Adobe",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/jump-game/",
+     "summary": "Each array element is the maximum jump length from that position. Starting at index 0, decide whether you can reach the last index. `[2,3,1,1,4]` → true; `[3,2,1,0,4]` → false (everyone gets stuck at the 0).",
+     "approach": "**DP (O(n²)):** `canReach[i]` if some earlier reachable j has `j + nums[j] ≥ i`.\n\n**Greedy (O(n)):** keep `reach` = furthest index reachable so far. Scan left to right: if `i > reach`, index i is unreachable → false. Otherwise update `reach = max(reach, i + nums[i])`. If `reach ≥ n − 1`, return true.\n\nWhy it works: every index ≤ reach is reachable, so the furthest reach is all that matters.",
+     "solution": "class Solution {\n    public boolean canJump(int[] nums) {\n        int reach = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (i > reach) return false;\n            reach = Math.max(reach, i + nums[i]);\n            if (reach >= nums.length - 1) return true;\n        }\n        return true;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "jump-game-ii",
+     "title": "Jump Game II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/jump-game-ii/",
+     "summary": "Same setup as Jump Game, but the last index is always reachable; return the minimum number of jumps to get there. `[2,3,1,1,4]` → 2 (0 → 1 → 4).",
+     "approach": "**Think of it as BFS by levels without a queue.** All indices reachable with `jumps` jumps form a window `[.., curEnd]`. While scanning that window, track `farthest = max(i + nums[i])` — the end of the next window. When `i` hits `curEnd`, you must jump: `jumps++`, `curEnd = farthest`.\n\nLoop only to `n − 2`; jumping from the last index would overcount.",
+     "solution": "class Solution {\n    public int jump(int[] nums) {\n        int jumps = 0, curEnd = 0, farthest = 0;\n        for (int i = 0; i < nums.length - 1; i++) {\n            farthest = Math.max(farthest, i + nums[i]);\n            if (i == curEnd) {\n                jumps++;\n                curEnd = farthest;\n            }\n        }\n        return jumps;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "gas-station",
+     "title": "Gas Station",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Goldman Sachs",
+      "PhonePe"
+     ],
+     "leetcode": "https://leetcode.com/problems/gas-station/",
+     "summary": "Stations sit on a circular road; station i gives `gas[i]` fuel and driving to the next costs `cost[i]`. Starting with an empty tank, return the station index from which you can complete the circle, or −1. The answer is unique if it exists.",
+     "approach": "**Fact 1:** if `sum(gas) < sum(cost)`, no start works → −1. Otherwise a valid start exists.\n\n**Fact 2 (key insight):** if you start at s and run out of fuel just before station i, then **no station between s and i** can be a valid start either (they'd arrive at i with even less fuel). So jump the candidate start to `i + 1` and reset the tank.\n\nOne pass: accumulate `tank += gas[i] − cost[i]`; when it goes negative, set `start = i + 1`, `tank = 0`.",
+     "solution": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int total = 0, tank = 0, start = 0;\n        for (int i = 0; i < gas.length; i++) {\n            int diff = gas[i] - cost[i];\n            total += diff;\n            tank += diff;\n            if (tank < 0) {\n                start = i + 1;\n                tank = 0;\n            }\n        }\n        return total < 0 ? -1 : start;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "hand-of-straights",
+     "title": "Hand of Straights",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/hand-of-straights/",
+     "summary": "Decide whether an array of card values can be rearranged into groups of exactly `groupSize` consecutive values. `[1,2,3,6,2,3,4,7,8]` with size 3 → true: `[1,2,3],[2,3,4],[6,7,8]`.",
+     "approach": "**Key insight:** the smallest card left must start a group (nothing smaller can contain it). So repeatedly take the smallest remaining value x and consume `x, x+1, ..., x+groupSize−1`; if any is missing, fail.\n\nUse a `TreeMap<value, count>`: `firstKey()` gives the smallest. Consume `count(x)` groups at once to be efficient. Early exit: `n % groupSize != 0` → false.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        TreeMap<Integer, Integer> count = new TreeMap<>();\n        for (int card : hand) count.merge(card, 1, Integer::sum);\n        while (!count.isEmpty()) {\n            int first = count.firstKey();\n            int need = count.get(first);\n            for (int v = first; v < first + groupSize; v++) {\n                Integer have = count.get(v);\n                if (have == null || have < need) return false;\n                if (have == need) count.remove(v);\n                else count.put(v, have - need);\n            }\n        }\n        return true;\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": false
+    },
+    {
+     "id": "partition-labels",
+     "title": "Partition Labels",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart",
+      "Swiggy"
+     ],
+     "leetcode": "https://leetcode.com/problems/partition-labels/",
+     "summary": "Split a string into as many parts as possible so each letter appears in at most one part; return the part sizes. `\"ababcbacadefegdehijhklij\"` → `[9,7,8]`.",
+     "approach": "**Step 1:** record the last index of every character.\n\n**Step 2:** scan with a window. Extend `end = max(end, last[s[i]])` — the current part must reach at least as far as the last occurrence of every char in it. When `i == end`, nothing inside reaches beyond, so close the part, record its length, and start a new one.\n\nGreedy is optimal because we cut at the earliest possible point every time.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] last = new int[26];\n        for (int i = 0; i < s.length(); i++) last[s.charAt(i) - 'a'] = i;\n        List<Integer> res = new ArrayList<>();\n        int start = 0, end = 0;\n        for (int i = 0; i < s.length(); i++) {\n            end = Math.max(end, last[s.charAt(i) - 'a']);\n            if (i == end) {\n                res.add(end - start + 1);\n                start = i + 1;\n            }\n        }\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "valid-parenthesis-string",
+     "title": "Valid Parenthesis String",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/valid-parenthesis-string/",
+     "summary": "A string contains `(`, `)` and `*`, where `*` can act as `(`, `)` or nothing. Decide whether it can be a valid balanced string. `\"(*)\"` → true, `\"(*))\"` → true, `\")(\"` → false.",
+     "approach": "**Brute force:** try 3 options for every `*` → 3^k.\n\n**Greedy with a range:** track the possible number of open brackets as an interval `[lo, hi]`.\n- `(` → `lo++, hi++`\n- `)` → `lo--, hi--`\n- `*` → `lo--` (treat as `)`), `hi++` (treat as `(`)\n\nIf `hi < 0`, too many `)` even in the best case → false. Clamp `lo` at 0 (we can't have negative opens; choose `*` as empty instead). At the end, valid iff `lo == 0`.",
+     "solution": "class Solution {\n    public boolean checkValidString(String s) {\n        int lo = 0, hi = 0;\n        for (char c : s.toCharArray()) {\n            if (c == '(') {\n                lo++;\n                hi++;\n            } else if (c == ')') {\n                lo--;\n                hi--;\n            } else {\n                lo--;\n                hi++;\n            }\n            if (hi < 0) return false;\n            lo = Math.max(lo, 0);\n        }\n        return lo == 0;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "task-scheduler",
+     "title": "Task Scheduler",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Uber",
+      "Atlassian",
+      "Salesforce"
+     ],
+     "leetcode": "https://leetcode.com/problems/task-scheduler/",
+     "summary": "CPU tasks are letters; each takes one unit, and identical tasks must be at least n units apart (idle slots allowed). Return the minimum total time. `[\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"]`, n = 2 → 8 (`A B idle A B idle A B`).",
+     "approach": "**Key insight — the most frequent task dictates the layout.** Let `maxFreq` be the highest count and `maxCount` the number of tasks with that count. Arrange the most frequent task into `maxFreq − 1` blocks of size `n + 1`, plus a final partial block of size `maxCount`:\n\n`slots = (maxFreq − 1) · (n + 1) + maxCount`.\n\nOther tasks fill the idle gaps. If there are more tasks than slots, no idling is needed → answer is `max(slots, tasks.length)`.\n\n(A max-heap + cooldown queue simulation also works and is easier to extend if the interviewer changes rules.)",
+     "solution": "class Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] freq = new int[26];\n        for (char t : tasks) freq[t - 'A']++;\n        int maxFreq = 0, maxCount = 0;\n        for (int f : freq) {\n            if (f > maxFreq) {\n                maxFreq = f;\n                maxCount = 1;\n            } else if (f == maxFreq) {\n                maxCount++;\n            }\n        }\n        int slots = (maxFreq - 1) * (n + 1) + maxCount;\n        return Math.max(slots, tasks.length);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    }
+   ]
+  },
+  {
+   "id": "intervals",
+   "name": "Intervals",
+   "order": 16,
+   "intro": "**Interval** problems give you pairs `[start, end]` and ask you to merge, insert, count overlaps or remove the fewest to avoid overlaps. They are extremely common in product-company interviews because they map to real features (calendars, booking systems, rate windows).\n\n**How to recognize it**: input is a list of `[start, end]`; words like *meeting*, *booking*, *overlap*, *merge*, *schedule*, *ranges*.\n\n**The two sorting choices**\n- **Sort by start** → merge/insert problems (scan and extend the last interval).\n- **Sort by end** → \"max number of non-overlapping intervals\" / \"min to remove\" / \"min arrows\" (classic activity selection: always keep the interval that finishes earliest).\n\n**Overlap test** for `a` and `b` (closed intervals): `a[0] <= b[1] && b[0] <= a[1]`. After sorting by start, it simplifies to `next[0] <= last[1]`. Read the problem to see if touching endpoints count as overlap!\n\n**Merge template**\n```java\nArrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\nList<int[]> out = new ArrayList<>();\nfor (int[] cur : intervals) {\n    if (out.isEmpty() || out.get(out.size() - 1)[1] < cur[0]) {\n        out.add(cur);                                       // no overlap\n    } else {\n        int[] last = out.get(out.size() - 1);\n        last[1] = Math.max(last[1], cur[1]);                // extend\n    }\n}\nreturn out.toArray(new int[0][]);\n```\n\n**Counting simultaneous intervals** (meeting rooms, platforms): either a **min-heap of end times** or a **sweep line** — sort starts and ends separately and walk two pointers (+1 at a start, −1 at an end).\n\n**Pitfalls**\n- Comparator `(a, b) -> a[0] - b[0]` can overflow for values near ±2^31 — prefer `Integer.compare`.\n- Forgetting `Math.max` when merging (a long interval can swallow later ones: `[1,10],[2,3]`).\n- Not clarifying whether `[1,2]` and `[2,3]` overlap.",
+   "problems": [
+    {
+     "id": "merge-intervals",
+     "title": "Merge Intervals",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart",
+      "Uber",
+      "Atlassian",
+      "Salesforce",
+      "Walmart"
+     ],
+     "leetcode": "https://leetcode.com/problems/merge-intervals/",
+     "summary": "Given a list of intervals, merge every group of overlapping intervals and return the non-overlapping result. `[[1,3],[2,6],[8,10],[15,18]]` → `[[1,6],[8,10],[15,18]]`.",
+     "approach": "**Brute force:** compare every pair repeatedly until nothing merges → O(n²) or worse.\n\n**Optimal:** sort by start. Now any interval that overlaps the current merged block must come right after it. Scan: if the next interval starts after the last merged one ends, start a new block; otherwise extend the last block's end with `max`.\n\nSorting dominates: O(n log n).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\n        List<int[]> merged = new ArrayList<>();\n        for (int[] cur : intervals) {\n            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] < cur[0]) {\n                merged.add(new int[]{cur[0], cur[1]});\n            } else {\n                int[] last = merged.get(merged.size() - 1);\n                last[1] = Math.max(last[1], cur[1]);\n            }\n        }\n        return merged.toArray(new int[0][]);\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "insert-interval",
+     "title": "Insert Interval",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Atlassian"
+     ],
+     "leetcode": "https://leetcode.com/problems/insert-interval/",
+     "summary": "Given non-overlapping intervals sorted by start and one new interval, insert it and merge as needed so the list stays sorted and non-overlapping. `[[1,3],[6,9]]` + `[2,5]` → `[[1,5],[6,9]]`.",
+     "approach": "Input is already sorted, so do it in **one linear pass in three phases**:\n1. Copy every interval that ends **before** the new one starts.\n2. Merge every interval that overlaps the new one: `new = [min(starts), max(ends)]`. Then add it.\n3. Copy the rest.\n\nNo sort needed → O(n). (Adding then calling Merge Intervals is O(n log n) — mention it as the lazy option.)",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        List<int[]> res = new ArrayList<>();\n        int i = 0, n = intervals.length;\n        int start = newInterval[0], end = newInterval[1];\n        while (i < n && intervals[i][1] < start) res.add(intervals[i++]);\n        while (i < n && intervals[i][0] <= end) {\n            start = Math.min(start, intervals[i][0]);\n            end = Math.max(end, intervals[i][1]);\n            i++;\n        }\n        res.add(new int[]{start, end});\n        while (i < n) res.add(intervals[i++]);\n        return res.toArray(new int[0][]);\n    }\n}",
+     "time": "O(n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "non-overlapping-intervals",
+     "title": "Non-overlapping Intervals",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Flipkart"
+     ],
+     "leetcode": "https://leetcode.com/problems/non-overlapping-intervals/",
+     "summary": "Return the minimum number of intervals to remove so the rest don't overlap (touching at an endpoint is fine). `[[1,2],[2,3],[3,4],[1,3]]` → 1 (remove `[1,3]`).",
+     "approach": "**Flip the question:** removing the fewest = keeping the most non-overlapping intervals (activity selection).\n\n**Greedy:** sort by **end**. Always keep the interval that finishes earliest, because it leaves the most room for the rest (exchange argument). Track `prevEnd`; if the next interval starts at or after `prevEnd`, keep it and update `prevEnd`; otherwise it overlaps → count a removal.\n\nAnswer = number of removals.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int eraseOverlapIntervals(int[][] intervals) {\n        Arrays.sort(intervals, (a, b) -> Integer.compare(a[1], b[1]));\n        int removed = 0;\n        int prevEnd = Integer.MIN_VALUE;\n        for (int[] cur : intervals) {\n            if (cur[0] >= prevEnd) {\n                prevEnd = cur[1];\n            } else {\n                removed++;\n            }\n        }\n        return removed;\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(1) (excluding sort)",
+     "mustDo": false
+    },
+    {
+     "id": "meeting-rooms-ii",
+     "title": "Meeting Rooms II",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Uber",
+      "Flipkart",
+      "Atlassian",
+      "Swiggy",
+      "Zomato"
+     ],
+     "leetcode": "https://leetcode.com/problems/meeting-rooms-ii/",
+     "summary": "Given meeting time intervals `[start, end)`, return the minimum number of conference rooms needed so no two overlapping meetings share a room. `[[0,30],[5,10],[15,20]]` → 2. (LeetCode Premium; the identical problem is free on GeeksforGeeks as \"Minimum Platforms\" and on NeetCode/LintCode 919.)",
+     "approach": "**Answer = maximum number of meetings happening at the same moment.**\n\n**Min-heap approach:** sort by start. Keep a min-heap of end times of rooms in use. For each meeting, if the earliest-ending room is free (`heap.peek() <= start`), reuse it (poll). Push this meeting's end. Heap size at the end = rooms needed.\n\n**Sweep-line alternative:** sort starts and ends separately; walk both — a start before the next end needs a new room, otherwise a room frees up. Both are O(n log n).",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\n        PriorityQueue<Integer> ends = new PriorityQueue<>();\n        for (int[] m : intervals) {\n            if (!ends.isEmpty() && ends.peek() <= m[0]) {\n                ends.poll(); // reuse the room that freed up earliest\n            }\n            ends.offer(m[1]);\n        }\n        return ends.size();\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(n)",
+     "mustDo": true
+    },
+    {
+     "id": "minimum-number-of-arrows-to-burst-balloons",
+     "title": "Minimum Number of Arrows to Burst Balloons",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+     ],
+     "leetcode": "https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/",
+     "summary": "Balloons are horizontal ranges `[xstart, xend]`. A vertical arrow at x bursts every balloon whose range contains x (endpoints included). Return the minimum arrows to burst all balloons. `[[10,16],[2,8],[1,6],[7,12]]` → 2 (arrows at 6 and 11).",
+     "approach": "Same greedy as Non-overlapping Intervals. Sort by **end**. Shoot the first arrow at the end of the first balloon — the furthest right point that still bursts it, which can hit as many later balloons as possible. Skip every balloon that starts at or before that arrow; the first one starting after it needs a new arrow at its end.\n\n**Pitfall:** values reach ±2^31, so `a[1] - b[1]` overflows — use `Integer.compare`.",
+     "solution": "import java.util.*;\n\nclass Solution {\n    public int findMinArrowShots(int[][] points) {\n        Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));\n        int arrows = 1;\n        int arrowX = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > arrowX) {\n                arrows++;\n                arrowX = points[i][1];\n            }\n        }\n        return arrows;\n    }\n}",
+     "time": "O(n log n)",
+     "space": "O(1) (excluding sort)",
+     "mustDo": false
+    }
+   ]
+  },
+  {
+   "id": "math-bit",
+   "name": "Math & Bit Manipulation",
+   "order": 17,
+   "intro": "Math and bit-manipulation questions are usually short, but they test whether you know a handful of tricks. Learn the tricks once and these become free points.\n\n**Bit operators in Java**\n- `&` AND, `|` OR, `^` XOR, `~` NOT, `<<` left shift, `>>` arithmetic right shift (keeps sign), `>>>` logical right shift (fills with 0 — use it for unsigned logic).\n\n**Tricks worth memorising**\n```java\nx ^ x == 0;  x ^ 0 == x;          // XOR cancels pairs → find the odd one out\n(x >> i) & 1                       // i-th bit of x\nx | (1 << i)                       // set bit i\nx & ~(1 << i)                      // clear bit i\nx & (x - 1)                        // drop the lowest set bit (count bits, power of 2 check)\nx & (-x)                           // isolate the lowest set bit\nInteger.bitCount(x)                // library popcount (know how to write it yourself)\n```\n**Power of two:** `x > 0 && (x & (x - 1)) == 0`.\n\n**How to recognize bit problems**\n- \"Every element appears twice except one\" → XOR.\n- \"Without using + or −\" → XOR for sum-without-carry, AND<<1 for carry.\n- \"Count set bits for every number 0..n\" → DP on bits: `bits[i] = bits[i >> 1] + (i & 1)`.\n\n**Math patterns**\n- **Fast exponentiation**: `x^n = (x^(n/2))^2`, multiply an extra x when n is odd → O(log n).\n- **Gauss sum** `n(n+1)/2` to find a missing number (or XOR to avoid overflow).\n- **Cycle detection on numbers** (Happy Number) → Floyd's slow/fast pointers or a HashSet.\n- **Digit manipulation**: `x % 10` gives the last digit, `x / 10` drops it; carry handling for array-of-digits addition.\n\n**Pitfalls**\n- `n = Integer.MIN_VALUE`: `-n` overflows. Convert to `long` first (Pow(x, n)).\n- Java has no unsigned int: use `>>>` and treat the value as raw 32 bits (Reverse Bits).\n- Operator precedence: `x & 1 == 0` parses as `x & (1 == 0)` — always parenthesise `(x & 1) == 0`.",
+   "problems": [
+    {
+     "id": "single-number",
+     "title": "Single Number",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/single-number/",
+     "summary": "Every element in a non-empty array appears twice except for one. Find that one in linear time and constant extra space. `[4,1,2,1,2]` → 4.",
+     "approach": "**Brute force:** HashMap of counts → O(n) space. Sorting → O(n log n).\n\n**Key insight — XOR:** `a ^ a = 0` and `a ^ 0 = a`, and XOR is commutative/associative. XOR-ing all numbers cancels every pair, leaving the single number. O(n) time, O(1) space.",
+     "solution": "class Solution {\n    public int singleNumber(int[] nums) {\n        int x = 0;\n        for (int v : nums) x ^= v;\n        return x;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "counting-bits",
+     "title": "Counting Bits",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/counting-bits/",
+     "summary": "For every number i from 0 to n, return how many 1 bits it has in binary. n = 5 → `[0,1,1,2,1,2]`.",
+     "approach": "**Naive:** popcount each number → O(n log n).\n\n**DP on bits (O(n)):** `i >> 1` is i with its last bit removed, and we've already computed it. So `bits[i] = bits[i >> 1] + (i & 1)`.\n\nEquivalent recurrence: `bits[i] = bits[i & (i − 1)] + 1` (drop the lowest set bit).",
+     "solution": "class Solution {\n    public int[] countBits(int n) {\n        int[] bits = new int[n + 1];\n        for (int i = 1; i <= n; i++) {\n            bits[i] = bits[i >> 1] + (i & 1);\n        }\n        return bits;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) extra (output excluded)",
+     "mustDo": false
+    },
+    {
+     "id": "number-of-1-bits",
+     "title": "Number of 1 Bits",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Oracle",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/number-of-1-bits/",
+     "summary": "Return the number of set bits (1s) in the binary representation of a positive integer (the Hamming weight). 11 = `1011` → 3.",
+     "approach": "**Approach 1:** check the last bit with `n & 1` and shift right 32 times.\n\n**Approach 2 (Brian Kernighan):** `n & (n − 1)` clears the lowest set bit. Loop until n becomes 0; the number of iterations equals the number of set bits — faster when few bits are set. Use `!= 0` (not `> 0`) so it also works if the sign bit is set.",
+     "solution": "class Solution {\n    public int hammingWeight(int n) {\n        int count = 0;\n        while (n != 0) {\n            n &= (n - 1); // drop lowest set bit\n            count++;\n        }\n        return count;\n    }\n}",
+     "time": "O(number of set bits) ≤ O(32)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "reverse-bits",
+     "title": "Reverse Bits",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Oracle",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/reverse-bits/",
+     "summary": "Reverse the order of the 32 bits of a given integer (treat it as unsigned). The bit at position 0 moves to position 31, position 1 to 30, and so on.",
+     "approach": "Build the result bit by bit, 32 times: shift `result` left to make room, OR in the lowest bit of n (`n & 1`), then shift n right with **`>>>`** so the sign bit doesn't get copied in.\n\nFollow-up (called many times): cache reversed values for each byte and combine four lookups.",
+     "solution": "public class Solution {\n    // you need treat n as an unsigned value\n    public int reverseBits(int n) {\n        int result = 0;\n        for (int i = 0; i < 32; i++) {\n            result = (result << 1) | (n & 1);\n            n >>>= 1;\n        }\n        return result;\n    }\n}",
+     "time": "O(1) (32 iterations)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "missing-number",
+     "title": "Missing Number",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Oracle",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/missing-number/",
+     "summary": "An array contains n distinct numbers taken from `0..n`, so exactly one value in that range is missing. Find it. `[3,0,1]` → 2.",
+     "approach": "**Approach 1 — Gauss:** expected sum `n(n+1)/2` minus actual sum.\n\n**Approach 2 — XOR (no overflow risk):** XOR all indices `0..n` with all values. Every present number cancels with its index, leaving the missing one.\n\nBoth O(n) time, O(1) space. (Sorting or a HashSet also work but are worse.)",
+     "solution": "class Solution {\n    public int missingNumber(int[] nums) {\n        int x = nums.length; // include n itself\n        for (int i = 0; i < nums.length; i++) {\n            x ^= i ^ nums[i];\n        }\n        return x;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "sum-of-two-integers",
+     "title": "Sum of Two Integers",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Adobe"
+     ],
+     "leetcode": "https://leetcode.com/problems/sum-of-two-integers/",
+     "summary": "Return the sum of two integers without using the `+` or `-` operators. `a = 2, b = 3` → 5; negative numbers must work too.",
+     "approach": "**How addition works in binary:**\n- `a ^ b` = sum of the bits **ignoring carries**.\n- `(a & b) << 1` = the **carries**, moved to the next position.\n\nRepeat with `a = a ^ b`, `b = carry` until there's no carry. Java ints are 32-bit two's complement and overflow wraps, so negatives work automatically and the loop ends within 32 iterations (the carry shifts out of the left end).",
+     "solution": "class Solution {\n    public int getSum(int a, int b) {\n        while (b != 0) {\n            int carry = (a & b) << 1;\n            a = a ^ b;\n            b = carry;\n        }\n        return a;\n    }\n}",
+     "time": "O(1) (at most 32 iterations)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "powx-n",
+     "title": "Pow(x, n)",
+     "difficulty": "Medium",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Goldman Sachs",
+      "Uber"
+     ],
+     "leetcode": "https://leetcode.com/problems/powx-n/",
+     "summary": "Implement `x` raised to the power `n` (n may be negative). `pow(2.0, 10)` → 1024.0, `pow(2.0, -2)` → 0.25.",
+     "approach": "**Brute force:** multiply n times → O(n), too slow for n ≈ 2^31.\n\n**Fast exponentiation (binary exponentiation):** walk the bits of n. Keep `base = x`; for each bit, if it's set, multiply the result by `base`; then square `base` and shift n right. O(log n).\n\n**Negative n:** compute with `1/x` and `-n`. Convert n to `long` first, because `-Integer.MIN_VALUE` overflows an int.",
+     "solution": "class Solution {\n    public double myPow(double x, int n) {\n        long e = n;\n        if (e < 0) {\n            x = 1 / x;\n            e = -e;\n        }\n        double result = 1.0, base = x;\n        while (e > 0) {\n            if ((e & 1) == 1) result *= base;\n            base *= base;\n            e >>= 1;\n        }\n        return result;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": true
+    },
+    {
+     "id": "happy-number",
+     "title": "Happy Number",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/happy-number/",
+     "summary": "Repeatedly replace a number by the sum of the squares of its digits. If this process reaches 1, the number is happy; if it loops forever without reaching 1, it isn't. 19 → 82 → 68 → 100 → 1, so 19 is happy.",
+     "approach": "**Key insight:** the sequence either hits 1 or enters a cycle (values quickly drop below a few hundred, so they must repeat). Detecting the cycle is the whole problem.\n\n- **HashSet:** store seen numbers; a repeat means a cycle.\n- **Floyd's cycle detection (O(1) space):** slow moves one step, fast moves two; if they meet at a value other than 1, it's a cycle. Same idea as Linked List Cycle.",
+     "solution": "class Solution {\n    public boolean isHappy(int n) {\n        int slow = n, fast = next(n);\n        while (fast != 1 && slow != fast) {\n            slow = next(slow);\n            fast = next(next(fast));\n        }\n        return fast == 1;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int d = n % 10;\n            sum += d * d;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
+     "time": "O(log n)",
+     "space": "O(1)",
+     "mustDo": false
+    },
+    {
+     "id": "plus-one",
+     "title": "Plus One",
+     "difficulty": "Easy",
+     "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Adobe",
+      "Paytm"
+     ],
+     "leetcode": "https://leetcode.com/problems/plus-one/",
+     "summary": "A non-negative integer is stored as an array of digits (most significant first). Add one and return the resulting digit array. `[1,2,9]` → `[1,3,0]`; `[9,9]` → `[1,0,0]`.",
+     "approach": "Walk from the last digit: if it's less than 9, increment it and return — no carry. If it's 9, set it to 0 and continue to the left (carry).\n\nIf the loop finishes, every digit was 9 (e.g. `999`), so the answer is `1` followed by zeros: allocate a new array of length n+1 and set index 0 to 1 (Java initialises the rest to 0).",
+     "solution": "class Solution {\n    public int[] plusOne(int[] digits) {\n        for (int i = digits.length - 1; i >= 0; i--) {\n            if (digits[i] < 9) {\n                digits[i]++;\n                return digits;\n            }\n            digits[i] = 0;\n        }\n        int[] res = new int[digits.length + 1];\n        res[0] = 1;\n        return res;\n    }\n}",
+     "time": "O(n)",
+     "space": "O(1) (O(n) only when all digits are 9)",
+     "mustDo": false
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,674 @@
+{
+ "id": "sql",
+ "name": "SQL & MySQL",
+ "order": 4,
+ "icon": "🗄️",
+ "description": "SQL querying, window functions, indexing, query optimization, transactions, locking and MySQL scaling.",
+ "notes": [
+  {
+   "id": "sql-n01",
+   "title": "SQL Fundamentals and Joins",
+   "content": "We'll use these tables throughout:\n```sql\nCREATE TABLE department (id INT PRIMARY KEY, name VARCHAR(50));\nCREATE TABLE employee (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  name VARCHAR(100), salary DECIMAL(10,2),\n  dept_id INT, manager_id INT, hired_on DATE,\n  FOREIGN KEY (dept_id) REFERENCES department(id)\n);\n```\n\n## Logical order of execution (very commonly asked)\n`FROM/JOIN -> WHERE -> GROUP BY -> HAVING -> SELECT (window functions here) -> DISTINCT -> ORDER BY -> LIMIT/OFFSET`\nThat's why you can't use a SELECT alias in WHERE (it doesn't exist yet), but you can in ORDER BY (MySQL also allows aliases in HAVING and GROUP BY as an extension).\n\n## DDL, DML, DCL, TCL\n- DDL: `CREATE, ALTER, DROP, TRUNCATE, RENAME` (auto-commit in MySQL).\n- DML: `SELECT, INSERT, UPDATE, DELETE`.\n- DCL: `GRANT, REVOKE`. TCL: `COMMIT, ROLLBACK, SAVEPOINT`.\n\n**DELETE vs TRUNCATE vs DROP:** DELETE removes rows (optionally with WHERE), logs each row, fires triggers, can be rolled back. TRUNCATE removes all rows quickly by recreating the table, resets AUTO_INCREMENT, can't be rolled back in MySQL, no triggers. DROP removes the table structure entirely.\n\n## Joins\n```sql\n-- INNER: only matching rows\nSELECT e.name, d.name AS dept FROM employee e\nJOIN department d ON d.id = e.dept_id;\n\n-- LEFT: all employees, dept NULL if none\nSELECT e.name, d.name FROM employee e\nLEFT JOIN department d ON d.id = e.dept_id;\n\n-- Anti-join: departments with no employees\nSELECT d.name FROM department d\nLEFT JOIN employee e ON e.dept_id = d.id\nWHERE e.id IS NULL;\n\n-- SELF JOIN: employee with manager name\nSELECT e.name AS emp, m.name AS manager\nFROM employee e LEFT JOIN employee m ON m.id = e.manager_id;\n\n-- CROSS JOIN: cartesian product (sizes x colors)\nSELECT s.size, c.color FROM sizes s CROSS JOIN colors c;\n```\n- **RIGHT JOIN**: mirror of LEFT; rarely used (rewrite as LEFT).\n- **FULL OUTER JOIN**: not supported in MySQL; emulate with `LEFT JOIN ... UNION ... RIGHT JOIN`.\n- Condition placement matters with outer joins: a filter on the right table in `WHERE` turns a LEFT JOIN into an INNER JOIN; put it in `ON` to keep unmatched rows.\n```sql\n-- keeps all departments, counts only employees hired in 2024\nSELECT d.name, COUNT(e.id) FROM department d\nLEFT JOIN employee e ON e.dept_id = d.id AND YEAR(e.hired_on) = 2024\nGROUP BY d.name;\n```\n\n## Row counts quiz\nTable A has 3 rows, B has 4 rows. INNER JOIN on a key: 0 to 12 rows depending on matches (duplicates multiply). CROSS JOIN: 12. LEFT JOIN: at least 3.\n\n## UNION vs UNION ALL\nUNION removes duplicates (sort/hash cost); UNION ALL keeps all rows and is faster. Column counts and types must match.\n\n## NULL handling\n- `NULL = NULL` is unknown, not true. Use `IS NULL` / `IS NOT NULL`, or MySQL's null-safe `<=>`.\n- Aggregates ignore NULLs except `COUNT(*)`.\n- `COALESCE(a, b, c)` returns the first non-null; `IFNULL(a, b)` MySQL-specific.\n- `NOT IN (subquery)` returns no rows if the subquery contains a NULL — prefer `NOT EXISTS`.\n\n## Keys and constraints\nPRIMARY KEY (unique + not null, one per table, clustered index in InnoDB), UNIQUE (allows multiple NULLs in MySQL), FOREIGN KEY (referential integrity; `ON DELETE CASCADE/SET NULL/RESTRICT`), NOT NULL, CHECK (enforced since MySQL 8.0.16), DEFAULT. Candidate key, composite key, surrogate key (auto-increment id) vs natural key (email, PAN).\n\n## CHAR vs VARCHAR, data types\nCHAR(n) fixed length (padded), good for fixed codes; VARCHAR(n) variable length with a length prefix. Use DECIMAL for money (never FLOAT/DOUBLE — binary rounding errors). DATETIME (no timezone, 1000-9999) vs TIMESTAMP (stored as UTC, converted to session time zone, range until 2038). Use `utf8mb4` (real UTF-8 incl. emoji), not `utf8` (3-byte alias)."
+  },
+  {
+   "id": "sql-n02",
+   "title": "GROUP BY, HAVING, Aggregates, Subqueries and CTEs",
+   "content": "## Aggregates and GROUP BY\n```sql\nSELECT dept_id, COUNT(*) AS cnt, AVG(salary) AS avg_sal, MAX(salary) AS max_sal\nFROM employee\nWHERE hired_on >= '2020-01-01'      -- filters rows BEFORE grouping\nGROUP BY dept_id\nHAVING COUNT(*) > 5                 -- filters groups AFTER grouping\nORDER BY avg_sal DESC;\n```\n- **WHERE vs HAVING**: WHERE filters individual rows and can't use aggregates; HAVING filters groups and can. Put non-aggregate filters in WHERE (cheaper — fewer rows to group).\n- Every non-aggregated column in SELECT must be in GROUP BY (MySQL's `ONLY_FULL_GROUP_BY` mode, default since 5.7, enforces this).\n- `COUNT(*)` counts rows; `COUNT(col)` counts non-null values; `COUNT(DISTINCT col)` counts unique non-nulls.\n- `GROUP_CONCAT(name ORDER BY name SEPARATOR ', ')` concatenates values per group.\n- `WITH ROLLUP` adds subtotal rows.\n\n## Conditional aggregation (pivot)\n```sql\nSELECT dept_id,\n       SUM(CASE WHEN gender = 'M' THEN 1 ELSE 0 END) AS male,\n       SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) AS female\nFROM employee GROUP BY dept_id;\n```\n\n## Subqueries\n```sql\n-- Scalar subquery\nSELECT name FROM employee WHERE salary > (SELECT AVG(salary) FROM employee);\n\n-- IN subquery\nSELECT name FROM employee WHERE dept_id IN (SELECT id FROM department WHERE name IN ('IT','HR'));\n\n-- Correlated subquery: runs per outer row (conceptually)\nSELECT e.name, e.salary FROM employee e\nWHERE e.salary > (SELECT AVG(salary) FROM employee x WHERE x.dept_id = e.dept_id);\n\n-- EXISTS: stops at first match; NULL-safe\nSELECT d.name FROM department d\nWHERE EXISTS (SELECT 1 FROM employee e WHERE e.dept_id = d.id);\n\n-- Derived table (subquery in FROM)\nSELECT dept_id, avg_sal FROM (\n  SELECT dept_id, AVG(salary) AS avg_sal FROM employee GROUP BY dept_id\n) t WHERE avg_sal > 50000;\n```\n**IN vs EXISTS**: modern MySQL optimises both into semi-joins in most cases. Use `NOT EXISTS` over `NOT IN` when NULLs are possible. **Subquery vs JOIN**: joins are often clearer and historically faster in MySQL; MySQL 8 rewrites many subqueries anyway — check EXPLAIN.\n\n## Common Table Expressions (MySQL 8+)\n```sql\nWITH dept_avg AS (\n  SELECT dept_id, AVG(salary) AS avg_sal FROM employee GROUP BY dept_id\n)\nSELECT e.name, e.salary, d.avg_sal\nFROM employee e JOIN dept_avg d ON d.dept_id = e.dept_id\nWHERE e.salary > d.avg_sal;\n```\nCTEs improve readability, can be referenced multiple times in a query, and can be **recursive**:\n```sql\n-- Org hierarchy under manager 1\nWITH RECURSIVE chain AS (\n  SELECT id, name, manager_id, 1 AS lvl FROM employee WHERE id = 1\n  UNION ALL\n  SELECT e.id, e.name, e.manager_id, c.lvl + 1\n  FROM employee e JOIN chain c ON e.manager_id = c.id\n)\nSELECT * FROM chain;\n\n-- Generate dates (fill gaps in reports)\nWITH RECURSIVE d AS (\n  SELECT DATE('2025-01-01') AS dt UNION ALL SELECT dt + INTERVAL 1 DAY FROM d WHERE dt < '2025-01-31'\n) SELECT dt FROM d;\n```\n**Subquery vs CTE**: functionally similar; CTEs are named, reusable within the statement, and support recursion. In MySQL 8 a CTE may be merged into the outer query or materialised once. A **view** is a stored, reusable named query at the schema level; a CTE lives only for one statement.\n\n## CASE expressions\n```sql\nSELECT name,\n  CASE WHEN salary >= 100000 THEN 'High'\n       WHEN salary >= 50000 THEN 'Medium'\n       ELSE 'Low' END AS band\nFROM employee;\n```\nAlso usable in ORDER BY (custom sort order) and UPDATE (`SET salary = CASE ... END`)."
+  },
+  {
+   "id": "sql-n03",
+   "title": "Window Functions",
+   "content": "Window functions compute a value for each row using a set of related rows (the window) **without collapsing rows** like GROUP BY does. Available in MySQL 8+.\n\n```sql\nfunction() OVER (PARTITION BY ... ORDER BY ... [ROWS|RANGE frame])\n```\n\n## Ranking: ROW_NUMBER vs RANK vs DENSE_RANK\nSalaries: 100, 90, 90, 80\n| salary | ROW_NUMBER | RANK | DENSE_RANK |\n|---|---|---|---|\n| 100 | 1 | 1 | 1 |\n| 90 | 2 | 2 | 2 |\n| 90 | 3 | 2 | 2 |\n| 80 | 4 | 4 | 3 |\n- ROW_NUMBER: unique sequential number (ties broken arbitrarily unless ORDER BY is unique).\n- RANK: ties share a rank; gaps follow.\n- DENSE_RANK: ties share a rank; no gaps — use for \"Nth highest salary\".\n\n```sql\n-- Top 3 salaries per department (distinct salary levels)\nSELECT * FROM (\n  SELECT e.*, DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rnk\n  FROM employee e\n) t WHERE rnk <= 3;\n```\nYou can't filter window results in WHERE (computed after WHERE) — wrap in a subquery/CTE. Other ranking: `NTILE(4)` (quartiles), `PERCENT_RANK()`, `CUME_DIST()`.\n\n## Aggregate windows\n```sql\nSELECT name, dept_id, salary,\n  AVG(salary) OVER (PARTITION BY dept_id)                AS dept_avg,\n  salary - AVG(salary) OVER (PARTITION BY dept_id)       AS diff_from_avg,\n  SUM(salary) OVER ()                                    AS company_total,\n  ROUND(100 * salary / SUM(salary) OVER (PARTITION BY dept_id), 2) AS pct_of_dept\nFROM employee;\n```\n\n## Running totals and moving averages (frames)\n```sql\nSELECT order_date, amount,\n  SUM(amount) OVER (ORDER BY order_date)                                         AS running_total,\n  AVG(amount) OVER (ORDER BY order_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS moving_avg_7d\nFROM daily_sales;\n```\n- With ORDER BY and no frame, the default frame is `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` — rows with equal ORDER BY values (peers) are included together. Use `ROWS` for strict row-by-row running totals when dates repeat.\n- `ROWS` counts physical rows; `RANGE` uses value ranges.\n\n## LAG / LEAD\n```sql\n-- Month-over-month growth\nSELECT month, revenue,\n  LAG(revenue) OVER (ORDER BY month) AS prev,\n  ROUND(100 * (revenue - LAG(revenue) OVER (ORDER BY month)) / LAG(revenue) OVER (ORDER BY month), 2) AS growth_pct\nFROM monthly_revenue;\n\n-- Days between consecutive logins per user\nSELECT user_id, login_date,\n  DATEDIFF(login_date, LAG(login_date) OVER (PARTITION BY user_id ORDER BY login_date)) AS gap_days\nFROM logins;\n```\n`LAG(col, n, default)`, `LEAD(col, n, default)`.\n\n## FIRST_VALUE / LAST_VALUE / NTH_VALUE\n```sql\nSELECT name, dept_id, salary,\n  FIRST_VALUE(name) OVER (PARTITION BY dept_id ORDER BY salary DESC) AS top_earner\nFROM employee;\n```\n`LAST_VALUE` needs a full frame (`ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`), otherwise it returns the current row.\n\n## Named windows\n```sql\nSELECT name, RANK() OVER w, SUM(salary) OVER w\nFROM employee WINDOW w AS (PARTITION BY dept_id ORDER BY salary DESC);\n```\n\n## Gaps and islands (consecutive sequences)\nClassic trick: `value - ROW_NUMBER()` is constant within a consecutive run.\n```sql\n-- Streaks of consecutive login days per user\nWITH x AS (\n  SELECT user_id, login_date,\n         DATE_SUB(login_date, INTERVAL ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) DAY) AS grp\n  FROM (SELECT DISTINCT user_id, login_date FROM logins) d\n)\nSELECT user_id, MIN(login_date) AS start_dt, MAX(login_date) AS end_dt, COUNT(*) AS streak\nFROM x GROUP BY user_id, grp HAVING COUNT(*) >= 3;\n```\n\n## Window vs GROUP BY\nGROUP BY returns one row per group; windows keep every row and add computed columns — perfect for \"show each employee with their department average\" or rankings. Window functions are evaluated after WHERE/GROUP BY/HAVING and before ORDER BY/LIMIT."
+  },
+  {
+   "id": "sql-n04",
+   "title": "Indexes in MySQL InnoDB: B+Trees, Clustered, Composite, Covering",
+   "content": "An index is a data structure that lets the database find rows without scanning the whole table — like a book's index. Trade-off: faster reads, slower writes (every INSERT/UPDATE/DELETE maintains indexes) and extra storage.\n\n## B+Tree structure\nInnoDB indexes are B+Trees:\n- Balanced: all leaves at the same depth, so lookups are O(log n) — typically 3-4 levels even for hundreds of millions of rows, because each 16KB page holds hundreds of keys (high fan-out).\n- Internal nodes hold only keys for navigation; **leaf nodes hold the data** (or pointers) and are linked in a doubly linked list — making **range scans** and ORDER BY efficient.\n- Why not a hash index? Hash gives O(1) equality but no range queries, sorting or prefix matching. (InnoDB has an internal *adaptive hash index* on top of B+Trees for hot lookups; the MEMORY engine supports hash indexes.)\n- Why not a binary tree? Too deep -> too many disk reads.\n\n## Clustered vs secondary indexes\n- **Clustered index** = the PRIMARY KEY. In InnoDB, the table data itself is stored in the leaf pages of the PK B+Tree, ordered by PK. One per table. If no PK, InnoDB uses the first NOT NULL UNIQUE index, or a hidden 6-byte row id.\n- **Secondary index** leaves store the indexed columns **+ the primary key value**. A lookup via a secondary index finds the PK, then traverses the clustered index to fetch the row (a \"bookmark lookup\"/double lookup).\n- Implications: keep the PK small (BIGINT, not long VARCHAR/UUID strings) because it's copied into every secondary index; sequential PKs (AUTO_INCREMENT) avoid page splits — random UUIDv4 PKs cause fragmentation (use UUIDv7/ordered or BINARY(16)).\n\n## Composite indexes and the leftmost prefix rule\n```sql\nCREATE INDEX idx_dept_sal_hire ON employee (dept_id, salary, hired_on);\n```\nThe index is sorted by dept_id, then salary within dept, then hired_on. It can be used for:\n- `WHERE dept_id = 5` yes\n- `WHERE dept_id = 5 AND salary > 50000` yes (range on salary — columns after a range can't be used for seeking, so hired_on won't help seek)\n- `WHERE dept_id = 5 ORDER BY salary` yes, no filesort\n- `WHERE salary > 50000` **no** (leftmost column missing) — may do full index scan at best\n- `WHERE dept_id = 5 AND hired_on = '2024-01-01'` uses dept_id part only (MySQL 8 index condition pushdown helps filter)\nMySQL 8.0.13+ has **skip scan** for some cases where the leading column has few distinct values.\n\n**Column order guidelines:** equality columns first, then range/sort columns; more selective columns earlier among equality columns; match common query patterns. An index on (a, b) makes a separate index on (a) redundant.\n\n## Covering index\nIf an index contains all columns a query needs, MySQL answers from the index alone — no clustered lookup. EXPLAIN shows `Using index`.\n```sql\n-- covered by idx_dept_sal_hire (plus PK id implicitly)\nSELECT id, salary FROM employee WHERE dept_id = 5;\n```\n\n## When indexes are NOT used\n- Function or expression on the column: `WHERE YEAR(hired_on) = 2024` -> rewrite as `hired_on >= '2024-01-01' AND hired_on < '2025-01-01'` (or use a functional index in MySQL 8.0.13+).\n- Leading wildcard: `LIKE '%raj'` (but `LIKE 'raj%'` can use the index).\n- Implicit type conversion: `WHERE phone = 9876543210` when phone is VARCHAR; charset/collation mismatches in joins.\n- Leftmost prefix not satisfied in composite index.\n- `OR` across different columns (sometimes index merge; often better as UNION).\n- Low selectivity (e.g. `status` with 2 values, `gender`) — optimizer prefers full scan when it expects to read a large fraction of the table.\n- Negations like `!=`, `NOT IN` often lead to scans.\n- Stale statistics — run `ANALYZE TABLE`.\n\n## Other index types\n- **Unique index** — enforces uniqueness.\n- **Prefix index** — `INDEX(name(10))` for long strings.\n- **Full-text index** — `MATCH ... AGAINST` for text search (or use Elasticsearch).\n- **Functional index** (8.0.13): `INDEX ((LOWER(email)))`.\n- **Invisible index** (8.0): test dropping an index safely.\n- **Descending index** (8.0): `INDEX (created_at DESC)`.\n- Spatial indexes (R-tree).\n\n## Choosing what to index\nIndex columns in WHERE, JOIN ON (foreign keys!), ORDER BY, and GROUP BY of frequent queries; prefer high cardinality; avoid over-indexing write-heavy tables; drop unused indexes (`sys.schema_unused_indexes`)."
+  },
+  {
+   "id": "sql-n05",
+   "title": "EXPLAIN and Query Optimization",
+   "content": "## EXPLAIN\nPrefix a query with `EXPLAIN` to see the optimizer's plan; `EXPLAIN ANALYZE` (MySQL 8.0.18+) actually runs it and shows real timings and row counts; `EXPLAIN FORMAT=TREE` gives a readable tree.\n```sql\nEXPLAIN SELECT e.name FROM employee e JOIN department d ON d.id = e.dept_id\nWHERE d.name = 'IT' AND e.salary > 50000;\n```\nKey columns:\n| Column | What to look for |\n|---|---|\n| `type` (access type) | Best to worst: `system` > `const` (PK/unique equality) > `eq_ref` (one row per join via PK/unique) > `ref` (non-unique index equality) > `range` (index range) > `index` (full index scan) > **`ALL` (full table scan — usually bad on big tables)** |\n| `possible_keys` / `key` | Candidate indexes vs the one chosen (NULL = none) |\n| `key_len` | How many bytes/columns of a composite index are used |\n| `rows` | Estimated rows examined |\n| `filtered` | % of rows remaining after the condition |\n| `Extra` | `Using index` (covering, good), `Using where`, `Using index condition` (ICP), **`Using filesort`** (extra sort), **`Using temporary`** (temp table for GROUP BY/DISTINCT), `Using join buffer` (no index for the join) |\n\n## Optimization checklist\n1. **Find slow queries**: enable the slow query log (`long_query_time=1`), `performance_schema`, `sys.statements_with_runtimes_in_95th_percentile`, or APM tools; `pt-query-digest` to aggregate.\n2. **EXPLAIN** them; look for `ALL`, large `rows`, filesort/temporary.\n3. **Add or fix indexes**: composite indexes matching WHERE + ORDER BY; covering indexes for hot queries; index foreign keys.\n4. **Make predicates sargable**: no functions on indexed columns, no leading wildcards, matching data types.\n5. **Select only needed columns** — avoid `SELECT *` (more I/O, prevents covering indexes, breaks when schema changes).\n6. **Pagination**: `LIMIT 100000, 20` still reads and discards 100,000 rows. Use keyset pagination:\n```sql\nSELECT id, name FROM orders WHERE id < :last_seen_id ORDER BY id DESC LIMIT 20;\n```\nOr \"deferred join\": select ids with the offset from a covering index, then join back.\n7. **Avoid N+1** from the application — batch queries with `IN (...)` or joins.\n8. **Rewrite**: correlated subqueries -> joins/window functions; `OR` on different columns -> `UNION ALL`; `NOT IN` -> `NOT EXISTS`/anti-join; `COUNT(*)` on huge tables -> maintained counters or approximate counts.\n9. **Batch writes**: multi-row INSERTs, `LOAD DATA INFILE` for bulk loads; chunk huge UPDATE/DELETE (e.g. 5,000 rows per transaction) to avoid long locks and replication lag.\n10. **Schema**: right data types (INT vs BIGINT, DECIMAL for money), avoid huge rows, consider partitioning very large time-series tables, archive old data.\n11. **Statistics**: `ANALYZE TABLE` after big changes; optimizer hints (`FORCE INDEX`, `/*+ INDEX() */`) only as a last resort.\n12. **Server config**: `innodb_buffer_pool_size` (~60-75% of RAM on a dedicated DB server) so the working set fits in memory; connection pool sizing on the app side.\n13. **Caching** at app level (Redis) for hot read-mostly data; **read replicas** for read scaling.\n\n## Example walkthrough\n```sql\n-- Slow: full scan + filesort\nSELECT * FROM orders WHERE customer_id = 42 AND status = 'DELIVERED' ORDER BY created_at DESC LIMIT 10;\n-- Fix: composite index matching equality columns then sort column\nCREATE INDEX idx_orders_cust_status_created ON orders (customer_id, status, created_at);\n-- EXPLAIN now: type=ref, key=idx_orders_cust_status_created, no filesort, rows ~10\n```\n\n## COUNT performance\nInnoDB doesn't store an exact row count (MVCC means different transactions see different counts), so `COUNT(*)` scans the smallest index. `COUNT(*)` and `COUNT(1)` are equivalent in MySQL.\n\n## Joins under the hood\nMySQL uses nested-loop joins (with index lookups on the inner table) and, since 8.0.18, **hash joins** for equi-joins without indexes. Always index join columns on the inner (looked-up) side."
+  },
+  {
+   "id": "sql-n06",
+   "title": "Normalization and Schema Design",
+   "content": "Normalization organises tables to reduce redundancy and avoid update/insert/delete anomalies.\n\n## Anomalies in an unnormalized table\n`orders(order_id, customer_name, customer_phone, product, price)`:\n- **Update anomaly**: customer changes phone -> must update many rows; miss one -> inconsistency.\n- **Insert anomaly**: can't store a new customer until they order.\n- **Delete anomaly**: deleting the last order loses the customer's info.\n\n## Normal forms\n- **1NF**: atomic values (no comma-separated lists or repeating groups), each row unique (primary key).\n  Bad: `phones = '98..., 97...'`. Fix: separate `customer_phone` table.\n- **2NF**: 1NF + no **partial dependency** — every non-key column depends on the **whole** composite key.\n  `order_item(order_id, product_id, qty, product_name)`: `product_name` depends only on `product_id` -> move to `product`.\n- **3NF**: 2NF + no **transitive dependency** — non-key columns depend only on the key, not on other non-key columns.\n  `employee(id, dept_id, dept_name)`: `dept_name` depends on `dept_id` -> move to `department`.\n  Memory aid: \"the key, the whole key, and nothing but the key.\"\n- **BCNF**: for every functional dependency X -> Y, X must be a superkey. Stricter 3NF; matters with overlapping candidate keys.\n- 4NF (no multi-valued dependencies) and 5NF — rarely asked.\n\n## Denormalization\nIntentionally adding redundancy for read performance: storing `order_total` instead of summing items, `customer_name` in orders for invoices (also historically accurate), counters (`comment_count`), reporting tables, materialised views (emulated in MySQL with summary tables refreshed by jobs/triggers). Trade-off: faster reads, more complex writes and risk of inconsistency. OLTP systems are usually ~3NF; analytics/OLAP uses denormalized star schemas (fact + dimension tables).\n\n## Relationship modelling\n- **One-to-one**: user <-> user_profile (FK with UNIQUE, or shared PK).\n- **One-to-many**: department -> employees (FK on the \"many\" side).\n- **Many-to-many**: students <-> courses via a junction table `enrollment(student_id, course_id, PRIMARY KEY(student_id, course_id), enrolled_on)`.\n\n## Practical schema design tips\n- Surrogate `BIGINT AUTO_INCREMENT` PKs for most tables; unique constraints on natural keys (email).\n- Index all foreign keys.\n- Money: `DECIMAL(12,2)` (or store paise as BIGINT). Never FLOAT.\n- Timestamps: store in UTC; `created_at`, `updated_at` columns.\n- Enums: VARCHAR with CHECK or a lookup table is more flexible than MySQL ENUM (changing ENUM requires ALTER).\n- Soft delete (`deleted_at`) vs hard delete — consider unique constraints and query filters.\n- Audit/history tables for compliance.\n- JSON columns (MySQL 5.7+) for flexible attributes, with generated columns + indexes for fields you filter on — but don't use JSON to avoid modelling.\n- Large tables: plan for partitioning (by date range), archiving, and online schema change tools (gh-ost, pt-online-schema-change, or MySQL 8 INSTANT/INPLACE DDL).\n\n## Example: e-commerce core schema\n```sql\ncustomer(id PK, email UNIQUE, name, created_at)\naddress(id PK, customer_id FK, line1, city, pincode)\nproduct(id PK, sku UNIQUE, name, price DECIMAL(10,2), stock INT)\norders(id PK, customer_id FK, status, total DECIMAL(12,2), created_at, INDEX(customer_id, created_at))\norder_item(order_id FK, product_id FK, qty, unit_price, PRIMARY KEY(order_id, product_id))\npayment(id PK, order_id FK UNIQUE, amount, status, gateway_ref UNIQUE)\n```\nNote `order_item.unit_price` is deliberately copied from product: price at time of purchase must not change when the catalog price changes — not every duplication is a normalization violation."
+  },
+  {
+   "id": "sql-n07",
+   "title": "Transactions, ACID and Isolation Levels in InnoDB",
+   "content": "## ACID\n- **Atomicity**: all statements in a transaction succeed or none do (InnoDB uses the **undo log** to roll back).\n- **Consistency**: the transaction moves the DB from one valid state to another (constraints, FKs, application invariants).\n- **Isolation**: concurrent transactions don't see each other's intermediate states (per isolation level; MVCC + locks).\n- **Durability**: once committed, changes survive crashes (**redo log** / write-ahead logging, flushed per `innodb_flush_log_at_trx_commit=1`; doublewrite buffer protects against torn pages).\n\n```sql\nSTART TRANSACTION;\nUPDATE account SET balance = balance - 500 WHERE id = 1;\nUPDATE account SET balance = balance + 500 WHERE id = 2;\nCOMMIT;      -- or ROLLBACK;\nSAVEPOINT s1; ROLLBACK TO s1;\n```\nMySQL runs in **autocommit** mode by default: each statement is its own transaction unless you start one explicitly. DDL causes an implicit commit.\n\n## Concurrency anomalies\n- **Dirty read**: T1 reads T2's uncommitted change; T2 rolls back -> T1 used data that never existed.\n- **Non-repeatable read**: T1 reads a row, T2 updates and commits it, T1 re-reads and gets a different value.\n- **Phantom read**: T1 runs a range query, T2 inserts a matching row and commits, T1 re-runs and sees a new row.\n- **Lost update**: two transactions read the same value and both write back based on it; one update is overwritten (e.g. both read stock=10 and write 9).\n- **Write skew**: two transactions read overlapping data and update disjoint rows, jointly violating an invariant (two doctors both going off-call).\n\n## Isolation levels\n| Level | Dirty | Non-repeatable | Phantom |\n|---|---|---|---|\n| READ UNCOMMITTED | Yes | Yes | Yes |\n| READ COMMITTED | No | Yes | Yes |\n| **REPEATABLE READ** (InnoDB default) | No | No | Mostly prevented* |\n| SERIALIZABLE | No | No | No |\n\n*In InnoDB REPEATABLE READ, **consistent (snapshot) reads** see a snapshot taken at the first read of the transaction, so plain SELECTs never see phantoms. **Locking reads** (`SELECT ... FOR UPDATE`, UPDATE, DELETE) read the latest committed data and use **next-key locks** (record + gap) to block inserts into the scanned range, preventing phantoms for those reads. Mixing snapshot reads and locking reads in one transaction can still show surprising results.\n\nOracle and PostgreSQL default to READ COMMITTED; many high-throughput MySQL shops also switch to READ COMMITTED (fewer gap locks, fewer deadlocks) and handle anomalies explicitly.\n```sql\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\nSELECT @@transaction_isolation;\n```\nSERIALIZABLE in InnoDB turns plain SELECTs into `SELECT ... FOR SHARE` (when autocommit is off) — lots of locking, low concurrency.\n\n## Preventing lost updates\n```sql\n-- 1. Atomic update (best when possible)\nUPDATE product SET stock = stock - 1 WHERE id = 7 AND stock > 0;   -- check affected rows = 1\n\n-- 2. Pessimistic lock\nSTART TRANSACTION;\nSELECT stock FROM product WHERE id = 7 FOR UPDATE;   -- others block on this row\nUPDATE product SET stock = stock - 1 WHERE id = 7;\nCOMMIT;\n\n-- 3. Optimistic lock (version column; JPA @Version)\nUPDATE product SET stock = 9, version = version + 1 WHERE id = 7 AND version = 3;  -- 0 rows -> retry\n```\n\n## Long transactions are harmful\nThey hold locks (blocking others), keep old row versions in the undo log (history list grows, purge lags, queries slow down), and increase deadlock odds and replication lag. Keep transactions short; never wait for user input or remote HTTP calls inside one."
+  },
+  {
+   "id": "sql-n08",
+   "title": "InnoDB Locking, MVCC and Deadlocks",
+   "content": "## MVCC (Multi-Version Concurrency Control)\nInnoDB lets readers and writers not block each other:\n- Each row has hidden columns: `DB_TRX_ID` (last transaction that modified it) and `DB_ROLL_PTR` (pointer to the previous version in the **undo log**).\n- When a transaction does a consistent read, it creates a **read view**: the list of transactions active at that moment. For each row, InnoDB walks the undo chain back to the newest version that was committed before the read view (and is not from an active transaction).\n- REPEATABLE READ: one read view per transaction (created at the first consistent read) -> same results every time.\n- READ COMMITTED: a new read view per statement -> sees newly committed data.\n- Plain `SELECT`s take **no locks**; old versions are purged once no read view needs them.\n\n## Lock types\n- **Shared (S)** lock: `SELECT ... FOR SHARE` (`LOCK IN SHARE MODE`) — others can read-lock but not write.\n- **Exclusive (X)** lock: `SELECT ... FOR UPDATE`, UPDATE, DELETE — no other S or X locks.\n- **Intention locks** (IS/IX) at table level signal row locks inside, so table-level locks can be checked quickly.\n- InnoDB locks are on **index records**, not physical rows. If a query has no usable index, it scans (and locks) every row it examines — effectively locking the whole table for UPDATE/DELETE. Index your WHERE columns in updates!\n\n## Record, gap and next-key locks\n- **Record lock**: locks an index record.\n- **Gap lock**: locks the gap between index records, preventing inserts into it (only in REPEATABLE READ+).\n- **Next-key lock**: record lock + gap lock before it — the default for locking reads/range scans in REPEATABLE READ; prevents phantoms.\n- **Insert intention lock**: a special gap lock taken by INSERT; multiple inserts into the same gap at different positions don't conflict.\n- For a unique index equality lookup that finds a row, InnoDB takes just a record lock (no gap).\n```sql\n-- T1 (REPEATABLE READ)\nSELECT * FROM employee WHERE salary BETWEEN 50000 AND 60000 FOR UPDATE;\n-- T2 trying INSERT with salary 55000 blocks until T1 commits (gap locked) - if salary is indexed\n```\n\n## Table locks and metadata locks\n`LOCK TABLES t WRITE` (rarely used with InnoDB). **Metadata locks (MDL)**: DDL (ALTER) needs an exclusive MDL and waits for running transactions on that table; meanwhile new queries queue behind it — a long-running transaction plus an ALTER can freeze a table. Use online DDL (`ALGORITHM=INSTANT/INPLACE`, `LOCK=NONE`) or gh-ost.\n\n## SKIP LOCKED and NOWAIT (MySQL 8)\n```sql\n-- job queue: each worker grabs different rows without waiting\nSELECT id FROM jobs WHERE status = 'PENDING' ORDER BY id LIMIT 10 FOR UPDATE SKIP LOCKED;\n-- fail immediately instead of waiting\nSELECT * FROM seat WHERE id = 12 FOR UPDATE NOWAIT;\n```\nUseful for outbox relays, ticket/seat booking, and work queues.\n\n## Deadlocks\nTwo transactions each hold a lock the other needs:\n```\nT1: UPDATE account SET ... WHERE id = 1;   T2: UPDATE account SET ... WHERE id = 2;\nT1: UPDATE account SET ... WHERE id = 2;   (waits for T2)\nT2: UPDATE account SET ... WHERE id = 1;   (waits for T1) -> deadlock\n```\nInnoDB **detects deadlocks automatically** (wait-for graph) and rolls back the transaction with less work (the \"victim\"), returning error 1213 `ER_LOCK_DEADLOCK`. The other proceeds. If detection is disabled, `innodb_lock_wait_timeout` (default 50s) applies (error 1205).\n\nDiagnose: `SHOW ENGINE INNODB STATUS` (LATEST DETECTED DEADLOCK section), `innodb_print_all_deadlocks=ON`, `performance_schema.data_locks` and `data_lock_waits` (8.0).\n\nPrevention:\n- Access rows/tables in a **consistent order** (e.g. always lock lower account id first).\n- Keep transactions short; commit quickly.\n- Index columns used in UPDATE/DELETE WHERE so fewer rows/gaps are locked.\n- Use READ COMMITTED to reduce gap locking where acceptable.\n- Avoid large range updates; batch them.\n- **Retry** the transaction on deadlock errors in application code (Spring: catch `DeadlockLoserDataAccessException`/`CannotAcquireLockException`, or use `@Retryable`).\n\n## Optimistic vs pessimistic, again\nPessimistic (`FOR UPDATE`) suits high-contention hot rows (inventory in a flash sale) but limits throughput; optimistic (version column) suits low-contention edits and scales better; atomic conditional UPDATEs are often the simplest correct option."
+  },
+  {
+   "id": "sql-n09",
+   "title": "Views, Stored Procedures, Functions and Triggers",
+   "content": "## Views\nA view is a stored named query; it doesn't store data (MySQL has no native materialised views).\n```sql\nCREATE VIEW v_dept_salary AS\nSELECT d.name AS dept, COUNT(e.id) AS headcount, AVG(e.salary) AS avg_salary\nFROM department d LEFT JOIN employee e ON e.dept_id = d.id\nGROUP BY d.name;\n\nSELECT * FROM v_dept_salary WHERE headcount > 10;\n```\nUses: simplify complex joins, expose a restricted subset of columns for security (grant access to the view, not the table), provide backward compatibility after schema changes. Simple views (single table, no aggregates/DISTINCT/GROUP BY) are **updatable**; `WITH CHECK OPTION` prevents inserting rows the view can't see. Performance: MySQL either merges the view into the outer query (MERGE algorithm) or materialises it into a temp table (TEMPTABLE, for aggregates) — the latter can't use indexes on the outer filter efficiently.\n\n**Materialised view emulation**: summary table refreshed by a scheduled event/job or maintained via triggers.\n\n## Stored procedures\n```sql\nDELIMITER //\nCREATE PROCEDURE give_raise(IN p_dept INT, IN p_pct DECIMAL(5,2), OUT p_rows INT)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;\n  START TRANSACTION;\n  UPDATE employee SET salary = salary * (1 + p_pct / 100) WHERE dept_id = p_dept;\n  SET p_rows = ROW_COUNT();\n  COMMIT;\nEND //\nDELIMITER ;\n\nCALL give_raise(3, 10, @n); SELECT @n;\n```\nParameters: IN, OUT, INOUT. Support variables, IF/CASE, loops (WHILE, REPEAT, LOOP), cursors, error handlers.\nPros: fewer network round trips, logic close to data, precompiled per connection, security via EXECUTE grants. Cons: harder to version-control, test, debug and scale (DB CPU is the most expensive to scale); vendor lock-in; business logic split between app and DB. Modern product companies keep most logic in the service layer and use procedures sparingly (batch jobs, data migrations). Calling from Spring: `@Procedure` in Spring Data JPA or `SimpleJdbcCall`.\n\n## Functions\n```sql\nCREATE FUNCTION tax(amount DECIMAL(10,2)) RETURNS DECIMAL(10,2) DETERMINISTIC\nRETURN amount * 0.18;\n\nSELECT name, salary, tax(salary) FROM employee;\n```\n**Procedure vs function**: a function returns exactly one value and can be used inside SQL statements (SELECT/WHERE); it can't commit/rollback. A procedure is invoked with CALL, can return multiple result sets and OUT params, and can manage transactions.\n\n## Triggers\nCode that runs automatically `BEFORE` or `AFTER` an `INSERT`, `UPDATE` or `DELETE`, per row, with access to `NEW` and `OLD` row values.\n```sql\nCREATE TRIGGER trg_salary_audit\nAFTER UPDATE ON employee FOR EACH ROW\nBEGIN\n  IF NEW.salary <> OLD.salary THEN\n    INSERT INTO salary_audit(emp_id, old_salary, new_salary, changed_at)\n    VALUES (OLD.id, OLD.salary, NEW.salary, NOW());\n  END IF;\nEND;\n\nCREATE TRIGGER trg_email_lower BEFORE INSERT ON customer FOR EACH ROW\nSET NEW.email = LOWER(NEW.email);\n```\nUses: audit trails, derived columns, enforcing complex invariants. Drawbacks: hidden logic (\"magic\"), harder debugging, slows writes, run inside the same transaction, can cascade unexpectedly. Prefer application-level auditing (JPA auditing/Envers) or CDC (Debezium) for event streaming.\n\n## Events (scheduler)\n```sql\nCREATE EVENT purge_sessions ON SCHEDULE EVERY 1 HOUR\nDO DELETE FROM sessions WHERE expires_at < NOW();\n```\nRequires `event_scheduler=ON`.\n\n## Cursors\nIterate row by row inside procedures. Generally slow — prefer set-based SQL."
+  },
+  {
+   "id": "sql-n10",
+   "title": "Replication, Scaling, Partitioning and MySQL Architecture",
+   "content": "## MySQL architecture in brief\nClient -> connection handling (thread per connection) -> parser -> optimizer (cost-based, chooses indexes/join order) -> executor -> **storage engine API** -> InnoDB (default, transactional, row-level locks, MVCC, FKs, crash recovery) or others (MyISAM: table locks, no transactions — legacy; MEMORY).\n\nInnoDB internals: **buffer pool** (caches data and index pages in RAM; most important tuning knob), **redo log** (WAL for durability), **undo log** (rollbacks + MVCC), **doublewrite buffer**, change buffer (defers secondary index updates), adaptive hash index.\n\n**Binary log (binlog)**: a server-level log of all data changes (row-based format by default), used for replication and point-in-time recovery; also the source for CDC tools like Debezium. Redo log is InnoDB-level for crash recovery; binlog is server-level for replication — a two-phase commit between them keeps them consistent.\n\n## Replication\n- **Source-replica (master-slave)**: the source writes changes to the binlog; each replica's I/O thread pulls events into its relay log; the SQL (applier) thread replays them. Replicas serve **reads**; the source handles writes.\n- **Asynchronous** (default): source doesn't wait for replicas — fast, but a source crash can lose the last transactions and replicas can lag.\n- **Semi-synchronous**: source waits until at least one replica has received (not applied) the event before acknowledging commit — less data loss risk, more latency.\n- **Group Replication / InnoDB Cluster**: Paxos-based multi-node with automatic failover (single-primary mode typical). Managed services: AWS RDS/Aurora, Cloud SQL.\n- **GTIDs** (global transaction IDs) make failover and replica repointing easier.\n- Parallel replication (multi-threaded applier) reduces lag.\n\n### Replication lag and read-your-writes\nReads from a replica right after a write may return stale data. Mitigations: read from the primary for a short period after a user's write (sticky session/flag), route critical reads to primary, monitor `Seconds_Behind_Source`, or wait for a GTID on the replica. In Spring, `AbstractRoutingDataSource` + `@Transactional(readOnly = true)` routes reads to replicas.\n\n## Scaling strategy (in order)\n1. Optimise queries and indexes; right-size the buffer pool.\n2. **Caching** (Redis) for hot reads.\n3. **Vertical scaling** (bigger instance).\n4. **Read replicas** for read-heavy workloads.\n5. **Partitioning** within one server for very large tables.\n6. **Sharding** across servers when write volume or data size exceeds one primary.\n\n## Partitioning (single server)\nSplit one logical table into physical partitions:\n```sql\nCREATE TABLE events (\n  id BIGINT NOT NULL, created_at DATE NOT NULL, payload JSON,\n  PRIMARY KEY (id, created_at)\n) PARTITION BY RANGE (YEAR(created_at)) (\n  PARTITION p2024 VALUES LESS THAN (2025),\n  PARTITION p2025 VALUES LESS THAN (2026),\n  PARTITION pmax  VALUES LESS THAN MAXVALUE\n);\n```\nTypes: RANGE, LIST, HASH, KEY. Benefits: **partition pruning** (queries filtering by the partition key only scan relevant partitions) and instant archiving (`ALTER TABLE ... DROP PARTITION` vs a huge DELETE). Constraints: the partition key must be part of every unique key/PK; FKs not supported on partitioned tables; queries not filtering by the key scan all partitions.\n\n## Sharding (multiple servers)\nHorizontal split of data across independent databases by a **shard key** (e.g. `customer_id`).\n- Strategies: hash-based (even distribution, hard to re-shard — use consistent hashing or many logical shards mapped to fewer physical ones), range-based (easy range queries, hotspot risk), directory/lookup-based (flexible, lookup service needed), geo-based.\n- Challenges: cross-shard joins and transactions, global unique IDs (Snowflake IDs, UUIDv7), re-sharding, hot shards, operational overhead.\n- Tools: Vitess (YouTube, Slack), ProxySQL, Apache ShardingSphere, or app-level routing. Choose a shard key matching the dominant access pattern so most queries hit one shard.\n\n**Partitioning vs sharding**: partitioning splits a table within one server; sharding distributes data across multiple servers.\n\n## Backups and recovery\nLogical backups (`mysqldump`, `mysqlpump`, MySQL Shell dump) vs physical (Percona XtraBackup, snapshots). Point-in-time recovery = full backup + replay binlogs. Test restores regularly.\n\n## High availability\nPrimary + replicas with automatic failover (Orchestrator, InnoDB Cluster/MySQL Router, RDS Multi-AZ). The application should use a stable endpoint and retry on connection failure.\n\n## SQL vs NoSQL quick take\nUse relational DBs for structured data, joins, strong consistency and transactions (payments, orders). NoSQL for massive scale with simple access patterns (Cassandra/DynamoDB), flexible documents (MongoDB), caching/counters (Redis), search (Elasticsearch). Many systems use both (polyglot persistence)."
+  }
+ ],
+ "qa": [
+  {
+   "id": "sql-001",
+   "q": "Write a query to find the second highest salary from the Employee table. Return NULL if it doesn't exist.",
+   "a": "```sql\n-- Approach 1: subquery (works everywhere)\nSELECT MAX(salary) AS second_highest\nFROM employee\nWHERE salary < (SELECT MAX(salary) FROM employee);\n\n-- Approach 2: LIMIT/OFFSET wrapped so an empty result becomes NULL\nSELECT (SELECT DISTINCT salary FROM employee\n        ORDER BY salary DESC LIMIT 1 OFFSET 1) AS second_highest;\n\n-- Approach 3: window function\nSELECT MAX(salary) AS second_highest FROM (\n  SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk FROM employee\n) t WHERE rnk = 2;\n```\n`DISTINCT`/`DENSE_RANK` handles duplicate top salaries (100, 100, 90 -> 90). Wrapping in an outer SELECT or MAX returns NULL instead of an empty set.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "ranking"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-002",
+   "q": "Write a query to find the Nth highest salary.",
+   "a": "```sql\n-- Window function (MySQL 8+)\nSELECT DISTINCT salary FROM (\n  SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk FROM employee\n) t WHERE rnk = 3;                      -- N = 3\n\n-- LIMIT/OFFSET (N-1)\nSELECT DISTINCT salary FROM employee ORDER BY salary DESC LIMIT 1 OFFSET 2;\n\n-- Correlated subquery (no window functions): N-1 distinct salaries are greater\nSELECT DISTINCT e1.salary FROM employee e1\nWHERE 2 = (SELECT COUNT(DISTINCT e2.salary) FROM employee e2 WHERE e2.salary > e1.salary);\n```\nAs a MySQL function (LeetCode 177 style), you can't use an expression in LIMIT directly, so `SET N = N - 1;` first, then `LIMIT 1 OFFSET N`. Mention DENSE_RANK vs RANK difference for ties.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "ranking"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-003",
+   "q": "Find employees who earn more than their managers. Table: Employee(id, name, salary, manager_id).",
+   "a": "Self-join the table — one alias for the employee, one for the manager:\n```sql\nSELECT e.name AS employee\nFROM employee e\nJOIN employee m ON e.manager_id = m.id\nWHERE e.salary > m.salary;\n```\nThe INNER JOIN automatically excludes employees with no manager. Follow-ups: show the manager name too (`m.name AS manager`), or count employees per manager (`GROUP BY m.id, m.name`).",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "self-join"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-004",
+   "q": "Find duplicate emails in a Person(id, email) table, and then delete duplicates keeping the row with the smallest id.",
+   "a": "Find duplicates:\n```sql\nSELECT email, COUNT(*) AS cnt\nFROM person\nGROUP BY email\nHAVING COUNT(*) > 1;\n```\nDelete duplicates keeping the lowest id:\n```sql\n-- MySQL multi-table DELETE with self-join\nDELETE p1 FROM person p1\nJOIN person p2 ON p1.email = p2.email AND p1.id > p2.id;\n\n-- Window function version\nDELETE FROM person WHERE id IN (\n  SELECT id FROM (\n    SELECT id, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn FROM person\n  ) t WHERE rn > 1\n);\n```\nThe extra derived table is needed because MySQL doesn't allow selecting from the table being deleted in a direct subquery (error 1093). Afterwards, add `UNIQUE(email)` to prevent recurrence.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "duplicates"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-005",
+   "q": "Find customers who never placed an order. Tables: Customers(id, name), Orders(id, customer_id).",
+   "a": "```sql\n-- LEFT JOIN anti-join\nSELECT c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;\n\n-- NOT EXISTS (NULL-safe, usually same plan)\nSELECT c.name FROM customers c\nWHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);\n\n-- NOT IN: dangerous if orders.customer_id can be NULL (returns nothing)\nSELECT name FROM customers\nWHERE id NOT IN (SELECT customer_id FROM orders WHERE customer_id IS NOT NULL);\n```\nMake sure `orders.customer_id` is indexed.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "joins"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-006",
+   "q": "Find the top 3 highest-paid employees in each department. Tables: Employee(id, name, salary, dept_id), Department(id, name).",
+   "a": "```sql\nWITH ranked AS (\n  SELECT d.name AS department, e.name AS employee, e.salary,\n         DENSE_RANK() OVER (PARTITION BY e.dept_id ORDER BY e.salary DESC) AS rnk\n  FROM employee e\n  JOIN department d ON d.id = e.dept_id\n)\nSELECT department, employee, salary\nFROM ranked\nWHERE rnk <= 3\nORDER BY department, salary DESC;\n```\n`DENSE_RANK` returns everyone within the top 3 *distinct* salaries (ties included); use `ROW_NUMBER` for exactly 3 rows per department. Without window functions:\n```sql\nSELECT d.name, e.name, e.salary FROM employee e JOIN department d ON d.id = e.dept_id\nWHERE (SELECT COUNT(DISTINCT e2.salary) FROM employee e2\n       WHERE e2.dept_id = e.dept_id AND e2.salary > e.salary) < 3;\n```",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-007",
+   "q": "Find the highest-paid employee(s) in each department.",
+   "a": "```sql\n-- Window function\nSELECT department, employee, salary FROM (\n  SELECT d.name AS department, e.name AS employee, e.salary,\n         RANK() OVER (PARTITION BY e.dept_id ORDER BY e.salary DESC) AS rnk\n  FROM employee e JOIN department d ON d.id = e.dept_id\n) t WHERE rnk = 1;\n\n-- Classic: join with grouped max (handles ties)\nSELECT d.name AS department, e.name AS employee, e.salary\nFROM employee e\nJOIN department d ON d.id = e.dept_id\nWHERE (e.dept_id, e.salary) IN (\n  SELECT dept_id, MAX(salary) FROM employee GROUP BY dept_id\n);\n```\nBoth return multiple employees if they tie for the max. A common mistake is `SELECT dept_id, name, MAX(salary) ... GROUP BY dept_id` — `name` isn't grouped, so it's invalid under ONLY_FULL_GROUP_BY (or returns an arbitrary name).",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "group-by"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-008",
+   "q": "Find numbers that appear at least three times consecutively. Table: Logs(id, num), id is sequential.",
+   "a": "```sql\n-- Self-join on consecutive ids\nSELECT DISTINCT l1.num AS consecutive_nums\nFROM logs l1\nJOIN logs l2 ON l2.id = l1.id + 1 AND l2.num = l1.num\nJOIN logs l3 ON l3.id = l1.id + 2 AND l3.num = l1.num;\n\n-- LEAD (doesn't assume ids have no gaps)\nSELECT DISTINCT num AS consecutive_nums FROM (\n  SELECT num,\n         LEAD(num, 1) OVER (ORDER BY id) AS n1,\n         LEAD(num, 2) OVER (ORDER BY id) AS n2\n  FROM logs\n) t WHERE num = n1 AND num = n2;\n```\nFor \"at least K times\", use the gaps-and-islands trick: `ROW_NUMBER() OVER (ORDER BY id) - ROW_NUMBER() OVER (PARTITION BY num ORDER BY id)` is constant within a run; group by `num, grp` and keep `HAVING COUNT(*) >= K`.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-009",
+   "q": "Calculate a running total of sales by date, and a running total per customer. Table: Orders(id, customer_id, order_date, amount).",
+   "a": "```sql\n-- Daily totals then running total\nSELECT order_date, daily_total,\n       SUM(daily_total) OVER (ORDER BY order_date) AS running_total\nFROM (SELECT order_date, SUM(amount) AS daily_total FROM orders GROUP BY order_date) d;\n\n-- Running total per customer, row by row\nSELECT customer_id, order_date, amount,\n       SUM(amount) OVER (PARTITION BY customer_id ORDER BY order_date, id\n                         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cust_running_total\nFROM orders;\n```\nUse `ROWS` (or a unique tiebreaker like `id`) when multiple orders share a date; the default `RANGE` frame would add all same-date rows together. Pre-MySQL 8 alternative: a correlated subquery `SELECT SUM(amount) FROM orders o2 WHERE o2.order_date <= o1.order_date` (O(n^2)).",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-010",
+   "q": "Pivot rows into columns: from Sales(product, quarter, amount) produce one row per product with Q1..Q4 columns.",
+   "a": "MySQL has no PIVOT keyword; use conditional aggregation:\n```sql\nSELECT product,\n       SUM(CASE WHEN quarter = 'Q1' THEN amount ELSE 0 END) AS q1,\n       SUM(CASE WHEN quarter = 'Q2' THEN amount ELSE 0 END) AS q2,\n       SUM(CASE WHEN quarter = 'Q3' THEN amount ELSE 0 END) AS q3,\n       SUM(CASE WHEN quarter = 'Q4' THEN amount ELSE 0 END) AS q4,\n       SUM(amount) AS total\nFROM sales\nGROUP BY product;\n```\nIn MySQL, `SUM(quarter = 'Q1') ` counts matches because booleans are 0/1. For an unknown set of columns you'd need dynamic SQL (build the query string with `GROUP_CONCAT` and `PREPARE`). Unpivot (columns -> rows) is done with `UNION ALL` of each column.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "pivot"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-011",
+   "q": "Find departments with more than 5 employees, and departments whose average salary is above the company average.",
+   "a": "```sql\n-- More than 5 employees\nSELECT d.name, COUNT(*) AS headcount\nFROM employee e JOIN department d ON d.id = e.dept_id\nGROUP BY d.id, d.name\nHAVING COUNT(*) > 5;\n\n-- Avg salary above company average\nSELECT d.name, AVG(e.salary) AS avg_sal\nFROM employee e JOIN department d ON d.id = e.dept_id\nGROUP BY d.id, d.name\nHAVING AVG(e.salary) > (SELECT AVG(salary) FROM employee);\n```\nKey concept: aggregate conditions go in HAVING, not WHERE.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "group-by"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-012",
+   "q": "Find employees earning more than the average salary of their own department.",
+   "a": "```sql\n-- Correlated subquery\nSELECT e.name, e.salary, e.dept_id\nFROM employee e\nWHERE e.salary > (SELECT AVG(x.salary) FROM employee x WHERE x.dept_id = e.dept_id);\n\n-- Window function (single pass)\nSELECT name, salary, dept_id, dept_avg FROM (\n  SELECT e.*, AVG(salary) OVER (PARTITION BY dept_id) AS dept_avg FROM employee e\n) t WHERE salary > dept_avg;\n\n-- Join with derived table\nSELECT e.name, e.salary FROM employee e\nJOIN (SELECT dept_id, AVG(salary) avg_sal FROM employee GROUP BY dept_id) a\n  ON a.dept_id = e.dept_id\nWHERE e.salary > a.avg_sal;\n```\nThe window version scans the table once and also lets you display the average.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "subquery"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-013",
+   "q": "Find the cumulative/month-over-month revenue growth percentage. Table: Orders(order_date, amount).",
+   "a": "```sql\nWITH monthly AS (\n  SELECT DATE_FORMAT(order_date, '%Y-%m') AS month, SUM(amount) AS revenue\n  FROM orders\n  GROUP BY DATE_FORMAT(order_date, '%Y-%m')\n)\nSELECT month, revenue,\n       LAG(revenue) OVER (ORDER BY month) AS prev_revenue,\n       ROUND(100 * (revenue - LAG(revenue) OVER (ORDER BY month))\n             / LAG(revenue) OVER (ORDER BY month), 2) AS growth_pct\nFROM monthly\nORDER BY month;\n```\nThe first month has NULL growth. Use `NULLIF(prev, 0)` in the denominator to avoid division by zero. Filtering on `order_date` with a range (not `DATE_FORMAT` in WHERE) keeps the index usable.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-014",
+   "q": "Find users who logged in on at least 3 consecutive days. Table: Logins(user_id, login_date).",
+   "a": "Gaps-and-islands: subtracting a per-user row number from the date gives a constant value for each consecutive streak.\n```sql\nWITH d AS (\n  SELECT DISTINCT user_id, login_date FROM logins\n),\ng AS (\n  SELECT user_id, login_date,\n         DATE_SUB(login_date,\n                  INTERVAL ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) DAY) AS grp\n  FROM d\n)\nSELECT user_id, MIN(login_date) AS streak_start, MAX(login_date) AS streak_end, COUNT(*) AS days\nFROM g\nGROUP BY user_id, grp\nHAVING COUNT(*) >= 3;\n```\n`DISTINCT` first so multiple logins on the same day don't break the streak. Alternative: `LEAD(login_date, 2)` and check it equals `login_date + INTERVAL 2 DAY`.",
+   "level": "Advanced",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-015",
+   "q": "Get the latest order for each customer. Table: Orders(id, customer_id, order_date, amount).",
+   "a": "```sql\n-- ROW_NUMBER (exactly one per customer)\nSELECT id, customer_id, order_date, amount FROM (\n  SELECT o.*, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC, id DESC) AS rn\n  FROM orders o\n) t WHERE rn = 1;\n\n-- Join with grouped max (may return ties)\nSELECT o.* FROM orders o\nJOIN (SELECT customer_id, MAX(order_date) AS max_dt FROM orders GROUP BY customer_id) m\n  ON m.customer_id = o.customer_id AND m.max_dt = o.order_date;\n\n-- NOT EXISTS: no newer order exists\nSELECT o.* FROM orders o\nWHERE NOT EXISTS (SELECT 1 FROM orders o2\n                  WHERE o2.customer_id = o.customer_id AND o2.order_date > o.order_date);\n```\nAn index on `(customer_id, order_date)` makes all three fast. This \"greatest-n-per-group\" pattern is extremely common.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-016",
+   "q": "Write a query to find the department-wise count of employees including departments with zero employees.",
+   "a": "```sql\nSELECT d.name AS department, COUNT(e.id) AS employee_count\nFROM department d\nLEFT JOIN employee e ON e.dept_id = d.id\nGROUP BY d.id, d.name\nORDER BY employee_count DESC;\n```\nTwo traps:\n1. Start from `department` with a LEFT JOIN so empty departments appear.\n2. Use `COUNT(e.id)`, not `COUNT(*)` — `COUNT(*)` would count the NULL-extended row and report 1 for empty departments.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "joins"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-017",
+   "q": "Find the employees who joined in the last 6 months, and the number of hires per year.",
+   "a": "```sql\nSELECT id, name, hired_on\nFROM employee\nWHERE hired_on >= CURDATE() - INTERVAL 6 MONTH;\n\nSELECT YEAR(hired_on) AS yr, COUNT(*) AS hires\nFROM employee\nGROUP BY YEAR(hired_on)\nORDER BY yr;\n```\nFor the first query keep the column bare (no function around `hired_on`) so an index on it can be used. Functions in SELECT/GROUP BY are fine. To show years with zero hires you'd join to a generated year list (recursive CTE).",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "dates"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-018",
+   "q": "Swap the gender values 'M' and 'F' in a Salary table with a single UPDATE and no temp table.",
+   "a": "```sql\nUPDATE salary\nSET sex = CASE sex WHEN 'm' THEN 'f' WHEN 'f' THEN 'm' ELSE sex END;\n\n-- MySQL alternative\nUPDATE salary SET sex = IF(sex = 'm', 'f', 'm');\n```\n`CASE` in UPDATE is the standard way to apply different changes to different rows in one statement. The same idea applies to conditional raises: `SET salary = CASE WHEN dept_id = 1 THEN salary * 1.1 ELSE salary * 1.05 END`.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "update"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-019",
+   "q": "Find the median salary (or median per department) in MySQL.",
+   "a": "MySQL has no MEDIAN function; use window functions:\n```sql\nSELECT dept_id, AVG(salary) AS median_salary\nFROM (\n  SELECT dept_id, salary,\n         ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary) AS rn,\n         COUNT(*)     OVER (PARTITION BY dept_id)                  AS cnt\n  FROM employee\n) t\nWHERE rn IN (FLOOR((cnt + 1) / 2), CEIL((cnt + 1) / 2))\nGROUP BY dept_id;\n```\nFor odd counts both expressions point to the middle row; for even counts they pick the two middle rows and `AVG` averages them. Drop `PARTITION BY` for the company-wide median.",
+   "level": "Advanced",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-020",
+   "q": "Report each product's sales ratio as a percentage of total sales, and the top 20% products by revenue.",
+   "a": "```sql\n-- Percentage of total\nSELECT product_id, SUM(amount) AS revenue,\n       ROUND(100 * SUM(amount) / SUM(SUM(amount)) OVER (), 2) AS pct_of_total\nFROM order_item\nGROUP BY product_id\nORDER BY revenue DESC;\n\n-- Top 20% products by revenue (quintiles)\nSELECT product_id, revenue FROM (\n  SELECT product_id, SUM(amount) AS revenue,\n         NTILE(5) OVER (ORDER BY SUM(amount) DESC) AS bucket\n  FROM order_item GROUP BY product_id\n) t WHERE bucket = 1;\n```\n`SUM(SUM(amount)) OVER ()` nests an aggregate inside a window function: the inner SUM is per group, the outer window sums across all groups. Window functions run after GROUP BY, which makes this possible.",
+   "level": "Advanced",
+   "tags": [
+    "sql-query",
+    "window-functions"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-021",
+   "q": "Find pairs of employees in the same department with the same salary, and classify each employee's salary band.",
+   "a": "```sql\n-- Pairs (each pair once)\nSELECT e1.name AS emp1, e2.name AS emp2, e1.dept_id, e1.salary\nFROM employee e1\nJOIN employee e2\n  ON e1.dept_id = e2.dept_id AND e1.salary = e2.salary AND e1.id < e2.id;\n\n-- Salary band with CASE\nSELECT name, salary,\n       CASE WHEN salary >= 150000 THEN 'A'\n            WHEN salary >= 80000  THEN 'B'\n            ELSE 'C' END AS band\nFROM employee;\n```\n`e1.id < e2.id` avoids self-pairs and duplicate (A,B)/(B,A) pairs — a frequently tested detail.",
+   "level": "Basic",
+   "tags": [
+    "sql-query",
+    "self-join"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-022",
+   "q": "What is the logical order of execution of a SQL SELECT query?",
+   "a": "1. `FROM` and `JOIN`s (build the working set)\n2. `WHERE` (filter rows)\n3. `GROUP BY` (form groups)\n4. `HAVING` (filter groups)\n5. `SELECT` (compute expressions, window functions)\n6. `DISTINCT`\n7. `ORDER BY`\n8. `LIMIT` / `OFFSET`\n\nConsequences: you can't use a SELECT alias or window function in WHERE; you can use aggregates in HAVING but not WHERE; ORDER BY can use aliases. To filter on a window function's result, wrap the query in a subquery or CTE. The optimizer may physically execute in a different order, but results must match this logical order.",
+   "level": "Basic",
+   "tags": [
+    "sql-basics"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-023",
+   "q": "Explain the different types of joins with examples.",
+   "a": "- **INNER JOIN**: rows with matches in both tables. `employees JOIN departments ON e.dept_id = d.id`.\n- **LEFT (OUTER) JOIN**: all rows from the left + matches from the right (NULLs where none). Used for \"including those without\" and anti-joins (`WHERE right.id IS NULL`).\n- **RIGHT JOIN**: mirror of LEFT.\n- **FULL OUTER JOIN**: all rows from both; MySQL doesn't support it — emulate with `LEFT JOIN UNION RIGHT JOIN`.\n- **CROSS JOIN**: Cartesian product (every combination) — e.g. generating size x colour variants.\n- **SELF JOIN**: a table joined to itself with aliases — employee/manager, comparing rows.\n- **Semi-join**: `EXISTS`/`IN` — rows that have a match, without duplicating.\n\nPlacing a right-table filter in WHERE turns a LEFT JOIN into an INNER JOIN; keep it in ON to preserve unmatched rows.",
+   "level": "Basic",
+   "tags": [
+    "joins"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-024",
+   "q": "WHERE vs HAVING?",
+   "a": "- `WHERE` filters **rows before grouping**; it can't use aggregate functions.\n- `HAVING` filters **groups after GROUP BY**; it can use aggregates.\n```sql\nSELECT dept_id, AVG(salary) FROM employee\nWHERE status = 'ACTIVE'          -- row filter\nGROUP BY dept_id\nHAVING AVG(salary) > 60000;      -- group filter\n```\nPut conditions that don't need aggregates in WHERE — fewer rows reach the grouping step and indexes can be used. HAVING without GROUP BY treats the whole result as one group.",
+   "level": "Basic",
+   "tags": [
+    "sql-basics",
+    "group-by"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-025",
+   "q": "DELETE vs TRUNCATE vs DROP?",
+   "a": "| | DELETE | TRUNCATE | DROP |\n|---|---|---|---|\n| Type | DML | DDL | DDL |\n| Removes | Selected rows (WHERE) or all | All rows | Whole table (data + structure + indexes) |\n| Rollback | Yes (in a transaction) | No in MySQL (implicit commit) | No |\n| Triggers | Fires DELETE triggers | No | No |\n| Speed | Slow for big tables (row-by-row, undo logging) | Fast (drops & recreates) | Fast |\n| AUTO_INCREMENT | Not reset | Reset | Gone |\n| FK-referenced table | Allowed per constraints | Fails if referenced by FKs | Fails if referenced |\n\nFor deleting millions of rows in production, delete in batches (`LIMIT 5000` loops) to avoid long locks and replication lag, or drop partitions.",
+   "level": "Basic",
+   "tags": [
+    "sql-basics"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-026",
+   "q": "UNION vs UNION ALL? IN vs EXISTS?",
+   "a": "- `UNION` combines result sets and **removes duplicates** (needs a sort/hash -> slower).\n- `UNION ALL` keeps duplicates and is faster. Use it when duplicates are impossible or wanted.\n\n- `IN (subquery)` checks membership in a list of values.\n- `EXISTS (subquery)` checks whether the correlated subquery returns any row; stops at the first match.\nMySQL 8 converts both into semi-joins in most cases, so performance is usually similar — verify with EXPLAIN. The important difference is **NOT IN vs NOT EXISTS**: if the subquery returns a NULL, `NOT IN` yields no rows (comparison with NULL is unknown), while `NOT EXISTS` behaves intuitively. Prefer `NOT EXISTS` or a LEFT JOIN anti-join.",
+   "level": "Intermediate",
+   "tags": [
+    "sql-basics",
+    "subquery"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-027",
+   "q": "What is a CTE? How is it different from a subquery, a temporary table, and a view?",
+   "a": "A **Common Table Expression** (`WITH name AS (...)`) is a named, temporary result set for a single statement (MySQL 8+).\n- vs **subquery**: same power for most uses, but CTEs are more readable, can be referenced multiple times, and can be **recursive** (hierarchies, date series).\n- vs **temporary table**: a temp table (`CREATE TEMPORARY TABLE`) is physically created, persists for the session, can be indexed and reused across statements; a CTE exists only during one query.\n- vs **view**: a view is a stored schema object reusable by any query and grantable for security; a CTE isn't stored.\n\n```sql\nWITH RECURSIVE sub AS (\n  SELECT id, manager_id FROM employee WHERE id = 10\n  UNION ALL\n  SELECT e.id, e.manager_id FROM employee e JOIN sub s ON e.manager_id = s.id\n) SELECT * FROM sub;    -- all reports under employee 10\n```",
+   "level": "Intermediate",
+   "tags": [
+    "cte"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-028",
+   "q": "What are window functions? Explain ROW_NUMBER, RANK and DENSE_RANK.",
+   "a": "Window functions calculate a value per row over a set of related rows (`OVER (PARTITION BY ... ORDER BY ...)`) without collapsing rows like GROUP BY.\n\nFor salaries 100, 90, 90, 80:\n- **ROW_NUMBER**: 1, 2, 3, 4 — unique numbering; use for dedup or \"exactly one per group\".\n- **RANK**: 1, 2, 2, 4 — ties share a rank, then a gap.\n- **DENSE_RANK**: 1, 2, 2, 3 — ties share a rank, no gaps; use for \"Nth highest distinct salary\".\n\n```sql\nSELECT name, dept_id, salary,\n       DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rnk\nFROM employee;\n```\nOthers: `LAG/LEAD` (previous/next row), `SUM/AVG OVER` (running totals, per-group averages), `NTILE`, `FIRST_VALUE`. They can't appear in WHERE — filter in an outer query.",
+   "level": "Intermediate",
+   "tags": [
+    "window-functions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-029",
+   "q": "What is an index? How does a B+Tree index work in MySQL?",
+   "a": "An index is a sorted data structure that lets MySQL locate rows without a full table scan.\n\nInnoDB uses **B+Trees**: a balanced tree where internal nodes contain keys to guide the search, and **leaf nodes contain the actual entries, linked together** in order. With 16KB pages holding hundreds of keys, a tree of 3-4 levels covers hundreds of millions of rows, so a lookup reads only a few pages — O(log n). Linked leaves make **range queries** (`BETWEEN`, `>`, `ORDER BY`) efficient by scanning sideways.\n\nWhy not hash? Hash indexes only support equality, not ranges or sorting. Why not binary trees? Too deep -> too many disk reads.\n\nCost: indexes consume space and slow down INSERT/UPDATE/DELETE because each index must be maintained.",
+   "level": "Intermediate",
+   "tags": [
+    "indexes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-030",
+   "q": "Clustered vs non-clustered (secondary) index in InnoDB?",
+   "a": "- **Clustered index**: in InnoDB, the **primary key index stores the full rows** in its leaf pages, physically ordered by PK. There's exactly one per table (if no PK, InnoDB uses the first NOT NULL UNIQUE key or a hidden row id).\n- **Secondary index**: leaf entries hold the indexed columns **plus the primary key**. A lookup finds the PK and then searches the clustered index for the rest of the row (double lookup), unless the index covers the query.\n\nImplications:\n- Keep the PK short (BIGINT) — it's duplicated in every secondary index.\n- Monotonically increasing PKs (AUTO_INCREMENT, UUIDv7) insert at the end; random UUIDv4 PKs cause page splits and fragmentation.\n- PK range queries are very fast (rows are contiguous).",
+   "level": "Intermediate",
+   "tags": [
+    "indexes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-031",
+   "q": "What is a composite index and the leftmost prefix rule? How do you choose column order?",
+   "a": "A composite index covers multiple columns, sorted by the first column, then the second within it, etc. — like a phone book sorted by (last_name, first_name).\n\n**Leftmost prefix rule**: the index on `(a, b, c)` can be used for conditions on `a`, `a,b`, or `a,b,c` — but not for `b` or `c` alone. After a **range** condition on a column, the following columns can't be used for seeking (they can still filter via index condition pushdown).\n```sql\nINDEX(customer_id, status, created_at)\nWHERE customer_id = 7 AND status = 'PAID' ORDER BY created_at DESC   -- fully used, no filesort\nWHERE status = 'PAID'                                               -- can't seek\n```\nOrder columns by: equality filters first, then the range or sort column; among equality columns, those used most often/most selective first. An index on `(a,b)` makes a separate `(a)` index redundant.",
+   "level": "Intermediate",
+   "tags": [
+    "indexes"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-032",
+   "q": "What is a covering index?",
+   "a": "An index that contains **all the columns a query needs** (in SELECT, WHERE, ORDER BY, GROUP BY), so MySQL can answer the query from the index alone without reading table rows (no lookup into the clustered index). EXPLAIN shows `Using index` in Extra.\n```sql\nCREATE INDEX idx_status_created_total ON orders (status, created_at, total);\nSELECT created_at, total FROM orders WHERE status = 'PAID' ORDER BY created_at DESC LIMIT 50;\n```\nIn InnoDB, secondary indexes implicitly include the primary key, so `SELECT id ...` is also covered. Covering indexes are great for hot read queries, but wide indexes cost storage and write speed — and `SELECT *` defeats them.",
+   "level": "Intermediate",
+   "tags": [
+    "indexes",
+    "performance"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-033",
+   "q": "When does MySQL not use an index even if one exists?",
+   "a": "- **Function/expression on the column**: `WHERE DATE(created_at) = '2025-01-01'`, `WHERE salary * 1.1 > 50000`. Rewrite as ranges or use a functional index.\n- **Leading wildcard**: `LIKE '%son'` (prefix `LIKE 'son%'` is fine).\n- **Implicit type conversion**: comparing a VARCHAR column to a number, or joining columns with different charsets/collations.\n- **Leftmost prefix not used** in a composite index.\n- **Low selectivity**: if the optimizer estimates many rows match (e.g. `status = 'ACTIVE'` for 90% of rows), a full scan is cheaper.\n- **OR across different columns** (may need index merge or UNION).\n- `!=`, `NOT IN`, `IS NOT NULL` on mostly-non-null columns often scan.\n- **Outdated statistics** — run `ANALYZE TABLE`.\n- Small tables where a scan is cheaper.\nConfirm with EXPLAIN and check the `key` column.",
+   "level": "Intermediate",
+   "tags": [
+    "indexes",
+    "performance"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-034",
+   "q": "How do you read EXPLAIN output? What are the important columns?",
+   "a": "- **type**: access method, from best to worst — `const` (single row by PK/unique), `eq_ref` (one row per join row via unique index), `ref` (non-unique index lookup), `range` (index range scan), `index` (full index scan), `ALL` (full table scan — red flag on large tables).\n- **possible_keys / key**: indexes considered vs the one chosen.\n- **key_len**: how much of a composite index is used.\n- **rows**: estimated rows examined; **filtered**: % remaining after conditions.\n- **Extra**: `Using index` (covering — good), `Using where`, `Using index condition` (ICP), `Using filesort` (extra sort step), `Using temporary` (temp table for GROUP BY/DISTINCT), `Using join buffer` (join without index).\n\nUse `EXPLAIN ANALYZE` in MySQL 8 to see actual times and row counts versus estimates.",
+   "level": "Intermediate",
+   "tags": [
+    "explain",
+    "performance"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-035",
+   "q": "A query is slow in production. How do you troubleshoot and optimise it?",
+   "a": "1. **Identify**: slow query log, APM traces, `performance_schema`/`sys` schema; get the exact query and parameters; check frequency vs duration.\n2. **EXPLAIN / EXPLAIN ANALYZE**: look for full scans (`ALL`), large `rows`, `Using filesort`/`temporary`, wrong index choice.\n3. **Indexing**: add a composite index matching WHERE equality columns then ORDER BY/range; make it covering for hot queries; index join/FK columns.\n4. **Rewrite**: sargable predicates (no functions on indexed columns), avoid `SELECT *`, replace correlated subqueries with joins/window functions, `OR` -> `UNION ALL`, keyset pagination instead of large OFFSET.\n5. **Reduce work**: fetch less data, pre-aggregate into summary tables, cache in Redis.\n6. **Check the environment**: lock waits (`data_lock_waits`), buffer pool hit rate, stale stats (`ANALYZE TABLE`), connection pool saturation, N+1 from the ORM.\n7. **Verify**: compare EXPLAIN and latency before/after on production-like data, then monitor.",
+   "level": "Intermediate",
+   "tags": [
+    "performance",
+    "scenario"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-036",
+   "q": "Why is OFFSET pagination slow for large offsets? What's the alternative?",
+   "a": "`SELECT ... ORDER BY id LIMIT 20 OFFSET 1000000` makes MySQL read and discard 1,000,000 rows before returning 20 — cost grows linearly with the page number. Results can also shift if rows are inserted/deleted between page requests.\n\n**Keyset (seek/cursor) pagination**: remember the last seen sort key and continue from it, using the index directly:\n```sql\nSELECT id, title, created_at FROM posts\nWHERE (created_at, id) < (:last_created_at, :last_id)\nORDER BY created_at DESC, id DESC\nLIMIT 20;\n```\nNeeds an index on `(created_at, id)`. Constant time per page and stable results; downside: no \"jump to page 500\", only next/previous. Another option is a **deferred join**: get the 20 ids with OFFSET from a covering index, then join back for full rows.",
+   "level": "Intermediate",
+   "tags": [
+    "performance",
+    "pagination"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-037",
+   "q": "Explain normalization: 1NF, 2NF, 3NF and BCNF with examples.",
+   "a": "- **1NF**: atomic column values, no repeating groups, a primary key. Bad: `phones = '98..,97..'`; fix with a separate phone table.\n- **2NF**: 1NF + no partial dependency on part of a composite key. In `order_item(order_id, product_id, qty, product_name)`, `product_name` depends only on `product_id` -> move to `product`.\n- **3NF**: 2NF + no transitive dependency (non-key -> non-key). In `employee(id, dept_id, dept_name)`, `dept_name` depends on `dept_id` -> move to `department`.\n- **BCNF**: every determinant is a candidate key (handles edge cases with overlapping candidate keys).\n\nGoal: eliminate redundancy and update/insert/delete anomalies. Denormalize deliberately for read performance (reporting tables, cached totals), accepting extra write complexity.",
+   "level": "Basic",
+   "tags": [
+    "normalization",
+    "design"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-038",
+   "q": "What is denormalization and when would you use it?",
+   "a": "Denormalization intentionally introduces redundancy to speed up reads by avoiding joins or aggregations at query time. Examples:\n- Storing `order_total` on orders instead of summing order items each time.\n- Copying `customer_name` into an orders/invoice table (also preserves historical accuracy).\n- Counter columns (`likes_count`) updated on write.\n- Summary/reporting tables refreshed by jobs (MySQL has no materialised views).\n- Read models in CQRS, or star schemas in data warehouses.\n\nUse it when reads vastly outnumber writes, and joins/aggregations are proven bottlenecks. Costs: more storage, more complex writes, risk of inconsistency — keep the denormalized data in sync with transactions, triggers, or events, and treat the normalized data as the source of truth.",
+   "level": "Intermediate",
+   "tags": [
+    "normalization",
+    "design"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-039",
+   "q": "What are ACID properties? How does InnoDB implement them?",
+   "a": "- **Atomicity**: all or nothing. InnoDB records an **undo log** so it can roll back partial changes.\n- **Consistency**: transactions take the DB from one valid state to another — enforced by constraints (PK, FK, UNIQUE, CHECK) and application invariants.\n- **Isolation**: concurrent transactions don't interfere beyond the chosen isolation level — implemented with **MVCC** (snapshots via undo logs) and **locks** (record, gap, next-key).\n- **Durability**: committed data survives crashes — InnoDB writes changes to the **redo log** (write-ahead logging) and flushes it at commit (`innodb_flush_log_at_trx_commit=1`); the doublewrite buffer protects against partial page writes; crash recovery replays the redo log.",
+   "level": "Basic",
+   "tags": [
+    "transactions",
+    "acid"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-040",
+   "q": "Explain transaction isolation levels and the anomalies each prevents. What is MySQL's default?",
+   "a": "| Level | Dirty read | Non-repeatable read | Phantom |\n|---|---|---|---|\n| READ UNCOMMITTED | possible | possible | possible |\n| READ COMMITTED | no | possible | possible |\n| REPEATABLE READ | no | no | possible per SQL standard |\n| SERIALIZABLE | no | no | no |\n\n- Dirty read: seeing uncommitted changes.\n- Non-repeatable read: re-reading a row gives a different value.\n- Phantom: re-running a range query returns new rows.\n\n**MySQL InnoDB default is REPEATABLE READ.** Thanks to MVCC, plain SELECTs read a consistent snapshot (no phantoms), and locking reads use next-key locks to block inserts into scanned ranges. PostgreSQL/Oracle default to READ COMMITTED. Higher levels reduce anomalies but increase locking and deadlocks.",
+   "level": "Intermediate",
+   "tags": [
+    "transactions",
+    "isolation"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-041",
+   "q": "What is MVCC and how does InnoDB use it?",
+   "a": "**Multi-Version Concurrency Control** keeps multiple versions of rows so readers don't block writers and writers don't block readers.\n\nIn InnoDB, each row stores the id of the last transaction that modified it and a pointer to its previous version in the **undo log**. A consistent read creates a **read view** (which transactions were committed/active at that moment) and follows the undo chain to the version visible to it.\n- REPEATABLE READ: the read view is created at the first read and reused for the whole transaction -> stable results.\n- READ COMMITTED: a new read view per statement -> sees each newly committed change.\n\nPlain SELECTs take no locks. Writes still lock rows. Long-running transactions keep old versions alive, growing the undo history and slowing the server — keep transactions short.",
+   "level": "Advanced",
+   "tags": [
+    "mvcc",
+    "transactions"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-042",
+   "q": "Explain InnoDB locks: shared vs exclusive, record, gap and next-key locks.",
+   "a": "- **Shared (S)**: `SELECT ... FOR SHARE` — multiple transactions can hold it; blocks writers.\n- **Exclusive (X)**: `SELECT ... FOR UPDATE`, UPDATE, DELETE — blocks other S and X locks on the row.\n- **Intention locks (IS/IX)**: table-level markers that row locks exist.\n- **Record lock**: locks an index entry.\n- **Gap lock**: locks the gap between index entries, preventing inserts there (REPEATABLE READ and above).\n- **Next-key lock**: record + preceding gap; default for range scans in REPEATABLE READ — prevents phantoms.\n\nLocks are taken on **index records**: an UPDATE whose WHERE clause can't use an index scans and locks every row it examines, effectively locking the table. MySQL 8 adds `NOWAIT` and `SKIP LOCKED` for queue-like workloads. Inspect with `performance_schema.data_locks`.",
+   "level": "Advanced",
+   "tags": [
+    "locking",
+    "innodb"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-043",
+   "q": "What is a deadlock in MySQL? How do you detect and prevent it?",
+   "a": "A deadlock occurs when two transactions each hold locks the other needs (T1 locks row 1 then wants row 2; T2 locks row 2 then wants row 1). InnoDB **detects it automatically** and rolls back one transaction (the victim, usually the one with fewer changes) with error 1213; the other continues.\n\nDiagnose: `SHOW ENGINE INNODB STATUS` (LATEST DETECTED DEADLOCK), `innodb_print_all_deadlocks=ON` to log all, `performance_schema.data_lock_waits`.\n\nPrevent:\n- Access rows in a consistent order (sort ids before updating).\n- Keep transactions short; no user/remote calls inside.\n- Index WHERE columns of UPDATE/DELETE to lock fewer rows/gaps.\n- Use READ COMMITTED to reduce gap locks if acceptable.\n- Break large batch updates into small chunks.\n- **Retry** deadlocked transactions in the application — deadlocks can't be fully eliminated.",
+   "level": "Intermediate",
+   "tags": [
+    "locking",
+    "deadlock"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-044",
+   "q": "How do you prevent two users from booking the same seat / overselling inventory?",
+   "a": "Options, from simplest:\n1. **Atomic conditional update**:\n```sql\nUPDATE seat SET status = 'BOOKED', user_id = 42\nWHERE id = 101 AND status = 'AVAILABLE';   -- check affected rows: 1 = success, 0 = taken\nUPDATE product SET stock = stock - 1 WHERE id = 7 AND stock >= 1;\n```\n2. **Pessimistic locking**: `SELECT ... FOR UPDATE` inside a transaction, then update; others wait (use `NOWAIT`/`SKIP LOCKED` to avoid waiting).\n3. **Optimistic locking**: version column; update `WHERE version = ?`, retry on conflict.\n4. **Unique constraint** as a safety net: `UNIQUE(show_id, seat_no)` on a bookings table — a second insert fails.\n5. At very high scale, temporary holds with TTL in Redis (atomic `SET NX EX` or Lua), then confirm in the DB.\nAvoid read-then-write without locks (`SELECT stock` then `UPDATE stock = :new`) — classic lost update.",
+   "level": "Advanced",
+   "tags": [
+    "locking",
+    "scenario"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-045",
+   "q": "What are views? Can you update through a view?",
+   "a": "A view is a saved SQL query treated like a virtual table; it stores no data (MySQL has no materialised views).\n```sql\nCREATE VIEW active_customers AS\nSELECT id, name, email FROM customer WHERE status = 'ACTIVE';\n```\nUses: simplify complex joins, restrict columns/rows for security (grant access to the view only), keep a stable interface while the underlying schema changes.\n\nUpdatable views: simple views over a single table without aggregates, DISTINCT, GROUP BY, HAVING, UNION or subqueries in SELECT allow INSERT/UPDATE/DELETE, which pass through to the base table. `WITH CHECK OPTION` rejects changes that would make the row invisible to the view. Performance: views using aggregates are materialised into temp tables (TEMPTABLE), which can be slow when filtered from outside.",
+   "level": "Basic",
+   "tags": [
+    "views"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-046",
+   "q": "Stored procedure vs function? What are the pros and cons of stored procedures?",
+   "a": "**Procedure**: invoked with `CALL`, can have IN/OUT/INOUT parameters, return multiple result sets, and manage transactions (COMMIT/ROLLBACK). **Function**: returns a single value, usable inside SQL expressions (`SELECT tax(amount)`), can't manage transactions.\n\nPros of procedures: fewer network round trips for multi-step data logic, logic close to data, permission control via EXECUTE grants, reusable across apps.\n\nCons: business logic hidden in the DB is harder to version, test (no easy unit tests/mocking), debug and review; scales poorly because DB CPU is hardest to scale; vendor lock-in; deployment coordination with app releases.\n\nProduct companies typically keep business logic in services and use procedures for data-heavy batch jobs or migrations. From Spring: `@Procedure` or `SimpleJdbcCall`.",
+   "level": "Basic",
+   "tags": [
+    "stored-procedures"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-047",
+   "q": "What are triggers? When should you avoid them?",
+   "a": "Triggers are SQL code that runs automatically `BEFORE` or `AFTER` an INSERT, UPDATE or DELETE on a table, for each affected row, with access to `OLD` and `NEW` values.\n```sql\nCREATE TRIGGER trg_audit AFTER UPDATE ON employee FOR EACH ROW\nINSERT INTO employee_audit(emp_id, old_salary, new_salary, changed_at)\nVALUES (OLD.id, OLD.salary, NEW.salary, NOW());\n```\nUses: audit logs, enforcing invariants, maintaining denormalized columns.\n\nAvoid when: logic is business-critical and should be visible in application code, high write throughput (they add latency to every write), complex chains (triggers firing other triggers), or you need to call external systems. Hidden side effects confuse developers and complicate debugging and migrations. Alternatives: application-level auditing (JPA auditing, Hibernate Envers) or CDC with Debezium.",
+   "level": "Basic",
+   "tags": [
+    "triggers"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-048",
+   "q": "How does MySQL replication work? What is replication lag and how do you handle it?",
+   "a": "In source-replica replication, the source writes every change to its **binary log**. Each replica's I/O thread pulls binlog events into a **relay log**, and the SQL/applier thread(s) replay them. Replicas typically serve read traffic; writes go to the source. Default replication is **asynchronous**; **semi-synchronous** makes the source wait until at least one replica receives the event; **Group Replication/InnoDB Cluster** adds consensus-based failover. GTIDs simplify failover.\n\n**Replication lag**: replicas fall behind due to heavy writes, long transactions, single-threaded apply, or underpowered replicas. Effects: users don't see their own just-made changes.\n\nHandling: read-your-writes by routing a user's reads to the primary briefly after a write, send critical reads to the primary, enable multi-threaded replication, avoid huge transactions (batch updates), and monitor `Seconds_Behind_Source`.",
+   "level": "Intermediate",
+   "tags": [
+    "replication",
+    "scaling"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-049",
+   "q": "Partitioning vs sharding? How would you scale a MySQL database?",
+   "a": "- **Partitioning**: one table split into physical partitions **on the same server** (RANGE by date, LIST, HASH, KEY). Benefits: partition pruning, fast archival via `DROP PARTITION`. The partition key must be in every unique key.\n- **Sharding**: data split **across multiple database servers** by a shard key (e.g. `user_id` hash). Scales writes and storage beyond one machine, but cross-shard joins/transactions, global IDs and re-sharding are hard. Tools: Vitess, ShardingSphere, ProxySQL.\n\nScaling path:\n1. Optimise queries/indexes and buffer pool.\n2. Cache hot reads (Redis).\n3. Vertical scaling.\n4. Read replicas for read-heavy load.\n5. Partition very large tables; archive cold data.\n6. Shard when write throughput or dataset size exceeds a single primary, choosing a shard key that keeps most queries on one shard.",
+   "level": "Advanced",
+   "tags": [
+    "scaling",
+    "partitioning"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-050",
+   "q": "CHAR vs VARCHAR? Why use DECIMAL for money? DATETIME vs TIMESTAMP?",
+   "a": "- **CHAR(n)**: fixed length, space-padded; good for fixed-size codes (country code, hashes). **VARCHAR(n)**: variable length + 1-2 byte length prefix; good for names/emails.\n- **DECIMAL(p,s)** stores exact base-10 values. FLOAT/DOUBLE are binary approximations (0.1 + 0.2 != 0.3), causing rounding errors in financial sums. Use `DECIMAL(12,2)` or store the amount in paise as BIGINT. In Java, map to `BigDecimal`.\n- **DATETIME**: stores the literal date-time without timezone, range 1000-9999. **TIMESTAMP**: stored as UTC and converted to the session time zone on read, range 1970-2038, 4 bytes. Store times in UTC consistently; many teams use DATETIME holding UTC values to avoid the 2038 limit.\n- Use `utf8mb4` charset for full Unicode (emoji).",
+   "level": "Basic",
+   "tags": [
+    "data-types"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-051",
+   "q": "What is the difference between primary key, unique key and foreign key?",
+   "a": "- **Primary key**: uniquely identifies each row; NOT NULL; only one per table (can be composite). In InnoDB it's the **clustered index** that physically orders rows.\n- **Unique key**: enforces uniqueness on column(s); multiple allowed per table; allows NULLs (in MySQL, multiple NULLs are permitted). Creates a secondary unique index. Example: `email`.\n- **Foreign key**: a column referencing another table's primary/unique key to enforce referential integrity; options `ON DELETE CASCADE | SET NULL | RESTRICT`. InnoDB requires an index on FK columns (creates one automatically). Some high-scale teams skip DB-level FKs for performance/sharding and enforce integrity in the application, but FKs are the safe default.",
+   "level": "Basic",
+   "tags": [
+    "sql-basics",
+    "keys"
+   ],
+   "frequent": true
+  },
+  {
+   "id": "sql-052",
+   "q": "What is the N+1 query problem from the database perspective, and how do you spot it in MySQL?",
+   "a": "The application issues one query to fetch a list and then one query per row to fetch related data — e.g. 1 query for 100 orders + 100 queries for their customers. Each query is fast, but 101 round trips add latency and load.\n\nSpotting it: the general/slow query log or `performance_schema.events_statements_summary_by_digest` shows the same query digest executed hundreds of times per request with different ids; APM traces show many tiny DB spans; Hibernate statistics show high statement counts.\n\nFixes: fetch with a JOIN, use `WHERE customer_id IN (...)` batch queries, JPA `JOIN FETCH`/`@EntityGraph`/batch fetching, or DTO projections that select exactly what the page needs.",
+   "level": "Intermediate",
+   "tags": [
+    "performance",
+    "orm"
+   ],
+   "frequent": false
+  },
+  {
+   "id": "sql-053",
+   "q": "How would you design tables for a many-to-many relationship, e.g. students and courses?",
+   "a": "Use a **junction (associative) table** holding foreign keys to both sides:\n```sql\nCREATE TABLE student (id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100));\nCREATE TABLE course  (id BIGINT PRIMARY KEY AUTO_INCREMENT, title VARCHAR(100));\nCREATE TABLE enrollment (\n  student_id BIGINT NOT NULL,\n  course_id  BIGINT NOT NULL,\n  enrolled_on DATE NOT NULL,\n  grade CHAR(2),\n  PRIMARY KEY (student_id, course_id),           -- no duplicate enrolments\n  KEY idx_course_student (course_id, student_id), -- reverse lookups\n  FOREIGN KEY (student_id) REFERENCES student(id),\n  FOREIGN KEY (course_id)  REFERENCES course(id)\n);\n-- students in a course\nSELECT s.name FROM enrollment e JOIN student s ON s.id = e.student_id WHERE e.course_id = 5;\n```\nThe junction table can carry relationship attributes (date, grade). In JPA, model it as its own entity rather than `@ManyToMany` when it has extra columns.",
+   "level": "Basic",
+   "tags": [
+    "design",
+    "normalization"
+   ],
+   "frequent": false
+  }
+ ],
+ "sources": [
+  {
+   "title": "MySQL 8.4 Reference Manual",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/"
+  },
+  {
+   "title": "MySQL - InnoDB Locking",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html"
+  },
+  {
+   "title": "MySQL - Transaction Isolation Levels",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html"
+  },
+  {
+   "title": "MySQL - InnoDB Multi-Versioning",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-multi-versioning.html"
+  },
+  {
+   "title": "MySQL - EXPLAIN Output Format",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/explain-output.html"
+  },
+  {
+   "title": "MySQL - Window Functions",
+   "url": "https://dev.mysql.com/doc/refman/8.4/en/window-functions.html"
+  },
+  {
+   "title": "Use The Index, Luke (Markus Winand)",
+   "url": "https://use-the-index-luke.com/"
+  },
+  {
+   "title": "LeetCode - Top SQL 50",
+   "url": "https://leetcode.com/studyplan/top-sql-50/"
+  },
+  {
+   "title": "GeeksforGeeks - SQL Interview Questions",
+   "url": "https://www.geeksforgeeks.org/sql/sql-interview-questions/"
+  },
+  {
+   "title": "InterviewBit - SQL Interview Questions",
+   "url": "https://www.interviewbit.com/sql-interview-questions/"
+  }
+ ]
+}
