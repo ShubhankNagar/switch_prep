@@ -8,4 +8,6 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
     List<QuizAttempt> findByUserIdOrderByTakenAtDesc(Long userId);
 
     void deleteByUserId(Long userId);
+
+    long countByUserId(Long userId);
 }

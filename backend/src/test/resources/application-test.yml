@@ -4,3 +4,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+app:
+  auth:
+    google-client-id: test-client-id

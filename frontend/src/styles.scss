@@ -344,6 +344,9 @@ pre.code code { background: none; padding: 0; font-family: ui-monospace, 'JetBra
 .timer-big { font-size: 2.6rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: .3rem 0; color: var(--primary); }
 .timer-pill { background: var(--primary-soft); color: var(--primary); border-radius: 99px; padding: .2rem .7rem; font-weight: 600;
   font-variant-numeric: tabular-nums; font-size: .88rem; }
+.sync-pill { background: var(--warn-soft); color: var(--text); border-radius: 99px; padding: .2rem .7rem; font-size: .82rem;
+  white-space: nowrap; }
+.google-button { min-height: 44px; }
 .routine { padding-left: 1.1rem; margin: .3rem 0; }
 .routine li { margin: .3rem 0; }
 .table-wrap { overflow-x: auto; }

@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, computed, effect, inject, resource, signal, untracked } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { API_BASE } from './api.config';
 import { keys } from './catalog.service';
 import { ContentService } from './content.service';
@@ -8,6 +8,9 @@ import { HabitData, HabitDayLog, HabitDef } from './models';
 import { ProgressService, toIso, todayIso } from './progress.service';
 
 const STORAGE_KEY = 'switchprep.habits.v1';
+
+/** What is kept in localStorage; `pending` (signed-in copy only) marks changes the server has not confirmed. */
+interface StoredHabits extends HabitData { pending?: { habits: boolean; dates: string[] }; }
 
 /** A day counts towards the routine streak when at least this share of active habits is met. */
 export const COMPLETE_DAY_THRESHOLD = 0.8;
@@ -42,6 +45,9 @@ const emptyLog = (): HabitDayLog => ({ values: {}, minutes: 0, journal: '' });
  * Daily routine tracker. Auto habits are computed from progress made anywhere on the site (completion
  * timestamps), so ticking a DSA problem also ticks "Solve 2 problems". Manual values, study minutes and
  * the journal are stored per day: in localStorage, and on the server when logged in.
+ *
+ * Like ProgressService, a signed-in user gets their own localStorage copy, shown at once; changes made while
+ * the API is unreachable are queued and sent when ProgressService reports it is online.
  */
 @Injectable({ providedIn: 'root' })
 export class HabitService {
@@ -59,19 +65,38 @@ export class HabitService {
   readonly timerRemaining = signal(0);
   readonly timerRunning = computed(() => this.timerTotal() > 0);
   private timerHandle?: ReturnType<typeof setInterval>;
-  private loadedFor: number | null | undefined = undefined;
+
+  private pendingHabits = signal(false);
+  private pendingDates = signal<string[]>([]);
+  /** Account whose routine is in memory (null = this browser's own). Storage follows this, not the live user. */
+  private loadedFor: number | null = this.progress.user()?.id ?? null;
+  /** Whether the routine has been brought in step with the API since it last came online. */
+  private synced = false;
 
   constructor() {
     this.loadLocal();
     effect(() => this.saveLocal());
-    // switch storage when the user logs in or out (only when the account changes: the user object is
-    // replaced on every profile refresh, and reloading then would race with writes still in flight)
+    // follow sign-in, sign-out and the connection (by account id, not the user object: that is replaced on
+    // every profile refresh, and reloading then would race with writes still in flight)
     effect(() => {
       const id = this.progress.user()?.id ?? null;
-      if (id === this.loadedFor) return;
-      this.loadedFor = id;
-      untracked(() => (id !== null ? void this.loadFromServer() : this.loadLocal()));
+      const online = this.progress.online();
+      untracked(() => this.onSession(id, online));
     });
+  }
+
+  private onSession(id: number | null, online: boolean): void {
+    if (id !== this.loadedFor) {
+      this.saveLocal(); // the outgoing account's copy, with anything still unsent
+      this.loadedFor = id;
+      this.synced = false;
+      this.loadLocal();
+    }
+    if (!online) this.synced = false;
+    else if (id !== null && !this.synced) {
+      this.synced = true;
+      void this.syncWithServer();
+    }
   }
 
   // ---------- per-day computation ----------
@@ -217,10 +242,12 @@ export class HabitService {
 
   saveHabits(habits: HabitDef[]): void {
     this.habits.set(habits);
-    if (this.progress.mode() === 'server') {
-      this.http.put(`${API_BASE}/api/habits`, { habitsJson: JSON.stringify(habits) })
-        .subscribe({ error: () => this.progress.syncError.set('Could not save your routine to the server.') });
+    if (this.progress.mode() !== 'server') return;
+    if (!this.progress.online()) {
+      this.pendingHabits.set(true);
+      return;
     }
+    this.putHabits().subscribe({ error: e => this.progress.reportSyncFailure(e, () => this.pendingHabits.set(true)) });
   }
 
   resetHabitsToDefault(): void {
@@ -281,6 +308,17 @@ export class HabitService {
 
   reset(): void {
     this.logs.set({});
+    this.pendingDates.set([]);
+  }
+
+  /** Removes this browser's copy of a deleted account's routine. */
+  forgetAccount(userId: number): void {
+    if (this.loadedFor === userId) { // switch away first, or the account switch below would save the copy again
+      this.loadedFor = null;
+      this.synced = false;
+      this.loadLocal();
+    }
+    localStorage.removeItem(`${STORAGE_KEY}.user.${userId}`);
   }
 
   // ---------- internals ----------
@@ -288,25 +326,78 @@ export class HabitService {
   private writeLog(date: string, log: HabitDayLog): Promise<void> {
     this.logs.update(all => ({ ...all, [date]: log }));
     if (this.progress.mode() !== 'server') return Promise.resolve();
-    return firstValueFrom(this.http.put(`${API_BASE}/api/habit-logs/${date}`, {
-      valuesJson: JSON.stringify(log.values), minutes: log.minutes, journal: log.journal,
-    })).then(() => undefined, () => this.progress.syncError.set('Could not save your routine to the server.'));
+    if (!this.progress.online()) {
+      this.queueDate(date);
+      return Promise.resolve();
+    }
+    return firstValueFrom(this.putLog(date)).then(
+      () => undefined,
+      e => { this.progress.reportSyncFailure(e, () => this.queueDate(date)); });
   }
 
-  private async loadFromServer(): Promise<void> {
+  private queueDate(date: string): void {
+    this.pendingDates.update(dates => (dates.includes(date) ? dates : [...dates, date]));
+  }
+
+  private putHabits(): Observable<unknown> {
+    return this.http.put(`${API_BASE}/api/habits`, { habitsJson: JSON.stringify(this.habits()) });
+  }
+
+  private putLog(date: string): Observable<unknown> {
+    const log = this.log(date);
+    return this.http.put(`${API_BASE}/api/habit-logs/${date}`, {
+      valuesJson: JSON.stringify(log.values), minutes: log.minutes, journal: log.journal,
+    });
+  }
+
+  /** Sends what the API has not seen yet, then loads the account's routine from it. */
+  private async syncWithServer(): Promise<void> {
+    const owner = this.loadedFor;
+    const stillMine = () => owner === this.loadedFor;
     try {
-      const [settings, logs] = await Promise.all([
-        firstValueFrom(this.http.get<{ habitsJson: string }>(`${API_BASE}/api/habits`, { observe: 'response' })),
-        firstValueFrom(this.http.get<{ date: string; valuesJson: string | null; minutes: number; journal: string | null }[]>(
-          `${API_BASE}/api/habit-logs`)),
-      ]);
-      this.habits.set(this.parseHabits((settings as HttpResponse<{ habitsJson: string }>).body?.habitsJson));
-      this.logs.set(Object.fromEntries(logs.map(l => [l.date, {
-        values: l.valuesJson ? JSON.parse(l.valuesJson) : {}, minutes: l.minutes ?? 0, journal: l.journal ?? '',
-      }])));
-    } catch {
-      this.progress.syncError.set('Could not load your routine from the server.');
+      if (this.pendingHabits()) {
+        if (!(await this.deliver(this.putHabits())) || !stillMine()) return;
+        this.pendingHabits.set(false);
+      }
+      for (const date of this.pendingDates()) {
+        if (!(await this.deliver(this.putLog(date))) || !stillMine()) return;
+        this.pendingDates.update(dates => dates.filter(d => d !== date));
+      }
+      await this.loadFromServer(stillMine);
+    } catch (e) {
+      this.progress.reportSyncFailure(e); // could not load: a reconnect starts and this runs again when it is online
     }
+  }
+
+  /** Sends one queued change. False means the API could not be reached, so the change stays queued. */
+  private async deliver(request: Observable<unknown>): Promise<boolean> {
+    try {
+      await firstValueFrom(request);
+      return true;
+    } catch (e) {
+      return this.progress.reportSyncFailure(e) === 'refused';
+    }
+  }
+
+  private async loadFromServer(stillMine: () => boolean): Promise<void> {
+    const [settings, logs] = await Promise.all([
+      firstValueFrom(this.http.get<{ habitsJson: string }>(`${API_BASE}/api/habits`, { observe: 'response' })),
+      firstValueFrom(this.http.get<{ date: string; valuesJson: string | null; minutes: number; journal: string | null }[]>(
+        `${API_BASE}/api/habit-logs`)),
+    ]);
+    if (!stillMine()) return; // signed out or switched account while loading
+    // anything changed here while this was loading has not reached the server yet, so it wins
+    if (!this.pendingHabits()) {
+      this.habits.set(this.parseHabits((settings as HttpResponse<{ habitsJson: string }>).body?.habitsJson));
+    }
+    const fromServer: Record<string, HabitDayLog> = Object.fromEntries(logs.map(l => [l.date, {
+      values: l.valuesJson ? JSON.parse(l.valuesJson) : {}, minutes: l.minutes ?? 0, journal: l.journal ?? '',
+    }]));
+    const local = this.logs();
+    for (const date of this.pendingDates()) {
+      if (local[date]) fromServer[date] = local[date];
+    }
+    this.logs.set(fromServer);
   }
 
   /** Merges saved habits with defaults so newly added built-in habits appear for existing users. */
@@ -321,23 +412,31 @@ export class HabitService {
     }
   }
 
+  private storageKey(): string {
+    return this.loadedFor !== null ? `${STORAGE_KEY}.user.${this.loadedFor}` : STORAGE_KEY;
+  }
+
   private loadLocal(): void {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const data = raw ? (JSON.parse(raw) as HabitData) : null;
+      const raw = localStorage.getItem(this.storageKey());
+      const data = raw ? (JSON.parse(raw) as StoredHabits) : null;
       this.habits.set(this.parseHabits(data ? JSON.stringify(data.habits) : null));
       this.logs.set(data?.logs ?? {});
+      this.pendingHabits.set(data?.pending?.habits ?? false);
+      this.pendingDates.set(data?.pending?.dates ?? []);
     } catch {
       this.habits.set(DEFAULT_HABITS);
       this.logs.set({});
+      this.pendingHabits.set(false);
+      this.pendingDates.set([]);
     }
   }
 
   private saveLocal(): void {
-    const data: HabitData = { habits: this.habits(), logs: this.logs() };
-    if (this.progress.user()) return; // server mode: the API is the source of truth
+    const data: StoredHabits = { habits: this.habits(), logs: this.logs() };
+    if (this.loadedFor !== null) data.pending = { habits: this.pendingHabits(), dates: this.pendingDates() };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(this.storageKey(), JSON.stringify(data));
     } catch {
       /* storage blocked */
     }

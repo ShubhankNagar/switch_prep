@@ -1,4 +1,5 @@
-# Deploys the Angular app (browser-only mode, progress in localStorage) to GitHub Pages on every push to main.
+# Deploys the Angular app to GitHub Pages on every push to main. Browser-only (progress in localStorage) unless the
+# two repository variables below point it at an API.
 # Enable it in the repo: Settings > Pages > Source: GitHub Actions.
 name: Deploy frontend to GitHub Pages
 
@@ -28,6 +29,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
+      # Repository variables (Settings > Secrets and variables > Actions > Variables). Leave both unset for a
+      # browser-only site; set both to enable Google sign-in and sync through the API (docs/DEPLOYMENT.md).
+      - name: Write runtime config
+        env:
+          API_URL: ${{ vars.SWITCHPREP_API_URL }}
+          GOOGLE_CLIENT_ID: ${{ vars.SWITCHPREP_GOOGLE_CLIENT_ID }}
+        run: |
+          printf "window.SWITCHPREP_API = '%s';\nwindow.SWITCHPREP_GOOGLE_CLIENT_ID = '%s';\n" \
+            "$API_URL" "$GOOGLE_CLIENT_ID" > frontend/public/config.js
       - run: npx ng build
         working-directory: frontend
       - uses: actions/upload-pages-artifact@v3

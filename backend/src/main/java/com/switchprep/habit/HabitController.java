@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,11 +20,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Daily routine: habit definitions plus one log row per day. */
 @RestController
 @RequestMapping("/api")
 public class HabitController {
+
+    private static final int MAX_LOG_AGE_YEARS = 5;
 
     private final HabitSettingsRepository settings;
     private final HabitLogRepository logs;
@@ -85,6 +89,11 @@ public class HabitController {
     public LogDto saveLog(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                           @Valid @RequestBody LogRequest req) {
         Long userId = currentUser.id();
+        // bounds the rows one account can create; two days ahead allows for the user's time zone
+        LocalDate today = LocalDate.now();
+        if (date.isBefore(today.minusYears(MAX_LOG_AGE_YEARS)) || date.isAfter(today.plusDays(2))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date is outside the range a routine log can have");
+        }
         HabitLog log = logs.findByUserIdAndLogDate(userId, date).orElseGet(() -> new HabitLog(userId, date));
         if (req.valuesJson() != null) log.setValuesJson(req.valuesJson());
         if (req.minutes() != null) log.setMinutes(req.minutes());

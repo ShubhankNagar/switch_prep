@@ -15,6 +15,11 @@ public interface ItemProgressRepository extends JpaRepository<ItemProgress, Long
 
     void deleteByUserId(Long userId);
 
+    long countByUserId(Long userId);
+
+    @Query("select coalesce(sum(length(p.note)), 0) from ItemProgress p where p.userId = ?1")
+    long totalNoteLength(Long userId);
+
     @Query("select p.section, count(p) from ItemProgress p where p.userId = ?1 and p.done = true group by p.section")
     List<Object[]> countDoneBySection(Long userId);
 }

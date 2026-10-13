@@ -29,4 +29,6 @@ jobs:
         working-directory: frontend
       - run: npx ng build
         working-directory: frontend
+      - run: npx ng test --watch=false --browsers=ChromeHeadlessCI
+        working-directory: frontend
       - run: python3 content-gen/validate_content.py

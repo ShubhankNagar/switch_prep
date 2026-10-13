@@ -1,0 +1,17 @@
+# API-only image, for hosting the Spring Boot API apart from the UI (see docs/DEPLOYMENT.md).
+# The root Dockerfile builds UI + API into one image instead.
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /api
+COPY backend/pom.xml .
+RUN mvn -B -q dependency:go-offline
+COPY backend/src ./src
+RUN mvn -B -q package -DskipTests
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /api/target/switchprep-api-1.0.0.jar app.jar
+# Sized for a 512 MB / shared-CPU instance: small heap, the low-footprint collector, and only the fast JIT tier
+# (quicker start on a slow CPU; this API is nowhere near needing peak throughput).
+ENV JAVA_TOOL_OPTIONS="-Xmx256m -XX:+UseSerialGC -Xss512k -XX:TieredStopAtLevel=1"
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

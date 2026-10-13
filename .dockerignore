@@ -1,0 +1,9 @@
+.git
+.github
+content-gen
+docs
+**/node_modules
+**/target
+frontend/dist
+frontend/.angular
+backend/data

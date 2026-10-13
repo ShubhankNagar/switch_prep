@@ -17,16 +17,25 @@ public class CurrentUser {
         this.users = users;
     }
 
+    /** Id of the logged-in user. Checks the account still exists, so tokens of deleted accounts stop working. */
     public Long id() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof Long id)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not logged in");
+        Long id = tokenUserId();
+        if (!users.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User no longer exists");
         }
         return id;
     }
 
     public AppUser get() {
-        return users.findById(id())
+        return users.findById(tokenUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User no longer exists"));
+    }
+
+    private Long tokenUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof Long id)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not logged in");
+        }
+        return id;
     }
 }

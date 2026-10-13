@@ -57,7 +57,8 @@ export interface ProgressItem {
 export interface QuizAttempt {
   id?: number; quizKey: string; score: number; total: number; answersJson?: string; durationSeconds?: number; takenAt: string;
 }
-export interface User { id: number; username: string; displayName: string; startDate: string; }
+/** `email` is set for accounts that sign in with Google. */
+export interface User { id: number; username: string; email?: string; displayName: string; startDate: string; }
 
 export interface Trap {
   id: string; area: string; title: string; level: string; frequency: string; prompt: string;

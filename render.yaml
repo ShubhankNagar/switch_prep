@@ -1,0 +1,30 @@
+# Render Blueprint for the API (docs/DEPLOYMENT.md has the full walkthrough).
+# In Render: New > Blueprint > pick this repo. Render asks for the values marked "sync: false".
+services:
+  - type: web
+    name: switchprep-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile.api
+    dockerContext: .
+    # Answers without touching the database, so a database hiccup does not make Render restart the API.
+    healthCheckPath: /actuator/health/liveness
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: APP_JWT_SECRET
+        generateValue: true
+      # jdbc:mysql://<host>:4000/switchprep?createDatabaseIfNotExist=true&sslMode=VERIFY_IDENTITY
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Origin of the site, no path and no trailing slash, e.g. https://raj-alpha-swain.github.io
+      - key: APP_CORS_ORIGINS
+        sync: false
+      # OAuth client ID from Google Cloud console (ends in .apps.googleusercontent.com)
+      - key: APP_GOOGLE_CLIENT_ID
+        sync: false
