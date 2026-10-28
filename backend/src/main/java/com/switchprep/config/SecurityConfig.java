@@ -1,6 +1,7 @@
 package com.switchprep.config;
 
 import com.switchprep.auth.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,15 +24,18 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
+                                            @Value("${spring.h2.console.enabled:false}") boolean h2Console) throws Exception {
+        if (h2Console) { // dev profile only; the console renders itself in frames
+            http.headers(h -> h.frameOptions(f -> f.sameOrigin()));
+        }
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> {})
-                .headers(h -> h.frameOptions(f -> f.sameOrigin())) // H2 console
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/actuator/health", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

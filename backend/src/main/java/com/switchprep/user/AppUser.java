@@ -20,8 +20,16 @@ public class AppUser {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false)
+    /** Null for accounts that sign in with Google. */
     private String passwordHash;
+
+    /** Google's stable id for the account ("sub" claim); null for password accounts. */
+    @Column(unique = true)
+    private String googleSub;
+
+    /** Email from Google, shown in the UI. Not an identifier: it can change, googleSub cannot. */
+    @Column(length = 254)
+    private String email;
 
     @Column(length = 100)
     private String displayName;
@@ -42,9 +50,24 @@ public class AppUser {
         this.startDate = LocalDate.now();
     }
 
+    public static AppUser fromGoogle(String googleSub, String email, String displayName) {
+        AppUser user = new AppUser(googleUsername(googleSub), null, displayName);
+        user.googleSub = googleSub;
+        user.email = email;
+        return user;
+    }
+
+    /** Password usernames cannot contain ':', so these never clash with them. */
+    public static String googleUsername(String googleSub) {
+        return "g:" + googleSub;
+    }
+
     public Long getId() { return id; }
     public String getUsername() { return username; }
     public String getPasswordHash() { return passwordHash; }
+    public String getGoogleSub() { return googleSub; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public LocalDate getStartDate() { return startDate; }

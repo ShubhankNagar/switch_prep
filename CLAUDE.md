@@ -19,13 +19,16 @@ schedule the high-yield subset; don't bloat them when adding content.
 frontend/   Angular 20 app (standalone components, signals, hash routing). All UI.
   public/content/*.json   ALL study content (DSA, system design, core + senior subjects, traps, rounds, final round,
                           AI course, plan, focus list, guide)
-  src/app/core/           models, ContentService (loads JSON), ProgressService (tracking), CatalogService (progress keys),
-                          HabitService (daily routine)
+  public/config.js        runtime settings (API address, Google client ID); overwritten by the Pages workflow
+  src/app/core/           models, ContentService (loads JSON), ProgressService (tracking + sync), CatalogService (progress keys),
+                          HabitService (daily routine), google-identity (Sign in with Google button)
   src/app/shared/         reusable UI: markdown pipe, quiz runner, Q&A list, trap card, done/revise toggles, notes
   src/app/pages/          one file per route (inline templates; styles are global in src/styles.scss)
-backend/    Spring Boot 3.5 / Java 21 API: JWT auth, progress, quiz attempts, stats, habits. H2 (dev) or MySQL (prod).
+backend/    Spring Boot 3.5 / Java 21 API: Google + password sign-in (JWT), progress, quiz attempts, stats, habits.
+            Profiles: dev (H2), mysql (local MySQL), prod (public deployment: Google only, settings from env).
 content-gen/ Python generators for the content JSON + validate_content.py (RESEARCH_2026.md: interview research)
-docs/       ARCHITECTURE.md, CONTENT.md (JSON schemas), API.md, DEPLOYMENT.md
+docs/       AI_CONTEXT.md (start here), ARCHITECTURE.md, CONTENT.md (JSON schemas), API.md, DEPLOYMENT.md,
+            PRODUCTION_PLAN.md (go-live runbook)
 scripts/build-all.sh   builds Angular into the Spring Boot jar
 ```
 
@@ -37,6 +40,7 @@ Read `docs/ARCHITECTURE.md` before structural changes and `docs/CONTENT.md` befo
 # frontend (http://localhost:4200, proxies /api and /actuator to :8080)
 cd frontend && npm install && npx ng serve
 cd frontend && npx ng build                  # must pass with no errors
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless   # sync tests (core/sync.spec.ts)
 
 # backend (http://localhost:8080, H2 file db in backend/data/)
 cd backend && mvn spring-boot:run
@@ -58,6 +62,9 @@ python3 content-gen/build_guide.py           # regenerate the job switch guide
   (`plan:d{day}:{taskId}`); system-design ids must be unique across groups (`sd:{id}` has no group).
 - **Two storage modes.** `ProgressService` works without a backend (localStorage) and, when logged in, writes through
   to the API. Any new tracked feature must work in both modes.
+- **The API may be asleep.** Signed-in changes go through the queue in `ProgressService` / `HabitService`
+  (`online()`, `reportSyncFailure`), never straight to `HttpClient` from a page. See "Sync" in ARCHITECTURE.md and
+  keep `core/sync.spec.ts` passing.
 - **Content is data, not code.** Add/modify content by editing the generator in `content-gen/` (or the JSON directly
   for small fixes), then run `validate_content.py`. Markdown is rendered with `marked` + highlight.js
   (java, python, sql, ts/js, bash, json, yaml, xml).
@@ -66,12 +73,18 @@ python3 content-gen/build_guide.py           # regenerate the job switch guide
   templates; put CSS in `src/styles.scss` using the existing CSS variables (light/dark themes).
 - Backend: package-by-feature (`auth`, `user`, `progress`, `quiz`, `stats`, `habit`), constructor injection, records for DTOs,
   no Lombok. Every endpoint under `/api/**` except `/api/auth/**` requires a JWT. Add a MockMvc test for new endpoints.
+  Anything a user can create needs a per-account cap (`app.limits.*`): sign-in is open to any Google account.
+- Secrets and deployment values never get defaults in the `prod` profile and never go in the repo.
 - Write original explanations. Don't paste copyrighted problem statements or articles; paraphrase and link the source.
 - Don't commit `node_modules`, `dist`, `target`, `backend/data` (see `.gitignore`).
 
 ## Gotchas
 
 - `day` is a reserved word in H2; that's why `activity_day` uses the column `activity_date`.
+- Spring leaves an unset `${VAR}` in a `@ConfigurationProperties` value as literal text instead of failing. `prod`
+  therefore sets `app.production: true`, and `AppProperties` validates the settings itself.
+- Google accounts have `username` `g:<google id>` (password usernames cannot contain `:`) and no password hash.
+  Show `email`, not `username`, for them.
 - Router uses hash URLs (`#/dsa/...`) so the build works on GitHub Pages and from the Spring Boot jar without rewrites.
 - Content links in the plan can contain query strings (`/core/java?chapter=3`); render them with the `link` pipe
   (`[routerLink]="t.link | link"`), not a raw string.

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { GOOGLE_CLIENT_ID } from './core/api.config';
 import { HabitService } from './core/habit.service';
 import { ProgressService } from './core/progress.service';
 
@@ -19,8 +20,13 @@ interface NavItem { path: string; label: string; icon: string; exact?: boolean; 
       }
       <a routerLink="/habits" class="streak" title="Routine streak: days you hit your daily habits">
         🔥 {{ habits.streak() }} · {{ todayPct() }}%</a>
+      @if (progress.user() && progress.connection() === 'connecting') {
+        <a routerLink="/account" class="sync-pill"
+           title="Your changes are saved in this browser and will be sent when the sync server answers">
+          {{ progress.waking() ? 'Waking sync server…' : 'Connecting…' }}</a>
+      }
       <a routerLink="/account" class="who">
-        {{ progress.user()?.displayName ?? (progress.backendAvailable() ? 'Log in to sync' : 'Browser mode') }}
+        {{ progress.user()?.displayName ?? (canSignIn() ? 'Sign in to sync' : 'Browser mode') }}
       </a>
       <button class="icon-btn" (click)="progress.toggleTheme()" [attr.aria-label]="'Toggle theme'">
         {{ progress.theme() === 'dark' ? '☀' : '☾' }}
@@ -51,6 +57,7 @@ export class App {
   protected progress = inject(ProgressService);
   protected habits = inject(HabitService);
   protected menuOpen = signal(false);
+  protected canSignIn = computed(() => !!GOOGLE_CLIENT_ID || this.progress.backendAvailable());
   protected todayPct = computed(() => Math.round(this.habits.today().score * 100));
   protected timerClock = computed(() => {
     const r = this.habits.timerRemaining();

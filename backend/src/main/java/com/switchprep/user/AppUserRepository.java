@@ -7,5 +7,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsername(String username);
 
+    Optional<AppUser> findByGoogleSub(String googleSub);
+
     boolean existsByUsername(String username);
 }

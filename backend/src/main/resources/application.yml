@@ -11,13 +11,19 @@ spring:
     default-property-inclusion: non_null
 
 server:
-  port: 8080
+  # Hosts such as Render pass the port to listen on in PORT.
+  port: ${PORT:8080}
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      probes:
+        # /actuator/health/liveness answers without touching the database (used by the host's health check).
+        enabled: true
 
 app:
   jwt:
@@ -26,6 +32,17 @@ app:
     expiration-days: ${APP_JWT_EXPIRATION_DAYS:30}
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}
+  auth:
+    # Username + password accounts. Off in the prod profile, where Google is the only way in.
+    password-login: ${APP_AUTH_PASSWORD_LOGIN:true}
+    # OAuth client ID from Google Cloud console. Empty switches POST /api/auth/google off.
+    google-client-id: ${APP_GOOGLE_CLIENT_ID:}
+  limits:
+    # Per-user caps, so one account cannot fill a small shared database.
+    max-progress-items: ${APP_MAX_PROGRESS_ITEMS:5000}
+    max-note-chars-total: ${APP_MAX_NOTE_CHARS_TOTAL:2000000}
+    max-quiz-attempts: ${APP_MAX_QUIZ_ATTEMPTS:2000}
+    max-request-bytes: ${APP_MAX_REQUEST_BYTES:2097152}
 
 ---
 spring:
@@ -49,8 +66,41 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/switchprep?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Raffin@786}
+    # Matches docker-compose.yml. Never put a real password here; pass DB_PASSWORD instead.
+    password: ${DB_PASSWORD:root}
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+---
+# Public deployment (see docs/DEPLOYMENT.md). Every secret comes from the environment and has no default;
+# with app.production on, AppProperties refuses to start if one is missing. Works with MySQL and
+# MySQL-compatible databases (TiDB Cloud).
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  # no dialect here: Hibernate picks it from the database it connects to (MySQL or TiDB)
+
+server:
+  tomcat:
+    threads:
+      max: 20
+
+app:
+  production: true
+  jwt:
+    secret: ${APP_JWT_SECRET}
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS}
+  auth:
+    password-login: false
+    google-client-id: ${APP_GOOGLE_CLIENT_ID}

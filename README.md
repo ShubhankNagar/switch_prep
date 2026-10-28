@@ -24,7 +24,7 @@ Built with **Angular 20** + **Spring Boot 3.5 (Java 21)** + **MySQL/H2**.
 | 💼 **Job Switch Guide** | Resume, where to apply, referrals, interview process by company, project story, salary negotiation. |
 
 Progress tracking: done/revise flags and personal notes on every item, quiz scores, daily routine and streaks,
-activity heatmap, export/import (includes the routine), optional account sync.
+activity heatmap, export/import (includes the routine), optional account sync with Google sign-in.
 
 ## Run it
 
@@ -62,14 +62,17 @@ mvn spring-boot:run -Dspring-boot.run.profiles=mysql  # DB_URL / DB_USERNAME / D
 docker build -t switchprep . && docker run -p 8080:8080 switchprep
 ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for GitHub Pages and cloud hosting.
+See [docs/PRODUCTION_PLAN.md](docs/PRODUCTION_PLAN.md) to put it live for free (GitHub Pages + Render + TiDB Cloud,
+Google sign-in), and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for all hosting options and settings.
 
 ## Documentation
 - [CLAUDE.md](CLAUDE.md) – conventions for working on the repo (for humans and AI assistants)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – how the app is structured
 - [docs/CONTENT.md](docs/CONTENT.md) – content JSON schemas and how to add content
 - [docs/API.md](docs/API.md) – REST API reference
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) – hosting options
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) – hosting options and settings
+- [docs/PRODUCTION_PLAN.md](docs/PRODUCTION_PLAN.md) – step-by-step free public deployment
+- [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) – one-file project map for AI assistants
 
 ## Content sources
 Content is written originally for this project, informed by public resources that are credited inside each topic
