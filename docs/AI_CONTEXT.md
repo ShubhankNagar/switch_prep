@@ -5,7 +5,7 @@ lives, the contracts you must not break, and the state of the work to take it pu
 `CLAUDE.md` (conventions), `docs/ARCHITECTURE.md`, `docs/CONTENT.md` (JSON schemas), `docs/API.md`,
 `docs/DEPLOYMENT.md` (settings) and `docs/PRODUCTION_PLAN.md` (go-live runbook).
 
-Last verified against the code: 2026-10-28, branch `feat/shubhank` (commit `4efdf16`, pushed to the fork, on top of `2196c09`).
+Last verified against the code: 2026-10-28, fork `main` (`5588de5`, merge of `feat/shubhank`). Live since 2026-10-28.
 
 ## 1. Why it exists
 
@@ -135,17 +135,20 @@ cd backend && mvn test
 python3 content-gen/validate_content.py          # after any content change
 ```
 
-## 8. Public deployment: state on 2026-10-13
+## 8. Public deployment: live since 2026-10-28
 
-Target (chosen by the owner): GitHub Pages (site) + Render free web service (API, `prod` profile) + TiDB Cloud
-Starter (database) + Google sign-in, open to any Google account, no keep-alive pinger. The runbook is
-`docs/PRODUCTION_PLAN.md`.
+| Part | Where |
+|---|---|
+| Site | GitHub Pages, <https://shubhanknagar.github.io/switch_prep/>, deployed by `pages.yml` on every push to the fork's `main` |
+| API | Render free web service `switchprep-api` (Singapore, `prod` profile), <https://switchprep-api.onrender.com>, redeploys on every push to `main` |
+| Database | TiDB Cloud Starter (AWS Singapore), database `switchprep`, tables created by Hibernate |
+| Sign-in | Google Auth Platform project, published ("In production"), open to any Google account |
+| Site settings | Repository variables `SWITCHPREP_API_URL` and `SWITCHPREP_GOOGLE_CLIENT_ID` (public values) |
+| Secrets | Only in Render's Environment tab (`DB_PASSWORD`, `APP_JWT_SECRET`, ...) and the owner's password manager; never in the repo |
 
-Everything is deployed from the fork (`origin`), not the partner's repo. Code for it is complete on `feat/shubhank`,
-tested locally, committed and pushed to the fork. **Not yet done:** merge to the fork's `main`, and the
-account setup (Google OAuth client, TiDB instance, Render service, two GitHub repository variables).
-**Not yet proven**, because they need those services: a real Google sign-in, the API against TiDB, the Docker
-build on Render, the real wake-up time, and the changed GitHub workflows.
+Everything is deployed from the fork (`origin`), not the partner's repo. Verified by the owner on 2026-10-28:
+Google sign-in, the API against TiDB, the Docker build on Render, both GitHub workflows, sync between devices and
+separate accounts. The free API sleeps after 15 idle minutes; the first request then waits while it wakes.
 
 Review findings and what became of them:
 

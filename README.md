@@ -62,6 +62,8 @@ mvn spring-boot:run -Dspring-boot.run.profiles=mysql  # DB_URL / DB_USERNAME / D
 docker build -t switchprep . && docker run -p 8080:8080 switchprep
 ```
 
+**Live:** <https://shubhanknagar.github.io/switch_prep/> (sign in with Google to sync across devices).
+
 See [docs/PRODUCTION_PLAN.md](docs/PRODUCTION_PLAN.md) to put it live for free (GitHub Pages + Render + TiDB Cloud,
 Google sign-in), and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for all hosting options and settings.
 

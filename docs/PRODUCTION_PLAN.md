@@ -8,6 +8,10 @@ every step says where to click, what to type, and what you should see afterwards
 - **The code is already written.** It is on the branch `feat/shubhank`. Your job is to publish it and create
   three free accounts.
 
+> **Status: done, live since 2026-10-28** at <https://shubhanknagar.github.io/switch_prep/> with the API at
+> <https://switchprep-api.onrender.com>. Keep this checklist for redoing a step (for example a new database or a
+> second deployment). Day-to-day work starts at Part 8.
+
 Website buttons get renamed now and then. If a label is slightly different from what is written here, look for
 the closest match.
 
@@ -91,6 +95,11 @@ paste this in. Fill it as you go.
 ```
 
 Treat number 4 like any password: do not put it in the code, in a chat, or on GitHub.
+
+**When you are done, move these values into a password manager** (for example Bitwarden, free, or the secure
+notes of Google Password Manager) and delete the notes file. Values 1 and 5 are not secret (every visitor's
+browser receives them), but values 2 to 4 open your database. Render keeps its own copy of all of them, so the
+password manager is only your backup.
 
 ---
 
@@ -437,9 +446,7 @@ Tested on the laptop before this guide was written: 25 backend tests, 11 fronten
 behaviour, the API started in its production mode, and the built site in a real browser signed out, signed in,
 and with the API switched off.
 
-Not tested yet, because they need the real accounts you create above: signing in with a real Google account, the
-API talking to TiDB Cloud, the build on Render, the real wake-up time, and the two changed GitHub workflows.
-Parts 5 and 7 are where these are proven. If one fails, it is not something you did wrong: copy the message and
-ask Claude.
+Proven on 2026-10-28 by going live: signing in with a real Google account, the API talking to TiDB Cloud, the
+build on Render and the two changed GitHub workflows (Part 7 passed).
 
 Reference for every setting and other hosting options: [DEPLOYMENT.md](DEPLOYMENT.md).
