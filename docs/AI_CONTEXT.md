@@ -5,7 +5,7 @@ lives, the contracts you must not break, and the state of the work to take it pu
 `CLAUDE.md` (conventions), `docs/ARCHITECTURE.md`, `docs/CONTENT.md` (JSON schemas), `docs/API.md`,
 `docs/DEPLOYMENT.md` (settings) and `docs/PRODUCTION_PLAN.md` (go-live runbook).
 
-Last verified against the code: 2026-10-13, branch `feat/shubhank` (uncommitted changes on top of `2196c09`).
+Last verified against the code: 2026-10-28, branch `feat/shubhank` (commit `4efdf16`, pushed to the fork, on top of `2196c09`).
 
 ## 1. Why it exists
 
@@ -28,8 +28,8 @@ optional parallel track.
 | Fact | Value |
 |---|---|
 | Local path | `~/Shubhank Codes/Learning website/switch_prep` (the parent folder is not a git repo) |
-| Remote | `origin` = `github.com/raj-alpha-swain/switch_prep` (public, no LICENSE file, not a fork) |
-| Author of the only commit | raj-alpha-swain, the local user's project partner. The local user is Shubhank Nagar, working on `feat/shubhank` |
+| Remotes | `origin` = `github.com/ShubhankNagar/switch_prep` (the local user's fork; **deploy from here**, site at `https://shubhanknagar.github.io/switch_prep/`) · `upstream` = `github.com/raj-alpha-swain/switch_prep` (the partner's original, public, no LICENSE) |
+| People | raj-alpha-swain wrote the first commit and is the local user's project partner. The local user is Shubhank Nagar, working on `feat/shubhank` |
 | Size | ~17 MB: 4.7 MB content JSON, 6.7 MB Python generators, ~4,400 lines TypeScript, ~2,000 lines Java (tests included) |
 | Toolchain required | Node >= 20.19 (CI uses 22), JDK 21, Maven 3.9, Python 3 |
 
@@ -141,7 +141,8 @@ Target (chosen by the owner): GitHub Pages (site) + Render free web service (API
 Starter (database) + Google sign-in, open to any Google account, no keep-alive pinger. The runbook is
 `docs/PRODUCTION_PLAN.md`.
 
-Code for it is complete on `feat/shubhank` and tested locally. **Not yet done:** commit/merge to `main`, and the
+Everything is deployed from the fork (`origin`), not the partner's repo. Code for it is complete on `feat/shubhank`,
+tested locally, committed and pushed to the fork. **Not yet done:** merge to the fork's `main`, and the
 account setup (Google OAuth client, TiDB instance, Render service, two GitHub repository variables).
 **Not yet proven**, because they need those services: a real Google sign-in, the API against TiDB, the Docker
 build on Render, the real wake-up time, and the changed GitHub workflows.

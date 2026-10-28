@@ -22,7 +22,7 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
-      # Origin of the site, no path and no trailing slash, e.g. https://raj-alpha-swain.github.io
+      # Origin of the site, no path and no trailing slash, e.g. https://shubhanknagar.github.io
       - key: APP_CORS_ORIGINS
         sync: false
       # OAuth client ID from Google Cloud console (ends in .apps.googleusercontent.com)

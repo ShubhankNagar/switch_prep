@@ -55,24 +55,27 @@ Two things to know before you start:
 
 | Word | Meaning |
 |---|---|
-| **Repository (repo)** | The project's folder on GitHub: `github.com/raj-alpha-swain/switch_prep` |
-| **Owner** | The GitHub account the repo belongs to. Here that is your partner, `raj-alpha-swain` |
+| **Repository (repo)** | The project's folder on GitHub. You deploy from your own copy (a **fork**): `github.com/ShubhankNagar/switch_prep` |
+| **Fork** | Your own copy of someone else's repo. Your partner's original, `github.com/raj-alpha-swain/switch_prep`, is called **upstream** on your laptop |
 | **Branch** | A separate line of work. `main` is the official one; `feat/shubhank` holds the new changes |
 | **Pull request (PR)** | A request to copy the changes from one branch into `main` |
 | **Environment variable** | A named setting you give to a program from outside, such as a password, so it is not written in the code |
-| **Origin** | The first part of a web address, up to the domain: `https://raj-alpha-swain.github.io`. No path, no slash at the end |
+| **Origin** | The first part of a web address, up to the domain: `https://shubhanknagar.github.io`. No path, no slash at the end |
 | **Client ID** | A long public name Google gives your site, ending in `.apps.googleusercontent.com` |
 
 ### Who must do what
 
-Some steps can only be done by the repo's **owner** (your partner), because they change the repo's settings.
-Those steps are marked **[OWNER]**. The simplest way through is to sit together, or for your partner to make you
-an admin first:
+You do every step yourself. The site is published from your fork, which belongs to your GitHub account
+(`ShubhankNagar`), so you can change all of its settings. Your partner's repo is not touched.
 
-- [ ] **[OWNER]** On GitHub: repo **Settings > Collaborators > Add people**, add your GitHub username. You
-      accept the invitation from your email.
+On your laptop the fork is already set up:
 
-Being a collaborator lets you push code. Steps marked **[OWNER]** still need your partner's account.
+| Name in git | Points to | Used for |
+|---|---|---|
+| `origin` | `github.com/ShubhankNagar/switch_prep` (your fork) | Everything in this guide: push, pull requests, Pages, Render |
+| `upstream` | `github.com/raj-alpha-swain/switch_prep` (your partner's) | Only for fetching your partner's new changes (see Part 8) |
+
+Check it any time with `git remote -v`.
 
 ### Keep a notes file
 
@@ -93,55 +96,59 @@ Treat number 4 like any password: do not put it in the code, in a chat, or on Gi
 
 ## Part 1: publish the code to `main` (15 minutes)
 
-Right now the new code exists only on your laptop. This part sends it to GitHub and merges it.
+The new code is already committed and pushed to your fork on the branch `feat/shubhank`. This part merges it
+into your fork's `main`, which is the branch the site is published from.
 
-- [ ] **1.1 Look at what changed.** In a terminal:
+- [ ] **1.1 Check your laptop is up to date with GitHub.** In a terminal:
       ```bash
       cd ~/"Shubhank Codes/Learning website/switch_prep"
       git status
       ```
-      You should see a list of modified and new files and, at the top, `On branch feat/shubhank`.
+      Expect `On branch feat/shubhank`, `Your branch is up to date with 'origin/feat/shubhank'` and
+      `nothing to commit`. If it lists changed files, commit and push them first
+      (`git add -A`, `git commit -m "…"`, `git push`), or ask Claude.
 
-- [ ] **1.2 Save the changes into git (a "commit").**
-      ```bash
-      git add -A
-      git commit -m "Add Google sign-in, production profile and free deployment setup"
-      ```
-      (You can also ask Claude to do the commit for you.)
+- [ ] **1.2 Switch on GitHub Actions in your fork.** GitHub turns automatic workflows off in every new fork.
+      Open <https://github.com/ShubhankNagar/switch_prep/actions>. If you see a message about workflows not
+      running in forks, click **I understand my workflows, go ahead and enable them**. If you see a list of
+      workflows instead, Actions is already on.
 
-- [ ] **1.3 Send the branch to GitHub.**
-      ```bash
-      git push -u origin feat/shubhank
-      ```
-      If this says "permission denied", the collaborator invitation from Part 0 has not been accepted yet.
+- [ ] **1.3 Open a pull request inside your fork.** Go to
+      <https://github.com/ShubhankNagar/switch_prep/compare/main...feat/shubhank>.
+      - At the top, check the two boxes read **base repository: ShubhankNagar/switch_prep, base: main** and
+        **compare: feat/shubhank**. If the base repository says `raj-alpha-swain/switch_prep`, change it to
+        yours: a pull request to your partner's repo is a different thing and not needed to go live.
+      - Click **Create pull request**, then **Create pull request** again.
 
-- [ ] **1.4 Open a pull request.** Go to `https://github.com/raj-alpha-swain/switch_prep`. GitHub shows a yellow
-      bar "feat/shubhank had recent pushes" with a button **Compare & pull request**. Click it, then
-      **Create pull request**.
-
-- [ ] **1.5 Wait for the checks.** On the pull request page, a section near the bottom lists checks called
+- [ ] **1.4 Wait for the checks.** On the pull request page, a section near the bottom lists checks called
       "backend" and "frontend". They take a few minutes. Wait for green ticks.
       - If one shows a red cross, click **Details**, copy the error, and ask Claude. Do not merge.
 
-- [ ] **1.6 Merge.** Click **Merge pull request**, then **Confirm merge**.
+      - If no checks appear at all, step 1.2 was missed.
 
-**You are done with Part 1 when:** the repo's front page on GitHub, on branch `main`, shows a file called
+- [ ] **1.5 Merge.** Click **Merge pull request**, then **Confirm merge**.
+
+**You are done with Part 1 when:** your fork's front page on GitHub, on branch `main`, shows a file called
 `render.yaml`.
 
 ---
 
 ## Part 2: put the site online with GitHub Pages (5 minutes)
 
-- [ ] **2.1 [OWNER] Turn Pages on.** Repo **Settings** (top menu) **> Pages** (left menu). Under "Build and
-      deployment", set **Source** to **GitHub Actions**.
+All steps here are in your fork, <https://github.com/ShubhankNagar/switch_prep>.
 
-- [ ] **2.2 [OWNER] Start the first deployment.** Top menu **Actions**. In the left list click
+- [ ] **2.1 Turn Pages on.** Repo **Settings** (top menu) **> Pages** (left menu). Under "Build and
+      deployment", set **Source** to **GitHub Actions**.
+      - While you are in **Settings**: on the **General** page, under "Features", tick **Issues**. Forks start
+        with Issues off, and the site's privacy page sends visitors there with questions.
+
+- [ ] **2.2 Start the first deployment.** Top menu **Actions**. In the left list click
       **Deploy frontend to GitHub Pages**. On the right click **Run workflow**, keep branch `main`, click the
       green **Run workflow** button.
 
 - [ ] **2.3 Wait** about two minutes until the run shows a green tick. (Refresh the page if nothing appears.)
 
-- [ ] **2.4 Open the site:** <https://raj-alpha-swain.github.io/switch_prep/>
+- [ ] **2.4 Open the site:** <https://shubhanknagar.github.io/switch_prep/>
 
 **You are done with Part 2 when:** the SwitchPrep dashboard loads at that address. Click around: open a DSA
 problem, tick it, reload, and the tick is still there.
@@ -173,9 +180,9 @@ This gives you value 1, the **Google client ID**.
       - Tick the agreement box, then **Create**.
 
 - [ ] **3.5 Add the site's details.** In the left menu click **Branding** and fill in:
-      - Application home page: `https://raj-alpha-swain.github.io/switch_prep/`
-      - Application privacy policy link: `https://raj-alpha-swain.github.io/switch_prep/privacy.html`
-      - Authorised domains, **Add domain**: `raj-alpha-swain.github.io`
+      - Application home page: `https://shubhanknagar.github.io/switch_prep/`
+      - Application privacy policy link: `https://shubhanknagar.github.io/switch_prep/privacy.html`
+      - Authorised domains, **Add domain**: `shubhanknagar.github.io`
       - **Do not upload a logo.** With a logo, Google wants to review the app first, which takes days. Without
         one, no review is needed.
       - Click **Save**.
@@ -184,7 +191,7 @@ This gives you value 1, the **Google client ID**.
       - Application type: **Web application**
       - Name: `SwitchPrep web`
       - Under **Authorised JavaScript origins** click **Add URI** three times and enter, exactly:
-        - `https://raj-alpha-swain.github.io`
+        - `https://shubhanknagar.github.io`
         - `http://localhost`
         - `http://localhost:4200`
       - Leave **Authorised redirect URIs** empty.
@@ -198,13 +205,13 @@ This gives you value 1, the **Google client ID**.
       - If you skip this, only people you list by hand can sign in, and they are signed out every week.
 
 - [ ] **3.9 Read the privacy page.** Open
-      <https://raj-alpha-swain.github.io/switch_prep/privacy.html>. It tells visitors what the site stores about
+      <https://shubhanknagar.github.io/switch_prep/privacy.html>. It tells visitors what the site stores about
       them, in your and your partner's names. If anything in it is wrong for you, tell Claude what to change
       before going further.
 
 **You are done with Part 3 when:** value 1 is in your notes file and the Audience page says "In production".
 
-> Common mistake: a slash at the end of an origin (`https://raj-alpha-swain.github.io/`) or adding
+> Common mistake: a slash at the end of an origin (`https://shubhanknagar.github.io/`) or adding
 > `/switch_prep`. Google rejects sign-in with "origin not allowed". The origin has no path and no final slash.
 
 ---
@@ -257,30 +264,29 @@ This gives you values 2, 3 and 4.
 
 This gives you value 5, the **API address**.
 
-Render must be allowed to read the repo, and only the repo's owner can grant that. So this part is done with
-your partner's GitHub account.
+Render must be allowed to read the repo. Your fork belongs to you, so you grant that with your own GitHub account.
 
-- [ ] **5.1 [OWNER]** Go to <https://render.com/>, click **Get started**, and sign up **with GitHub**, using the
-      account that owns the repo.
+- [ ] **5.1** Go to <https://render.com/>, click **Get started**, and sign up **with GitHub**, using your
+      `ShubhankNagar` account.
 
-- [ ] **5.2 [OWNER] Create the service from the file in the repo.** In the Render dashboard click **New >
+- [ ] **5.2 Create the service from the file in the repo.** In the Render dashboard click **New >
       Blueprint**. Connect GitHub if asked, and give Render access to the `switch_prep` repository. Select it.
       - Render reads the file `render.yaml` and shows one service named `switchprep-api`, plan **Free**. If it
         shows any price other than free, stop and ask.
 
-- [ ] **5.3 [OWNER] Type in the five settings it asks for**, from your notes file:
+- [ ] **5.3 Type in the five settings it asks for**, from your notes file:
 
       | Render asks for | Paste |
       |---|---|
       | `DB_URL` | The whole `jdbc:mysql://…` line from step 4.7 |
       | `DB_USERNAME` | Value 3 |
       | `DB_PASSWORD` | Value 4 |
-      | `APP_CORS_ORIGINS` | `https://raj-alpha-swain.github.io` |
+      | `APP_CORS_ORIGINS` | `https://shubhanknagar.github.io` |
       | `APP_GOOGLE_CLIENT_ID` | Value 1 |
 
       No spaces before or after any value. `APP_CORS_ORIGINS` has no slash at the end.
 
-- [ ] **5.4 [OWNER]** Click **Apply** (or **Deploy Blueprint**).
+- [ ] **5.4** Click **Apply** (or **Deploy Blueprint**).
 
 - [ ] **5.5 Wait for the first build.** Click the `switchprep-api` service to watch its log. The first build
       downloads a lot and can take 5 to 10 minutes. It is finished when the status at the top says **Live**.
@@ -313,10 +319,10 @@ Open the service's **Logs** tab and look near the bottom.
 The site is online but does not yet know the API's address or your Google client ID. You give it both, then
 publish the site again.
 
-- [ ] **6.1 [OWNER]** Repo **Settings > Secrets and variables > Actions**. Click the **Variables** tab (not
+- [ ] **6.1** Repo **Settings > Secrets and variables > Actions**. Click the **Variables** tab (not
       "Secrets").
 
-- [ ] **6.2 [OWNER]** Click **New repository variable** and create these two, one at a time:
+- [ ] **6.2** Click **New repository variable** and create these two, one at a time:
 
       | Name (type exactly) | Value |
       |---|---|
@@ -325,10 +331,10 @@ publish the site again.
 
       These go under Variables, not Secrets, because they are not secret: every visitor's browser receives them.
 
-- [ ] **6.3 [OWNER] Publish the site again.** **Actions > Deploy frontend to GitHub Pages > Run workflow >
+- [ ] **6.3 Publish the site again.** **Actions > Deploy frontend to GitHub Pages > Run workflow >
       Run workflow**, exactly as in step 2.2. Wait for the green tick.
 
-- [ ] **6.4** Open <https://raj-alpha-swain.github.io/switch_prep/> and press **Ctrl + Shift + R** to load the
+- [ ] **6.4** Open <https://shubhanknagar.github.io/switch_prep/> and press **Ctrl + Shift + R** to load the
       new version. Go to **Account & Data** in the left menu.
 
 **You are done with Part 6 when:** the Account & Data page shows a **Sign in with Google** button.
@@ -365,7 +371,7 @@ Tick each row only when you see the expected result.
 - [ ] **7.7 Delete account.** With a test Google account, sign in, tick something, click **Delete my account**,
       then sign in again. Expect: an empty journey.
 
-**If all seven are ticked, you are live.** Share <https://raj-alpha-swain.github.io/switch_prep/>.
+**If all seven are ticked, you are live.** Share <https://shubhanknagar.github.io/switch_prep/>.
 
 ### If sign-in fails
 
@@ -375,14 +381,27 @@ Tick each row only when you see the expected result.
 | Google window says "Access blocked" or only some people can sign in | Step 3.8 not done: the app is still in "Testing" | **Audience > Publish app** |
 | The Google step works, then the site says "Google sign-in failed" | Value 1 on Render is different from value 1 on GitHub | Make `APP_GOOGLE_CLIENT_ID` (Render) and `SWITCHPREP_GOOGLE_CLIENT_ID` (GitHub) identical, then redo 6.3 |
 | "The server is not responding" after 5 minutes | The API is not running, or `SWITCHPREP_API_URL` is wrong | Redo step 5.7; compare the variable with value 5 |
-| Signed in, but stuck on "Waking sync server…" for good | `APP_CORS_ORIGINS` on Render is not exactly `https://raj-alpha-swain.github.io` | Correct it on Render's **Environment** tab |
+| Signed in, but stuck on "Waking sync server…" for good | `APP_CORS_ORIGINS` on Render is not exactly `https://shubhanknagar.github.io` | Correct it on Render's **Environment** tab |
 
 ---
 
 ## Part 8: after you are live
 
-**Changing the site later.** Make changes on a branch, open a pull request, merge into `main`. The site and the
-API both update by themselves within a few minutes. You never repeat Parts 2 to 6.
+**Changing the site later.** Make changes on a branch, open a pull request in your fork, merge into `main`. The
+site and the API both update by themselves within a few minutes. You never repeat Parts 2 to 6.
+
+**Taking your partner's new changes.** When your partner adds something to their repo, copy it into yours:
+```bash
+git checkout main
+git pull upstream main        # fetch your partner's main and merge it into yours
+git push origin main          # publish it; the site and API redeploy by themselves
+```
+If git reports a "conflict", stop and ask Claude. (GitHub's **Sync fork** button on your fork's front page does
+the same thing in the browser.)
+
+**Giving your changes back to your partner** is optional and does not affect your live site: open a pull request
+from your fork to `raj-alpha-swain/switch_prep` on GitHub. Their repo has no deployment settings, so nothing goes
+live there.
 
 **Things to look at in the first week**
 
@@ -406,9 +425,9 @@ characters of notes in total, 2,000 quiz attempts.
 
 **Housekeeping still open**
 
-- [ ] **[OWNER]** The old MySQL password that used to be in `application.yml` is still visible in the repo's
+- [ ] The old MySQL password that used to be in `application.yml` is still visible in the repo's
       history. Change that password anywhere it is really used.
-- [ ] **[OWNER]** Add a LICENSE file to the repo, so others know what they may do with the code.
+- [ ] Add a LICENSE file to the repo, so others know what they may do with the code.
 
 ---
 
