@@ -11,7 +11,7 @@ import { DoneToggle, NoteBox, PageState } from '../shared/ui';
   selector: 'app-ai-module',
   imports: [RouterLink, MarkdownPipe, DoneToggle, NoteBox, PageState],
   template: `
-    <a routerLink="/ai" class="back">← AI Engineer Course</a>
+    <a routerLink="/ai" class="back">← AI engineer course</a>
     @if (data(); as d) {
       <p class="eyebrow">Module {{ d.m.order }} · {{ d.m.level }} · {{ d.m.weeks }} week(s)</p>
       <h1>{{ d.m.title }}</h1>
@@ -33,7 +33,7 @@ import { DoneToggle, NoteBox, PageState } from '../shared/ui';
       </div>
       <section class="card project">
         <div class="card-head">
-          <h2>🛠 Module project: {{ d.m.project.title }}</h2>
+          <h2>Module project: {{ d.m.project.title }}</h2>
           <app-done-toggle [key]="projectKey()" section="ai" label="Mark complete" doneLabel="Completed" />
         </div>
         <div class="md" [innerHTML]="d.m.project.description | md"></div>

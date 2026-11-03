@@ -10,7 +10,7 @@ import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
   selector: 'app-system-design',
   imports: [RouterLink, NgTemplateOutlet, ProgressBar, DoneToggle, ReviseToggle],
   template: `
-    <h1>System Design</h1>
+    <h1>System design</h1>
     <p class="muted">SDE-2 interviews at product companies usually have one HLD round (design a system end to end) and
       often a LLD / machine-coding round (design classes and write working code in 60-90 min). Read the concepts in order,
       then practise the case studies out loud with a timer: 5 min requirements, 5 min estimates, 10 min API + data model,

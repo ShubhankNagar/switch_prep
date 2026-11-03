@@ -10,15 +10,16 @@ import { RecentService } from '../core/recent.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
 import { QaList } from '../shared/qa-list';
 import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
+import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-subject',
-  imports: [RouterLink, NgTemplateOutlet, FormsModule, MarkdownPipe, QaList, DoneToggle, ReviseToggle, ProgressBar, PageState],
+  imports: [Icon, RouterLink, NgTemplateOutlet, FormsModule, MarkdownPipe, QaList, DoneToggle, ReviseToggle, ProgressBar, PageState],
   host: { '(document:keydown)': 'onKey($event)' },
   template: `
-    <a routerLink="/core" class="back">← Core Subjects</a>
+    <a routerLink="/core" class="back">← Core subjects</a>
     @if (subject(); as s) {
-      <h1>{{ s.icon }} {{ s.name }}</h1>
+      <h1>{{ s.name }}</h1>
       <p class="muted">{{ s.description }}</p>
       <div class="tabs">
         <button [class.active]="tab() === 'notes'" (click)="tab.set('notes')">Notes ({{ notesDone() }}/{{ s.notes.length }})</button>
@@ -43,7 +44,7 @@ import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
               }
               <ng-template #tocItem let-i>
                 <button [class.active]="noteIdx() === i" (click)="goChapter(i)">
-                  <span [class.ok]="progress.isDone(noteKey(s.notes[i].id))">{{ progress.isDone(noteKey(s.notes[i].id)) ? '✓' : (i + 1) + '.' }}</span>
+                  <span [class.ok]="progress.isDone(noteKey(s.notes[i].id))">{{ progress.isDone(noteKey(s.notes[i].id)) ? '✓' : tocNum(i) }}</span>
                   {{ s.notes[i].title }}
                 </button>
               </ng-template>
@@ -53,14 +54,14 @@ import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
                 <h2>{{ n.title }}</h2>
                 @if (guide(n.id); as g) {
                   <aside class="takeaways">
-                    <h3>🎯 What to take away</h3>
+                    <h3><app-icon name="target" />What to take away</h3>
                     <ul>@for (t of g.takeaways; track $index) { <li [innerHTML]="t | md"></li> }</ul>
                   </aside>
                 }
                 <div [innerHTML]="n.content | md"></div>
                 @if (guide(n.id); as g) {
                   <section class="self-check">
-                    <h3>🧠 Check yourself</h3>
+                    <h3><app-icon name="message" />Check yourself</h3>
                     <p class="muted small">Answer each out loud before revealing. Recalling beats re-reading.</p>
                     @for (c of g.check; track $index; let i = $index) {
                       <div class="check-q">
@@ -122,8 +123,8 @@ import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
                 }
                 <div class="md" [innerHTML]="c.a | md"></div>
                 <div class="row">
-                  <button class="btn primary" (click)="answerCard(true)">I knew it ✓</button>
-                  <button class="btn" (click)="answerCard(false)">Didn't know → revise</button>
+                  <button class="btn primary" (click)="answerCard(true)">I knew it</button>
+                  <button class="btn" (click)="answerCard(false)">Didn't know, revise later</button>
                 </div>
               } @else {
                 <button class="btn primary" (click)="revealed.set(true)">Show answer</button>
@@ -131,7 +132,7 @@ import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
             </div>
           } @else {
             <div class="card">
-              <p>Deck finished. 🎉 You knew {{ knewCount() }} of {{ deck().length }}.
+              <p>Deck finished. You knew {{ knewCount() }} of {{ deck().length }}.
                 @if (deck().length - knewCount() > 0) { The rest are in your <a routerLink="/revision">revision list</a>. }</p>
               <button class="btn" (click)="startCards()">Shuffle again</button>
             </div>
@@ -216,6 +217,11 @@ export class SubjectPage {
     (this.subject()?.notes ?? []).forEach((n, i) => (core.has(`${this.subject_()}:${n.id}`) ? groups.core : groups.optional).push(i));
     return groups;
   });
+  /** Chapters are numbered in the order the list shows them, so hiding optional ones leaves no gaps. */
+  tocNum(i: number) {
+    const g = this.chapterGroups();
+    return [...g.core, ...g.optional].indexOf(i) + 1;
+  }
   isCoreChapter(i: number) { return this.chapterGroups().core.includes(i); }
   /** Within the core chapters, next goes to the next core chapter; elsewhere, to the next chapter in order. */
   protected nextChapter = computed(() => {

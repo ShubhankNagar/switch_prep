@@ -6,13 +6,14 @@ import { RecentService } from '../core/recent.service';
 import { ProgressService } from '../core/progress.service';
 import { CodePipe, MarkdownPipe } from '../shared/markdown.pipe';
 import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
+import { Icon } from '../shared/icon';
 
 /** How far the learner has unlocked help on an unsolved problem. Each step reveals one more layer. */
 type Step = 0 | 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-dsa-problem',
-  imports: [RouterLink, MarkdownPipe, CodePipe, DoneToggle, ReviseToggle, NoteBox, PageState],
+  imports: [Icon, RouterLink, MarkdownPipe, CodePipe, DoneToggle, ReviseToggle, NoteBox, PageState],
   template: `
     @if (data(); as d) {
       <a [routerLink]="['/dsa', d.pattern.id]" class="back">← {{ d.pattern.name }}</a>
@@ -55,13 +56,13 @@ type Step = 0 | 1 | 2 | 3 | 4;
           </div>
           @if (step() >= 1) {
             <div class="coach-block">
-              <h3>🔎 How to recognise it</h3>
+              <h3><app-icon name="search" />How to recognise it</h3>
               <div class="md" [innerHTML]="c.cue | md"></div>
             </div>
           }
           @if (step() >= 2) {
             <div class="coach-block">
-              <h3>🐢 Brute force (start here in the interview)</h3>
+              <h3><app-icon name="wrench" />Brute force (start here in the interview)</h3>
               <div class="md" [innerHTML]="c.brute | md"></div>
             </div>
           }
@@ -98,12 +99,12 @@ type Step = 0 | 1 | 2 | 3 | 4;
           <div [innerHTML]="d.p.solution | code"></div>
           @if (coach(); as c) {
             <div class="coach-block bug">
-              <h3>⚠️ The bug most people write</h3>
+              <h3><app-icon name="alert" />The bug most people write</h3>
               <div class="md" [innerHTML]="c.bug | md"></div>
             </div>
             @if (c.follow; as f) {
               <div class="coach-block">
-                <h3>💬 Likely follow-up</h3>
+                <h3><app-icon name="message" />Likely follow-up</h3>
                 <p><b>{{ f.q }}</b></p>
                 @if (showFollow()) { <div class="md" [innerHTML]="f.a | md"></div> }
                 @else { <button class="btn small" (click)="showFollow.set(true)">Think first, then show the answer</button> }

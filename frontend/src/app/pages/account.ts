@@ -9,7 +9,7 @@ import { ExportFile, ProgressService } from '../core/progress.service';
   selector: 'app-account',
   imports: [FormsModule],
   template: `
-    <h1>Account & Data</h1>
+    <h1>Account and data</h1>
 
     <section class="card">
       <h2>Journey start date</h2>

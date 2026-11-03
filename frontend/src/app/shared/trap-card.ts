@@ -4,6 +4,7 @@ import { Trap } from '../core/models';
 import { ProgressService } from '../core/progress.service';
 import { MarkdownPipe } from './markdown.pipe';
 import { ReviseToggle } from './ui';
+import { Icon } from './icon';
 
 export const TRAP_AREAS: Record<string, string> = {
   java: 'Core Java', concurrency: 'Concurrency', spring: 'Spring', 'jpa-hibernate': 'JPA / Hibernate', sql: 'SQL',
@@ -24,7 +25,7 @@ export function trapOfTheDay<T extends { id: string }>(traps: T[], isDone: (key:
 /** Guess-first card: commit to an answer, then see what most people get wrong and why. */
 @Component({
   selector: 'app-trap-card',
-  imports: [MarkdownPipe, ReviseToggle],
+  imports: [Icon, MarkdownPipe, ReviseToggle],
   template: `
     @let t = trap();
     <div class="trap card" [class.solved]="done()">
@@ -36,7 +37,7 @@ export function trapOfTheDay<T extends { id: string }>(traps: T[], isDone: (key:
         <span class="spacer"></span>
         <app-revise-toggle [key]="key()" section="traps" />
       </div>
-      <h3>🪤 {{ t.title }}</h3>
+      <h3>{{ t.title }}</h3>
       <div class="md" [innerHTML]="t.prompt | md"></div>
 
       @if (t.options) {
@@ -60,19 +61,19 @@ export function trapOfTheDay<T extends { id: string }>(traps: T[], isDone: (key:
         <div class="trap-reveal">
           @if (t.options && picked() !== null) {
             <p class="verdict" [class.good]="picked() === t.answer">
-              {{ picked() === t.answer ? '✓ You avoided the trap.' : '✗ You fell for it, like most people.' }}</p>
+              <app-icon [name]="picked() === t.answer ? 'check' : 'x'" />{{ picked() === t.answer ? 'You avoided the trap' : 'You fell for it, like most people' }}</p>
           }
           <div class="trap-block wrong"><b>What most people say:</b> {{ t.commonWrongAnswer }}</div>
           <div class="trap-block"><b>Why it trips people up</b><div class="md" [innerHTML]="t.whyPeopleGetItWrong | md"></div></div>
           <div class="trap-block right"><b>The correct answer</b><div class="md" [innerHTML]="t.correct | md"></div></div>
           @if (t.fix) { <div class="trap-block"><b>The fix</b><div class="md" [innerHTML]="t.fix | md"></div></div> }
-          <p class="tip">💡 <b>Interview tip:</b> {{ t.interviewTip }}</p>
+          <p class="tip"><app-icon name="lightbulb" /><span><b>Interview tip:</b> {{ t.interviewTip }}</span></p>
           <div class="row wrap">
             @if (!done()) {
               <button class="btn primary" (click)="finish(true)">Got it right</button>
               <button class="btn" (click)="finish(false)">Got it wrong, add to revision</button>
             } @else {
-              <span class="muted small">✓ Marked as beaten{{ progress.isRevise(key()) ? ' · in your revision list' : '' }}</span>
+              <span class="muted small">Marked as beaten{{ progress.isRevise(key()) ? ' · in your revision list' : '' }}</span>
               <button class="btn small" (click)="retry()">Try again</button>
             }
           </div>

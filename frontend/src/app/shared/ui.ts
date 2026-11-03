@@ -3,11 +3,12 @@ import { Router, RouterLink, UrlTree } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProgressService } from '../core/progress.service';
 import { Section } from '../core/models';
+import { Icon } from './icon';
 
 @Component({
   selector: 'app-progress-bar',
   template: `
-    <div class="pbar" [title]="done() + ' / ' + total()">
+    <div class="pbar" [class.accent]="accent()" [title]="done() + ' / ' + total()">
       <div class="pbar-fill" [style.width.%]="pct()"></div>
     </div>
     @if (showLabel()) { <span class="pbar-label">{{ done() }}/{{ total() }} · {{ pct() }}%</span> }
@@ -18,16 +19,18 @@ export class ProgressBar {
   done = input.required<number>();
   total = input.required<number>();
   showLabel = input(true);
+  accent = input(false);
   pct = computed(() => (this.total() ? Math.round((this.done() / this.total()) * 100) : 0));
 }
 
 /** Done checkbox bound to a progress key. */
 @Component({
   selector: 'app-done-toggle',
+  imports: [Icon],
   template: `
     <button type="button" class="check" [class.on]="done()" (click)="toggle($event)"
             [attr.aria-pressed]="done()" [title]="done() ? 'Mark as not done' : 'Mark as done'">
-      <span class="box">{{ done() ? '✓' : '' }}</span>
+      <span class="box">@if (done()) { <app-icon name="check" /> }</span>
       @if (label()) { <span>{{ done() ? doneLabel() : label() }}</span> }
     </button>
   `,
@@ -49,10 +52,11 @@ export class DoneToggle {
 /** "Revise later" star bound to a progress key. */
 @Component({
   selector: 'app-revise-toggle',
+  imports: [Icon],
   template: `
-    <button type="button" class="star" [class.on]="on()" (click)="toggle($event)"
+    <button type="button" class="star" [class.on]="on()" (click)="toggle($event)" [attr.aria-pressed]="on()"
             [title]="on() ? 'Remove from revision list' : 'Add to revision list'">
-      {{ on() ? '★' : '☆' }} @if (label()) { <span>{{ on() ? 'In revision list' : 'Revise later' }}</span> }
+      <app-icon name="star" /> @if (label()) { <span>{{ on() ? 'In revision list' : 'Revise later' }}</span> }
     </button>
   `,
 })

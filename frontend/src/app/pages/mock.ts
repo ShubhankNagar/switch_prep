@@ -22,7 +22,7 @@ const QUIZ_KEY = 'mock:core';
   selector: 'app-mock',
   imports: [RouterLink, MarkdownPipe],
   template: `
-    <h1>🎤 Mock Interview</h1>
+    <h1>Mock interview</h1>
     @switch (phase()) {
       @case ('setup') {
         <p class="muted">Practise the way the round actually works: a question, you answer out loud with a timer
@@ -33,7 +33,7 @@ const QUIZ_KEY = 'mock:core';
           <div class="area-chips">
             @for (s of subjects(); track s.id) {
               <button class="chip" [class.active]="chosen().has(s.id)" (click)="toggleSubject(s.id)"
-                      [attr.aria-pressed]="chosen().has(s.id)">{{ s.icon }} {{ s.name }}</button>
+                      [attr.aria-pressed]="chosen().has(s.id)">{{ s.name }}</button>
             } @empty { <span class="muted">Loading subjects…</span> }
           </div>
           <h2>2. Which questions</h2>
@@ -61,7 +61,7 @@ const QUIZ_KEY = 'mock:core';
           <div class="quiz-bar">
             <span>Question {{ pos() + 1 }} of {{ asked().length }} · {{ a.subjectName }}</span>
             <span class="timer" [class.low]="remaining() <= 15">
-              {{ remaining() > 0 ? '⏱ ' + clock() : "⏱ Time's up: wrap up in one sentence" }}</span>
+              {{ remaining() > 0 ? clock() : "Time's up: wrap up in one sentence" }}</span>
           </div>
           <section class="card mock-q">
             <div class="md mock-question" [innerHTML]="a.qa.q | md"></div>

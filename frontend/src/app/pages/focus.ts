@@ -16,7 +16,7 @@ export const sectionOf = (key: string): Section => SECTION_BY_PREFIX.find(([p]) 
   selector: 'app-focus',
   imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, ProgressBar, LinkPipe],
   template: `
-    <h1>🎯 High-Yield Focus</h1>
+    <h1>High-yield focus</h1>
     @if (file(); as f) {
       <div class="md intro" [innerHTML]="f.intro | md"></div>
       <div class="tabs">

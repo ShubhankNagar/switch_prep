@@ -10,7 +10,7 @@ import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
   selector: 'app-dsa',
   imports: [RouterLink, FormsModule, ProgressBar, DoneToggle, ReviseToggle],
   template: `
-    <h1>DSA Problems</h1>
+    <h1>DSA problems</h1>
     <p class="muted">{{ total() }} hand-picked problems in {{ patterns().length }} patterns (NeetCode 150 / Blind 75 / Striver SDE
       sheet classics) with approach, Java solution and complexity. Learn a pattern's template first, then solve its problems.
       Aim: all <b>must-do</b> problems by day 45, the rest by day 60.</p>

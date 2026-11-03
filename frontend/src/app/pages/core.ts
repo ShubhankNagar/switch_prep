@@ -12,7 +12,7 @@ const SENIOR_FROM = 12;
   selector: 'app-core',
   imports: [RouterLink, ProgressBar],
   template: `
-    <h1>Core Subjects</h1>
+    <h1>Core subjects</h1>
     <p class="muted">Study notes + the interview questions actually asked for each subject. Product companies grill
       2-YOE backend candidates hardest on Core Java, Spring Boot, SQL and your project; CS fundamentals (OS, CN, DBMS)
       show up in OAs and the first technical round.</p>
@@ -23,7 +23,7 @@ const SENIOR_FROM = 12;
         <div class="grid three">
           @for (s of g.items; track s.id) {
             <a class="card stat-card" [routerLink]="['/core', s.id]">
-              <div class="stat-top"><span class="big-icon">{{ s.icon }}</span><h3>{{ s.name }}</h3></div>
+              <div class="stat-top"><h3>{{ s.name }}</h3></div>
               <p class="muted small">{{ s.description }}</p>
               <app-progress-bar [done]="done(s)" [total]="s.notes.length + s.qa.length" />
               <p class="muted small">{{ s.notes.length }} chapters · {{ s.qa.length }} questions</p>

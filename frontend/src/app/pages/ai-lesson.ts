@@ -21,7 +21,7 @@ import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
       </div>
       <article class="card md article" [innerHTML]="d.l.content | md"></article>
       <section class="card">
-        <h2>🧪 Exercise</h2>
+        <h2>Exercise</h2>
         <div class="md" [innerHTML]="d.l.exercise | md"></div>
       </section>
       @if (d.l.quiz.length) {

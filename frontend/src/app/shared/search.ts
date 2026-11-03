@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CatalogService } from '../core/catalog.service';
 import { CatalogEntry } from '../core/models';
 import { ProgressService } from '../core/progress.service';
+import { Icon } from './icon';
 
 @Injectable({ providedIn: 'root' })
 export class SearchService {
@@ -43,12 +44,13 @@ export function score(title: string, group: string, words: string[]): number {
 /** Site-wide search over every topic, problem and question. Opens with "/" or Ctrl/Cmd+K. */
 @Component({
   selector: 'app-search',
+  imports: [Icon],
   host: { '(document:keydown)': 'onGlobalKey($event)' },
   template: `
     @if (search.open()) {
       <div class="search-scrim" (click)="close()"></div>
       <div class="search-dialog" role="dialog" aria-modal="true" aria-label="Search SwitchPrep">
-        <input #box type="search" class="search-input" placeholder="Search problems, topics, questions, traps…"
+        <input #box type="search" class="search-input" placeholder="Search"
                role="combobox" aria-expanded="true" aria-controls="search-results" aria-autocomplete="list"
                [attr.aria-activedescendant]="hits().length ? 'hit-' + active() : null"
                [value]="query()" (input)="setQuery($any($event.target).value)" (keydown)="onKey($event)" />
@@ -61,7 +63,7 @@ export function score(title: string, group: string, words: string[]): number {
                 <span class="hit-title">{{ h.title }}</span>
                 <span class="muted small hit-group">{{ h.group }}</span>
               </span>
-              @if (h.key && progress.isDone(h.key)) { <span class="hit-done" title="Done">✓</span> }
+              @if (h.key && progress.isDone(h.key)) { <span class="hit-done" title="Done"><app-icon name="check" /></span> }
             </li>
           } @empty {
             <li class="muted search-empty">

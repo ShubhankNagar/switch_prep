@@ -6,12 +6,13 @@ import { ContentService } from '../core/content.service';
 import { ProgressService, todayIso } from '../core/progress.service';
 import { TRAP_AREAS, TrapCard, trapOfTheDay } from '../shared/trap-card';
 import { ProgressBar } from '../shared/ui';
+import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-traps',
-  imports: [FormsModule, RouterLink, TrapCard, ProgressBar],
+  imports: [Icon, FormsModule, RouterLink, TrapCard, ProgressBar],
   template: `
-    <h1>🪤 Common Traps</h1>
+    <h1>Common traps</h1>
     <p class="muted">The questions and scenarios most candidates get wrong, picked from what interviewers repeatedly
       probe. Commit to an answer first, then reveal. Each one you beat is a point most other candidates lose.</p>
     <app-progress-bar [done]="doneCount()" [total]="traps().length" />
@@ -41,7 +42,7 @@ import { ProgressBar } from '../shared/ui';
     <div class="trap-index">
       @for (t of filtered(); track t.id) {
         <a class="card topic" [routerLink]="['/traps', t.id]" [class.done]="progress.isDone(key(t.id))">
-          <span class="check" [class.on]="progress.isDone(key(t.id))"><span class="box">{{ progress.isDone(key(t.id)) ? '✓' : '' }}</span></span>
+          <span class="check" [class.on]="progress.isDone(key(t.id))"><span class="box">@if (progress.isDone(key(t.id))) { <app-icon name="check" /> }</span></span>
           <div class="grow"><h3>{{ t.title }}</h3><p class="muted small">{{ areaName(t.area) }} · {{ t.frequency }}</p></div>
           <span class="tag" [class]="'tag lvl-' + t.level.toLowerCase()">{{ t.level }}</span>
         </a>
