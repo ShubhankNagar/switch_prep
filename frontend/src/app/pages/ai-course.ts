@@ -10,7 +10,7 @@ import { ProgressBar } from '../shared/ui';
   selector: 'app-ai-course',
   imports: [RouterLink, ProgressBar],
   template: `
-    <h1>AI Engineer Course · Beginner to Advanced</h1>
+    <h1>AI engineer course · beginner to advanced</h1>
     <p class="muted">A full path from zero Python to building production LLM apps (RAG, agents, fine-tuning, evals) and doing
       it in Java with Spring AI. Your interview prep comes first: during the 60-day plan, do one lesson on weekends.
       After you switch, go module by module (about {{ totalWeeks() }} weeks at 8-10 hours a week).</p>

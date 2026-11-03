@@ -4,12 +4,13 @@ import { RouterLink } from '@angular/router';
 import { COMPLETE_DAY_THRESHOLD, HabitService, HabitStatus } from '../core/habit.service';
 import { HabitDef, HabitKind } from '../core/models';
 import { todayIso } from '../core/progress.service';
+import { Icon, habitIcon } from '../shared/icon';
 
 @Component({
   selector: 'app-habits',
-  imports: [FormsModule, RouterLink],
+  imports: [Icon, FormsModule, RouterLink],
   template: `
-    <h1>Daily Routine</h1>
+    <h1>Daily routine</h1>
     <p class="muted">Small daily wins beat weekend marathons. Most habits tick themselves when you complete things
       on the site; enter the rest here. A day counts toward your streak when you hit
       {{ threshold }}% of your active habits.</p>
@@ -34,7 +35,7 @@ import { todayIso } from '../core/progress.service';
         <ul class="habit-list">
           @for (s of habits.today().statuses; track s.habit.id) {
             <li [class.met]="s.met">
-              <span class="habit-icon">{{ s.habit.icon }}</span>
+              <span class="habit-icon"><app-icon [name]="habitIcon(s.habit.id)" /></span>
               <div class="grow">
                 <div class="habit-title">{{ s.habit.title }}</div>
                 <div class="pbar"><div class="pbar-fill" [style.width.%]="s.pct"></div></div>
@@ -51,29 +52,29 @@ import { todayIso } from '../core/progress.service';
                   }
                   @case ('check') {
                     <button class="check" [class.on]="s.met" (click)="habits.setValue(s.habit.id, s.met ? 0 : 1)">
-                      <span class="box">{{ s.met ? '✓' : '' }}</span></button>
+                      <span class="box">@if (s.met) { <app-icon name="check" /> }</span></button>
                   }
                   @case ('minutes') {
                     <input type="number" min="0" max="1440" class="mini-input" [ngModel]="s.value"
                            (change)="setMinutes($event)" aria-label="Minutes studied today" />
                   }
-                  @case ('auto') { <span class="big-tick">{{ s.met ? '✓' : s.value + '/' + s.habit.target }}</span> }
+                  @case ('auto') { <span class="big-tick">@if (s.met) { <app-icon name="check" /> } @else { {{ s.value }}/{{ s.habit.target }} }</span> }
                   @case ('plan') { <a routerLink="/plan" class="small">{{ s.value }}%</a> }
-                  @case ('journal') { <span class="big-tick">{{ s.met ? '✓' : '' }}</span> }
+                  @case ('journal') { <span class="big-tick">@if (s.met) { <app-icon name="check" /> }</span> }
                 }
               </div>
             </li>
           }
         </ul>
         <label class="note-box">
-          <span class="muted small">📝 What did you learn today? (one line)</span>
+          <span class="muted small">What did you learn today? One line</span>
           <input type="text" maxlength="300" [ngModel]="habits.log(today).journal" (change)="setJournal($event)"
                  placeholder="e.g. Outbox pattern solves the DB + Kafka dual-write problem" />
         </label>
       </section>
 
       <section class="card">
-        <h2>⏱️ Focus timer</h2>
+        <h2>Focus timer</h2>
         @if (habits.timerRunning()) {
           <p class="timer-big">{{ clock() }}</p>
           <p class="muted small">Phone away, one task only. Minutes are logged automatically.</p>
@@ -119,7 +120,7 @@ import { todayIso } from '../core/progress.service';
           <tbody>
             @for (h of habits.activeHabits(); track h.id) {
               <tr>
-                <td>{{ h.icon }} {{ h.title }}</td>
+                <td>{{ h.title }}</td>
                 @for (d of last7(); track d.date) {
                   <td class="center">{{ cell(d.statuses, h.id) }}</td>
                 }
@@ -153,7 +154,7 @@ import { todayIso } from '../core/progress.service';
             @for (h of draft(); track h.id; let i = $index) {
               <tr>
                 <td><input type="checkbox" [checked]="h.active" (change)="patch(i, { active: !h.active })" /></td>
-                <td>{{ h.icon }} {{ h.title }} <div class="muted small">{{ h.why }}</div></td>
+                <td>{{ h.title }} <div class="muted small">{{ h.why }}</div></td>
                 <td>
                   @if (h.kind !== 'journal') {
                     <input type="number" min="1" class="mini-input" [value]="h.target"
@@ -184,6 +185,7 @@ import { todayIso } from '../core/progress.service';
   `,
 })
 export class HabitsPage {
+  protected habitIcon = habitIcon;
   protected habits = inject(HabitService);
   protected today = todayIso();
   protected threshold = Math.round(COMPLETE_DAY_THRESHOLD * 100);

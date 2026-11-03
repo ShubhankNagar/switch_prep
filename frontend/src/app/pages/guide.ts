@@ -6,18 +6,18 @@ import { MarkdownPipe } from '../shared/markdown.pipe';
   selector: 'app-guide',
   imports: [MarkdownPipe],
   template: `
-    <h1>💼 Job Switch Guide</h1>
+    <h1>Job switch guide</h1>
     <p class="muted">Everything outside of studying: resume, where to apply, referrals, interview process by company,
       and how to negotiate to 15 LPA+.</p>
     <div class="notes-layout">
       <nav class="toc card">
         @for (s of sections(); track s.id; let i = $index) {
-          <button [class.active]="idx() === i" (click)="idx.set(i)">{{ s.icon }} {{ s.title }}</button>
+          <button [class.active]="idx() === i" (click)="idx.set(i)">{{ s.title }}</button>
         }
       </nav>
       @if (sections()[idx()]; as s) {
         <article class="card md article">
-          <h2>{{ s.icon }} {{ s.title }}</h2>
+          <h2>{{ s.title }}</h2>
           <div [innerHTML]="s.content | md"></div>
         </article>
       }

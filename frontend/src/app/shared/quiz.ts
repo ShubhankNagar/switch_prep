@@ -30,7 +30,7 @@ type QuizQuestion = Omit<Mcq, 'id'> & { id?: string };
     } @else {
       <div class="quiz-bar">
         <span>Answered {{ answeredCount() }}/{{ questions().length }}</span>
-        @if (exam() && !submitted()) { <span class="timer" [class.low]="remaining() < 60">⏱ {{ clock() }}</span> }
+        @if (exam() && !submitted()) { <span class="timer" [class.low]="remaining() < 60">{{ clock() }}</span> }
         @if (submitted()) { <span class="score">Score: {{ score() }}/{{ questions().length }} ({{ pct() }}%)</span> }
       </div>
       @for (q of questions(); track $index; let i = $index) {

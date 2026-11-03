@@ -10,7 +10,7 @@ import { DoneToggle, ProgressBar } from '../shared/ui';
   selector: 'app-rounds',
   imports: [RouterLink, MarkdownPipe, DoneToggle, ProgressBar],
   template: `
-    <h1>🧭 Interview Rounds 2027</h1>
+    <h1>Interview rounds 2027</h1>
     <p class="muted">Every round you're likely to face, how it's scored, how strong candidates handle it, and where
       most people fail. Mark a round "ready" once you can do its walkthrough without notes.</p>
     <app-progress-bar [done]="readyCount()" [total]="rounds().length" />
@@ -24,7 +24,6 @@ import { DoneToggle, ProgressBar } from '../shared/ui';
       @for (r of rounds(); track r.id) {
         <a class="card topic" [routerLink]="['/rounds', r.id]" [class.done]="progress.isDone(key(r.id))">
           <app-done-toggle [key]="key(r.id)" section="rounds" />
-          <span class="big-icon">{{ r.icon }}</span>
           <div class="grow">
             <h3>{{ r.title }}</h3>
             <p class="muted small">{{ r.summary }}</p>

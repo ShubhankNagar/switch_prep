@@ -9,12 +9,13 @@ import { CodePipe, MarkdownPipe } from '../shared/markdown.pipe';
 import { QaList } from '../shared/qa-list';
 import { Quiz } from '../shared/quiz';
 import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
+import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-final-day',
-  imports: [RouterLink, MarkdownPipe, CodePipe, Quiz, QaList, DoneToggle, ReviseToggle, NoteBox, PageState],
+  imports: [Icon, RouterLink, MarkdownPipe, CodePipe, Quiz, QaList, DoneToggle, ReviseToggle, NoteBox, PageState],
   template: `
-    <a routerLink="/final-round" class="back">← Final Round</a>
+    <a routerLink="/final-round" class="back">← Final round</a>
     @if (data(); as d) {
       <p class="eyebrow">Final Round · Day {{ d.day.day }}</p>
       <h1>{{ d.day.title }}</h1>
@@ -50,8 +51,8 @@ import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
                 <button class="btn small" (click)="reveal(c.id, 'h2')">Hint 2</button>
                 <button class="btn small" (click)="reveal(c.id, 'sol')">Show solution</button>
               </div>
-              @if (shown(c.id, 'h1')) { <p class="hint">💡 {{ c.hints[0] }}</p> }
-              @if (shown(c.id, 'h2')) { <p class="hint">💡 {{ c.hints[1] }}</p> }
+              @if (shown(c.id, 'h1')) { <p class="hint"><app-icon name="lightbulb" />{{ c.hints[0] }}</p> }
+              @if (shown(c.id, 'h2')) { <p class="hint"><app-icon name="lightbulb" />{{ c.hints[1] }}</p> }
               @if (shown(c.id, 'sol')) {
                 <div class="md" [innerHTML]="c.explanation | md"></div>
                 <p><b>Time:</b> {{ c.time }} · <b>Space:</b> {{ c.space }}</p>

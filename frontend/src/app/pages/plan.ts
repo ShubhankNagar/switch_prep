@@ -11,7 +11,7 @@ import { DoneToggle, LinkPipe, ProgressBar } from '../shared/ui';
   selector: 'app-plan',
   imports: [RouterLink, DoneToggle, ProgressBar, MarkdownPipe, LinkPipe],
   template: `
-    <h1>60-Day Study Plan</h1>
+    <h1>60-day study plan</h1>
     @if (plan(); as p) {
       <div class="md intro" [innerHTML]="p.intro | md"></div>
       <p class="muted">Time budget: {{ p.hoursPerDay }}</p>
@@ -24,7 +24,7 @@ import { DoneToggle, LinkPipe, ProgressBar } from '../shared/ui';
             <div class="row">
               @if (d.day > 1) { <a class="btn small" [routerLink]="['/plan', d.day - 1]">← Day {{ d.day - 1 }}</a> }
               @if (d.day < 60) { <a class="btn small" [routerLink]="['/plan', d.day + 1]">Day {{ d.day + 1 }} →</a> }
-              @if (d.day === 60) { <a class="btn small primary" routerLink="/final-round">Final Round →</a> }
+              @if (d.day === 60) { <a class="btn small primary" routerLink="/final-round">Final round →</a> }
             </div>
           </div>
           <p class="muted">{{ d.focus }}</p>

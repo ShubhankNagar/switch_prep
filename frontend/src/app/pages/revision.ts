@@ -11,7 +11,7 @@ type View = 'due' | 'revise' | 'notes';
   selector: 'app-revision',
   imports: [RouterLink, DoneToggle, ReviseToggle, LinkPipe],
   template: `
-    <h1>★ Revision List</h1>
+    <h1>Revision list</h1>
     <p class="muted">Everything you starred as "revise later", plus anything with a personal note. Re-solve DSA problems
       from scratch without looking at your old code. Spaced repetition beats re-reading: open each item from
       <b>Due now</b>, recall it, then press <b>Reviewed</b> and it comes back in {{ reviewDays }} days. Press
@@ -39,7 +39,7 @@ type View = 'due' | 'revise' | 'notes';
                   @if (progress.isRevise(e.key)) {
                     <span class="muted small"> · {{ age(e.key) }}</span>
                   }
-                  @if (progress.note(e.key)) { <div class="muted small note-preview">📝 {{ progress.note(e.key) }}</div> }
+                  @if (progress.note(e.key)) { <div class="muted small note-preview">{{ progress.note(e.key) }}</div> }
                 </div>
                 @if (view() === 'due') {
                   <button class="btn small" (click)="reviewed(e)" title="Recalled it: bring it back in {{ reviewDays }} days">Reviewed</button>
@@ -55,10 +55,10 @@ type View = 'due' | 'revise' | 'notes';
         <div class="card muted">
           @switch (view()) {
             @case ('due') {
-              @if (starred().length) { Nothing due. Everything you starred was reviewed in the last {{ reviewDays }} days. 🎉 }
-              @else { Nothing here yet. Use ☆ on any problem, topic or question to add it. }
+              @if (starred().length) { Nothing due. Everything you starred was reviewed in the last {{ reviewDays }} days. }
+              @else { Nothing here yet. Use the star on any problem, topic or question to add it. }
             }
-            @case ('revise') { Nothing here yet. Use ☆ on any problem, topic or question to add it. }
+            @case ('revise') { Nothing here yet. Use the star on any problem, topic or question to add it. }
             @case ('notes') { No notes yet. Every problem and topic page has a "My notes" box. }
           }
         </div>

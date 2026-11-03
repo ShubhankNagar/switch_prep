@@ -13,7 +13,7 @@ import { DoneToggle, LinkPipe, NoteBox, PageState } from '../shared/ui';
     <a routerLink="/rounds" class="back">← Interview rounds</a>
     @if (data(); as d) {
       <p class="eyebrow">{{ d.r.frequency }} · {{ d.r.weight }}</p>
-      <h1>{{ d.r.icon }} {{ d.r.title }}</h1>
+      <h1>{{ d.r.title }}</h1>
       <p>{{ d.r.summary }}</p>
       <div class="row wrap">
         @for (c of d.r.whoRunsIt; track c) { <span class="tag company">{{ c }}</span> }
@@ -31,7 +31,7 @@ import { DoneToggle, LinkPipe, NoteBox, PageState } from '../shared/ui';
       <section class="card"><h2>How to ace it</h2><div class="md article" [innerHTML]="d.r.howToAce | md"></div></section>
       <section class="card"><h2>Walkthrough: a strong candidate in action</h2>
         <div class="md article" [innerHTML]="d.r.walkthrough | md"></div></section>
-      <section class="card fail-list"><h2>⚠️ Where most candidates fail</h2>
+      <section class="card fail-list"><h2>Where most candidates fail</h2>
         <ul>@for (f of d.r.commonFailures; track $index) { <li>{{ f }}</li> }</ul></section>
       @if (d.r.practice.length) {
         <section class="card"><h2>Practise on SwitchPrep</h2>

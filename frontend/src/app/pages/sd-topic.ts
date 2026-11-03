@@ -11,7 +11,7 @@ import { QaList } from '../shared/qa-list';
   selector: 'app-sd-topic',
   imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, NoteBox, QaList, PageState],
   template: `
-    <a routerLink="/system-design" class="back">← System Design</a>
+    <a routerLink="/system-design" class="back">← System design</a>
     @if (data(); as d) {
       <p class="eyebrow">{{ d.group.name }} · {{ d.t.level }} · {{ d.t.minutes }} min read</p>
       <h1>{{ d.t.title }}</h1>

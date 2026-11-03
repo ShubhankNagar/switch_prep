@@ -10,7 +10,7 @@ import { ProgressBar } from '../shared/ui';
   selector: 'app-final-round',
   imports: [RouterLink, ProgressBar],
   template: `
-    <h1>Final Round · 14 Days of Real Interview Questions</h1>
+    <h1>Final round · 14 days of real interview questions</h1>
     <p class="muted">After the 60-day plan, spend two weeks on questions reported from real online assessments and
       interviews at product companies. Each day has an MCQ test (take it in exam mode), coding questions to solve
       on a timer (35-40 min each, no peeking), and verbal theory questions to answer out loud.
