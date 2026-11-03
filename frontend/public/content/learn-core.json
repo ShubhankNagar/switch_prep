@@ -1,0 +1,2963 @@
+{
+ "qa": {
+  "java-001": "Encapsulation hides state behind methods that enforce rules, abstraction exposes what an object does but not how, inheritance reuses behaviour through an is-a relationship, and polymorphism lets one call run different implementations.",
+  "java-002": "An abstract class can hold state and constructors and you extend only one; an interface is a contract with no instance state, and a class can implement many. Since Java 8 interfaces can also have default and static methods.",
+  "java-003": "Overloading is the same name with different parameters, resolved at compile time; overriding is a subclass replacing a parent method with the same signature, resolved at runtime on the object's actual type.",
+  "java-005": "String is immutable so it can be safely shared in the string pool, cached for its hash code, used as a map key, and passed around threads and security checks without anyone changing it afterwards.",
+  "java-006": "One or two: the literal goes into the string pool if it is not already there, and `new` always creates a separate heap object, which `s` points to.",
+  "java-007": "String is immutable; StringBuilder is mutable and fastest for building strings in one thread; StringBuffer is the older synchronized version, rarely needed today.",
+  "java-008": "Equal objects must have equal hash codes. Override only equals and two equal keys land in different buckets, so a HashMap or HashSet will not find or deduplicate them.",
+  "java-009": "An array of buckets: the key's hash picks a bucket, equals finds the entry inside it. Collisions chain in a linked list that becomes a red-black tree past 8 entries, and the table doubles when it is 75% full.",
+  "java-012": "HashMap is not thread-safe; Hashtable and synchronizedMap lock the whole map for every call; ConcurrentHashMap locks per bucket with lock-free reads, so it is the one to use under concurrency.",
+  "java-013": "Since Java 8: lock-free reads, CAS to fill an empty bin, and a lock only on the head of a non-empty bin. It rejects null because `get` returning null could not tell \"absent\" from \"mapped to null\" without a race.",
+  "java-014": "ArrayList almost always: O(1) index access and cache-friendly memory. LinkedList only wins when you insert or remove at the ends or through an iterator, and ArrayDeque usually beats it there too.",
+  "java-016": "Fail-fast iterators throw ConcurrentModificationException when the collection changes behind them; fail-safe ones work on a snapshot or tolerate changes. Avoid the exception with `iterator.remove()`, `removeIf`, or a concurrent collection.",
+  "java-017": "HashSet is unordered and O(1), LinkedHashSet keeps insertion order, TreeSet keeps sorted order in O(log n). HashSet is a HashMap underneath, so uniqueness comes from hashCode and equals.",
+  "java-019": "In production, extend LinkedHashMap with access order and override `removeEldestEntry`. In a coding round, build it from a HashMap plus a doubly linked list for O(1) get and put.",
+  "java-020": "Comparable is the class's own natural order (`compareTo`); Comparator is an external ordering you can define many of without touching the class.",
+  "java-023": "Checked exceptions must be caught or declared and suit recoverable conditions outside your control; unchecked ones signal programming errors or business-rule failures. Most modern code, Spring included, prefers unchecked.",
+  "java-024": "Yes, finally runs even after a return in try, unless the JVM exits or the thread dies. A return in finally overrides the try's return and swallows exceptions, so never do it.",
+  "java-026": "Extend RuntimeException with a clear name and useful context, keep the cause when wrapping, and turn it into an HTTP response once in a `@RestControllerAdvice`, ideally as a ProblemDetail.",
+  "java-027": "An interface with exactly one abstract method, so a lambda can implement it. The core ones are Predicate, Function, Consumer, Supplier and their Bi and primitive variants.",
+  "java-029": "Optional is a return type that says \"may be absent\". `orElse` always evaluates its argument; `orElseGet` calls the supplier only when the Optional is empty, so use it for anything expensive.",
+  "java-030": "`map` turns each element into exactly one element; `flatMap` turns each element into a stream and flattens them, for one-to-many.",
+  "java-031": "Intermediate operations like filter and map are lazy and only build the pipeline; a terminal operation like collect runs it, pulling elements through one at a time, which is what lets `limit` and `findFirst` short-circuit.",
+  "java-032": "`groupingBy(Employee::dept, counting())` for the counts and `groupingBy(Employee::dept, averagingDouble(Employee::salary))` for the averages; the downstream collector decides what each group becomes.",
+  "java-033": "Distinct salaries, sorted descending, skip one, findFirst. Then mention it is O(n log n), and a single loop tracking the top two is O(n).",
+  "java-034": "Group by identity and count, keeping keys with a count above one; or `filter(x -> !seen.add(x))` with a Set, which is shorter but not safe for parallel streams.",
+  "java-035": "Count characters into a LinkedHashMap to keep order, then take the first entry with count 1. The LinkedHashMap is the whole trick.",
+  "java-077": "A ScopedValue shares an immutable value, like the current tenant, with everything a block of code calls, and the binding ends when the block returns, so unlike ThreadLocal it cannot leak into a reused thread and is cheap with virtual threads.",
+  "java-036": "`groupingBy(dept, maxBy(comparing(salary)))` for the top earner and `groupingBy(dept, mapping(name, toList()))` for names; `collectingAndThen` unwraps the Optional.",
+  "spring-boot-001": "IoC means the framework creates and wires your objects; dependency injection is how: a class declares what it needs, usually as constructor parameters, and the container supplies it.",
+  "spring-boot-002": "Constructor injection: dependencies are final and explicit, the object is never half-built, tests can call `new` with mocks, and circular dependencies fail at startup.",
+  "spring-boot-004": "All are Spring-managed beans. @Service and @Controller mainly document intent, @Repository adds exception translation, and @Bean is a factory method in a @Configuration class for objects you cannot annotate, like library classes.",
+  "spring-boot-005": "Singleton (default), prototype, and the web scopes request, session and application. A singleton is shared by all threads, so it is thread-safe only if it is stateless.",
+  "spring-boot-006": "The prototype is injected once, so the singleton keeps one instance and the prototype behaviour is lost. Fix it with `ObjectProvider<T>.getObject()`, `@Lookup`, or a scoped proxy.",
+  "spring-boot-007": "Instantiate, inject dependencies, Aware callbacks, BeanPostProcessor before-init, @PostConstruct and init methods, BeanPostProcessor after-init (where AOP proxies are created), use, then @PreDestroy on shutdown.",
+  "spring-boot-008": "Spring finds two candidates of the same type. Mark one @Primary for the default, or use @Qualifier at the injection point; or inject a `List` or `Map` of all of them and choose at runtime.",
+  "spring-boot-010": "It combines @SpringBootConfiguration, @EnableAutoConfiguration and @ComponentScan from the main class's package, so the main class should sit at the root of your packages.",
+  "spring-boot-011": "Boot reads a list of auto-configuration classes from `AutoConfiguration.imports`; each is guarded by conditions like @ConditionalOnClass and @ConditionalOnMissingBean, so it applies only when the library is present and you did not define the bean yourself.",
+  "spring-boot-013": "Common settings in `application.yml`, environment overrides in `application-{profile}.yml`, activated by `spring.profiles.active`; secrets come from environment variables or a vault, so the same artifact runs everywhere.",
+  "spring-boot-015": "@RestController is @Controller plus @ResponseBody, so it returns data, not views. @PathVariable identifies the resource in the path; @RequestParam reads query parameters for filtering, sorting and paging.",
+  "spring-boot-016": "Filters run first (security among them), then DispatcherServlet finds the handler, runs interceptors, resolves arguments, calls the controller, and message converters write the return value as JSON.",
+  "spring-boot-017": "One @RestControllerAdvice with @ExceptionHandler methods mapping exceptions to status codes and a consistent body, ideally RFC 9457 ProblemDetail, plus a catch-all that logs and hides internals.",
+  "spring-boot-018": "Bean Validation annotations on the DTO and @Valid on the request body, which turns failures into a 400. A custom rule is an annotation plus a ConstraintValidator class.",
+  "spring-boot-019": "POST creates and is not idempotent, PUT replaces the whole resource and is idempotent, PATCH partially updates. Idempotent means repeating the request leaves the same state as doing it once.",
+  "spring-boot-020": "Take a Pageable, return a Page or Slice from the repository. For deep pages switch from offset to keyset (cursor) pagination, because offset still scans the skipped rows.",
+  "spring-boot-021": "JPA is the specification, Hibernate is the implementation that does the ORM work, and Spring Data JPA writes the repository layer for you on top of it.",
+  "spring-boot-022": "One query loads N parents, then touching a lazy association on each fires N more. Fix it with JOIN FETCH, an @EntityGraph, or batch fetching, and catch it in tests by counting queries.",
+  "spring-boot-023": "Eager loads the association with the parent, lazy loads it on first access. LazyInitializationException means you touched a lazy proxy after the session closed; fetch what you need in the query, not with open-in-view.",
+  "spring-boot-024": "Entities are transient, managed, detached or removed. While managed, the persistence context snapshots them and dirty checking writes any changes at flush, without an explicit save.",
+  "spring-boot-027": "Spring wraps the bean in a proxy; the proxy starts or joins a transaction before your method and commits or rolls back after, binding the connection to the thread.",
+  "spring-boot-028": "Self-invocation bypasses the proxy, private methods are not intercepted, checked exceptions commit by default, and catching the exception inside the method hides it from the rollback.",
+  "spring-boot-029": "REQUIRED joins or starts a transaction (the default); REQUIRES_NEW suspends the current one and runs independently, for example an audit log that must survive a rollback. NESTED uses a savepoint.",
+  "spring-boot-030": "READ UNCOMMITTED allows dirty reads, READ COMMITTED prevents them, REPEATABLE READ (MySQL's default) also prevents non-repeatable reads, and SERIALIZABLE prevents phantoms too.",
+  "spring-boot-031": "Optimistic locking uses a @Version column and fails on conflict, best when conflicts are rare; pessimistic locking takes a row lock with SELECT ... FOR UPDATE, best when contention is high and retries are expensive.",
+  "spring-boot-032": "Security is a chain of servlet filters: an authentication filter turns credentials into an Authentication, it is stored in the SecurityContext, and the authorization filter checks it against the rules for the request.",
+  "spring-boot-033": "Login issues a signed JWT; the client sends it as a Bearer token; a filter (or Spring's resource server support) validates the signature and expiry and sets the SecurityContext. Keep tokens short-lived with refresh tokens.",
+  "spring-boot-061": "Boot 4 sits on Spring Framework 7 and Jakarta EE 11, switches to Jackson 3, and adds built-in HTTP service clients, API versioning, core @Retryable and @ConcurrencyLimit, and JSpecify null-safety. Upgrade by first reaching a clean 3.5.x.",
+  "spring-boot-062": "The core annotations handle simple retries and concurrency caps; use Resilience4j when you need a circuit breaker, time limiter, rate limiter or per-dependency metrics around remote calls.",
+  "sql-001": "`SELECT MAX(salary) FROM employee WHERE salary < (SELECT MAX(salary) FROM employee)`, or DENSE_RANK = 2; both return NULL when there is no second salary.",
+  "sql-002": "DENSE_RANK over salary descending and pick rank N, or `LIMIT 1 OFFSET N-1` on distinct salaries; DENSE_RANK handles ties correctly.",
+  "sql-003": "Self-join the employee table to itself as manager on `e.manager_id = m.id` and filter `e.salary > m.salary`.",
+  "sql-004": "Find them with GROUP BY email HAVING COUNT(*) > 1; delete with a self-join keeping the smallest id, then add a UNIQUE constraint so it cannot happen again.",
+  "sql-005": "An anti-join: LEFT JOIN orders and keep rows where the order id IS NULL, or NOT EXISTS. Avoid NOT IN when the subquery can contain NULLs.",
+  "sql-006": "DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) in a subquery, then keep rank ≤ 3. Use ROW_NUMBER if you need exactly three rows.",
+  "sql-007": "Rank within each department and keep rank 1, or join to a per-department MAX. Do not SELECT name with GROUP BY dept alone; that name is arbitrary.",
+  "sql-008": "Compare each row with the next two using LEAD (or self-joins on id + 1 and id + 2); for \"at least K\" use the gaps-and-islands trick.",
+  "sql-009": "`SUM(amount) OVER (ORDER BY order_date)` for the running total, and add `PARTITION BY customer_id` for per customer; use a ROWS frame or a tiebreaker when dates repeat.",
+  "sql-010": "Conditional aggregation: `SUM(CASE WHEN quarter = 'Q1' THEN amount END) AS q1` and so on, grouped by product.",
+  "sql-011": "GROUP BY dept with `HAVING COUNT(*) > 5`, and `HAVING AVG(salary) > (SELECT AVG(salary) FROM employee)`. Conditions on aggregates go in HAVING.",
+  "sql-012": "Compare each salary with `AVG(salary) OVER (PARTITION BY dept)`, or a correlated subquery; the window version reads the table once.",
+  "sql-013": "Aggregate revenue per month, then `LAG(revenue) OVER (ORDER BY month)` and compute `(cur - prev) / NULLIF(prev, 0) * 100`.",
+  "sql-014": "Gaps and islands: date minus ROW_NUMBER per user is constant within a streak, so group by user and that value and keep groups with three or more days.",
+  "sql-015": "ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC) and keep row 1, backed by an index on (customer_id, order_date).",
+  "sql-016": "Start from departments and LEFT JOIN employees, then `COUNT(e.id)`, not COUNT(*), so empty departments show 0.",
+  "sql-022": "FROM and JOINs, WHERE, GROUP BY, HAVING, SELECT, DISTINCT, ORDER BY, LIMIT. That is why a SELECT alias cannot be used in WHERE.",
+  "sql-023": "INNER keeps matches only, LEFT keeps every left row with NULLs where nothing matches, RIGHT is the mirror, FULL keeps both sides, CROSS is every combination, and a self-join joins a table to itself.",
+  "sql-024": "WHERE filters rows before grouping and cannot use aggregates; HAVING filters groups after GROUP BY and can.",
+  "sql-025": "DELETE removes chosen rows, is logged and can roll back; TRUNCATE empties the table fast and resets auto-increment; DROP removes the table itself.",
+  "sql-026": "UNION removes duplicates and UNION ALL does not, so UNION ALL is faster. IN checks against a list of values; EXISTS stops at the first match and handles NULLs safely, so prefer NOT EXISTS over NOT IN.",
+  "sql-027": "A CTE is a named subquery for one statement that improves readability and can be recursive; a temporary table lives for the session; a view is a saved query that lives in the schema.",
+  "sql-028": "Window functions compute per row over related rows without collapsing them. For 100, 90, 90, 80: ROW_NUMBER gives 1 2 3 4, RANK 1 2 2 4, DENSE_RANK 1 2 2 3.",
+  "sql-029": "An index is a sorted structure that finds rows without a full scan. InnoDB uses a B+tree: a shallow, wide tree where leaves hold the keys in order and are linked, so lookups and range scans take a few page reads.",
+  "sql-030": "In InnoDB the clustered index is the primary key and its leaves hold the whole row; a secondary index stores the key plus the primary key, so a lookup through it needs a second step unless the index covers the query.",
+  "sql-031": "An index on several columns sorted left to right; it helps only queries that use a leftmost prefix. Put equality columns first, then the range or sort column.",
+  "sql-032": "An index that holds every column the query needs, so MySQL answers from the index alone (EXPLAIN shows \"Using index\").",
+  "microservices-001": "Small services that each own one business capability and its data and deploy independently. You gain independent deploys, scaling and team ownership; you pay with network failures, distributed data and operational complexity.",
+  "microservices-002": "Find bounded contexts, modularise inside the monolith first, then carve services out one at a time behind a router with the strangler fig pattern, starting with a low-risk, well-bounded capability.",
+  "microservices-003": "Each service owns its schema and nobody else touches it. Cross-service reads use API composition, or events that build a read model (CQRS); never a shared database join.",
+  "microservices-004": "Services register their changing addresses in a registry. Client-side discovery means the caller picks an instance; server-side means a load balancer or Kubernetes Service picks for it.",
+  "microservices-005": "The single entry point that routes requests and centralises cross-cutting concerns like auth, rate limiting and TLS. A load balancer only spreads traffic across instances of the same thing.",
+  "microservices-006": "Use synchronous REST or gRPC when the caller needs the answer to continue; use events when the work can happen later, so services are decoupled in time and failures do not cascade.",
+  "microservices-007": "A declarative HTTP client: you write an interface and Spring implements it. Always set connect and read timeouts per client, map errors with an ErrorDecoder, and wrap calls in a circuit breaker.",
+  "microservices-008": "A topic is split into partitions, ordered logs spread across brokers. The record key picks the partition; within a consumer group each partition goes to one consumer, which tracks its position with committed offsets.",
+  "microservices-009": "Only within a partition. Use the same key for events that must stay in order, and an idempotent producer so retries cannot reorder them. Global order needs a single partition, which kills parallelism.",
+  "microservices-010": "At-most-once, at-least-once and exactly-once. Most systems run at-least-once and make the consumer idempotent, for example by storing processed event ids.",
+  "microservices-012": "Kafka is a durable, replayable log for high-throughput event streams with many independent consumers; RabbitMQ is a broker for task queues with flexible routing that deletes messages once acknowledged.",
+  "microservices-013": "It stops calling a failing dependency so you fail fast. Closed passes calls and counts failures, Open rejects calls for a while, Half-open lets a few through to test recovery.",
+  "microservices-014": "Retry handles transient failures with backoff, a bulkhead caps concurrent calls so one slow dependency cannot take every thread, and a rate limiter caps call rate. Put the circuit breaker around the retries.",
+  "microservices-015": "Avoid two-phase commit. Use a saga of local transactions with compensating actions, publish events reliably with the outbox pattern, and make every step idempotent.",
+  "microservices-016": "In choreography each service reacts to the previous service's event; in orchestration one coordinator tells each service what to do and runs compensations on failure. Orchestration is easier to follow when the flow is long.",
+  "microservices-017": "Writing to the database and publishing an event are two separate actions, so a crash can lose one. Write the event to an outbox table in the same transaction, and a relay publishes it afterwards.",
+  "microservices-018": "Repeating it has the same effect as doing it once. The client sends an Idempotency-Key; the server stores the key with the result under a unique constraint and returns the stored result on a retry.",
+  "microservices-020": "A trace follows one request across services as a tree of spans joined by a trace id in the W3C `traceparent` header. In Spring Boot: Micrometer Tracing with OpenTelemetry exporting over OTLP.",
+  "microservices-021": "Structured JSON logs with the trace id shipped to one place, metrics through Micrometer to Prometheus and Grafana, traces through OpenTelemetry, and alerts on user-facing symptoms like error rate and latency.",
+  "microservices-022": "An image is an immutable template; a container is a running instance of it. Containers share the host kernel, so they start in milliseconds and are lighter than VMs, which each run a full guest OS.",
+  "microservices-023": "Multi-stage build, a small JRE base image, dependencies in their own cached layer (Boot layered jars), a non-root user, and an exec-form ENTRYPOINT so the JVM gets SIGTERM.",
+  "microservices-024": "Pod runs containers, Deployment keeps N replicas and rolls out updates, Service gives a stable address, Ingress routes external HTTP, ConfigMap and Secret inject configuration and credentials.",
+  "microservices-025": "Liveness restarts a stuck container, readiness removes a pod from traffic until it can serve, startup gives slow starters time before the others begin. Never make liveness depend on the database.",
+  "microservices-027": "The container keeps starting and dying. Check `kubectl describe` for the exit code and events, `kubectl logs --previous` for the crash, then look at config, probes and memory (exit 137 means OOMKilled).",
+  "microservices-028": "CI builds and tests every commit; CD makes every passing change releasable or releases it. A typical pipeline: build and test, quality and security scans, image build, deploy to staging, smoke tests, gated production rollout.",
+  "microservices-029": "Rolling replaces instances gradually; blue-green switches all traffic to a full new environment and can switch back instantly; canary sends a small share to the new version and grows it while metrics stay healthy.",
+  "microservices-031": "During a network partition a distributed store must choose consistency or availability. Since partitions happen, the real choice is how each operation behaves when one does.",
+  "ng-001": "Angular is a full TypeScript framework with routing, forms, HTTP and DI built in. AngularJS was its older JavaScript predecessor; React is a UI library where you choose the rest.",
+  "ng-002": "A component is a directive with its own template. Attribute directives change an existing element's behaviour or look; structural directives (now mostly `@if` and `@for` blocks) add and remove elements.",
+  "ng-003": "constructor, ngOnChanges, ngOnInit, ngDoCheck, the content and view init/checked hooks, ngOnDestroy. ngOnInit for setup after inputs arrive, ngOnChanges to react to inputs, ngOnDestroy to clean up.",
+  "ng-004": "The constructor is for dependency injection; inputs are not set yet. ngOnInit runs after the first inputs arrive, so put initialisation logic there.",
+  "ng-005": "Inputs down and outputs up between parent and child; `model()` for two-way; a shared service with signals or RxJS for siblings and distant components.",
+  "ng-006": "Angular checks bindings to update the DOM. With OnPush a component is checked only when an input reference changes, an event fires inside it, a signal it reads changes, or you mark it, which skips large parts of the tree.",
+  "ng-007": "Zone.js patches async APIs to trigger change detection automatically. Zoneless Angular drops it and updates from signals and explicit events instead; it is the default for new apps since v21.",
+  "ng-009": "A signal holds a value and tracks who reads it. `signal` is writable, `computed` derives a cached value from other signals, and `effect` runs a side effect when the signals it reads change.",
+  "ng-010": "Signals for synchronous state the template reads; RxJS for streams of events over time with operators like debounce, switchMap and retry. Bridge them with `toSignal` and `toObservable`.",
+  "ng-012": "Components that list their own dependencies in `imports`, no NgModule needed. They are the default since v19 and make lazy loading and tree-shaking simpler.",
+  "js-001": "A function that keeps access to the variables of the scope it was created in, even after that scope has returned. Debounce, memoisation and private state are built on it.",
+  "js-002": "It prints 3 3 3 because `var` gives one shared `i` that is 3 when the timers fire. Use `let`, which creates a new binding per iteration.",
+  "js-003": "Declarations are registered before code runs. `var` starts as undefined; `let`, `const` and classes exist but throw until their line (the temporal dead zone); function declarations are fully available.",
+  "js-004": "A E C D B: synchronous code first, then all microtasks (promise callbacks), then the next macrotask (the timer).",
+  "js-005": "One call stack runs code; finished async work queues callbacks. When the stack is empty the loop drains all microtasks, renders if needed, then takes the next macrotask.",
+  "js-006": "3 1 4 2: an async function runs synchronously until its first await; the rest continues as a microtask after the current synchronous code.",
+  "js-007": "`this` depends on how a function is called: method call, plain call, `new`, or explicit call/apply/bind. Arrow functions have no `this` and use the surrounding one.",
+  "js-008": "All three set `this`: call and apply invoke now (arguments listed or as an array), bind returns a new function with `this` fixed for later.",
+  "oop-001": "Encapsulation hides state behind methods, abstraction exposes what without how, inheritance reuses through is-a, and polymorphism lets one interface run different implementations.",
+  "oop-002": "Abstraction hides complexity by showing only what an object does; encapsulation hides data by controlling how it is accessed. One is a design idea, the other its enforcement.",
+  "oop-003": "An abstract class can have state and constructors and you extend one; an interface is a contract with no instance state, and you can implement many. Prefer interfaces for capabilities.",
+  "oop-004": "Overloading: same name, different parameters, chosen at compile time. Overriding: subclass replaces a parent method with the same signature, chosen at runtime.",
+  "oop-005": "Single responsibility, open for extension but closed for modification, subtypes must be substitutable, small focused interfaces, and depend on abstractions rather than concrete classes.",
+  "oop-006": "Add behaviour without editing tested code: replace a growing if/else on type with an interface and one class per case, so a new case is a new class.",
+  "oop-007": "A subclass must work anywhere its parent works. The classic violation is Square extending Rectangle: setting the width also changes the height, breaking callers.",
+  "oop-008": "Dependency inversion is a design principle (depend on abstractions), inversion of control is the idea that a framework controls object creation, and dependency injection is the technique that delivers it.",
+  "cn-001": "Seven layers from physical bits to application protocols: physical, data link, network, transport, session, presentation, application. In practice we reason with the four-layer TCP/IP model.",
+  "cn-003": "TCP is connection-oriented, reliable and ordered with flow and congestion control; UDP is connectionless and best-effort with less overhead. TCP for web and APIs, UDP for real-time media, DNS and QUIC.",
+  "cn-004": "SYN, SYN-ACK, ACK. Three messages let both sides confirm the other received their starting sequence number; two would leave the server unsure the client got its reply.",
+  "cn-005": "Sequence numbers, acknowledgements, retransmission and checksums make it reliable. Flow control protects the receiver (advertised window); congestion control protects the network (congestion window).",
+  "cn-006": "HTTP/1.1 handles one request at a time per connection; HTTP/2 multiplexes many streams over one TCP connection; HTTP/3 runs over QUIC on UDP, so a lost packet blocks only its own stream.",
+  "cn-007": "DNS lookup, TCP and TLS handshakes, the HTTP request through load balancers to a server, the response, then the browser parses HTML, fetches assets and renders the page.",
+  "cn-008": "A hierarchical lookup: the recursive resolver asks root, then TLD, then the authoritative server, and caches each answer for its TTL. Key records: A, AAAA, CNAME, MX, NS, TXT.",
+  "cn-009": "TLS agrees on keys with an ephemeral key exchange, proves the server's identity with its certificate, then encrypts everything with a symmetric key. TLS 1.3 needs one round trip.",
+  "os-001": "A process has its own memory space; threads are units of execution inside a process that share its memory. Threads are cheaper to create and switch, but one bad thread can corrupt the others.",
+  "os-002": "New, ready, running, waiting, terminated. The PCB is the kernel's record of a process: state, registers, program counter, memory mappings, open files and scheduling information.",
+  "os-003": "Saving one task's CPU state and loading another's. It is overhead because no useful work happens during the switch and caches and TLBs go cold afterwards.",
+  "os-006": "FCFS is simple but short jobs wait behind long ones; SJF minimises average waiting but needs burst times; round robin is fair with a time slice; priority scheduling risks starvation, which ageing fixes.",
+  "os-009": "A race condition is when the result depends on thread timing because threads touch shared data without coordination. The critical section is the code that touches that data and must run one thread at a time.",
+  "os-010": "A mutex is a lock with an owner that lets one thread into a critical section; a semaphore is a counter that lets up to N in, or signals between threads, and has no owner.",
+  "dbms-002": "Super key is any unique set of columns, candidate key a minimal one, primary key the chosen candidate, alternate keys the rest, foreign key a reference to another table's key, composite key one made of several columns.",
+  "dbms-003": "Both enforce uniqueness, but a primary key cannot be NULL and there is one per table; a table can have several unique keys and they allow NULLs.",
+  "dbms-004": "Normalization removes redundancy to prevent update anomalies. 1NF atomic values, 2NF no partial dependency on a composite key, 3NF no transitive dependency, BCNF every determinant is a key.",
+  "dbms-008": "Atomicity: all or nothing. Consistency: constraints hold before and after. Isolation: concurrent transactions do not see each other's partial work. Durability: committed data survives a crash.",
+  "dbms-009": "A dirty read sees uncommitted data, a non-repeatable read sees a row change between two reads, a phantom read sees new rows appear in a range. Each stronger isolation level prevents one more.",
+  "hr-001": "Present, past, future in 60-90 seconds: your current role and stack, one or two achievements with numbers, and why this role is your next step.",
+  "hr-002": "Stay positive: what you gained, what you want next (ownership, scale, product impact), and how this role offers it. Never criticise your employer.",
+  "hr-003": "Show you did your homework: the product you have used, an engineering challenge from their blog or job description, how your skills fit, and what you want to learn there.",
+  "hr-004": "A STAR story with real technical depth: the problem, how you investigated it step by step, what you built or fixed, the measured result, and what you learned.",
+  "hr-005": "A real, moderate mistake you owned, how you fixed it fast, and the process you changed so it cannot happen again. The learning is the point.",
+  "hr-006": "Disagree with data and respect, listen to their reasons, and commit once a decision is made. Show the process, whichever way it went.",
+  "hr-007": "Describe it neutrally, show that you started a one-to-one conversation, understood their side, and found a fix focused on the shared goal, then how the relationship improved.",
+  "hr-008": "Prioritisation and communication, not heroics: what you cut or deferred, who you told early, how you protected quality, and the outcome.",
+  "hr-009": "A problem nobody owned, what you did without being asked, and the measurable result for the team or customer.",
+  "hr-010": "Understand the customer's real problem behind the request, what you did about it, and the measurable benefit to them.",
+  "dbg-001": "Confirm and scope it, line it up with the deploy, roll back first because it is known-safe, verify p99 recovers, then diff the release and add a guardrail such as a canary with latency checks.",
+  "dbg-007": "The connection pool is exhausted: every connection is busy and callers waited the full timeout. Confirm with Hikari metrics and thread dumps, then fix what holds connections, usually slow queries or remote calls inside a transaction.",
+  "dbg-008": "Exit 137 without a Java OutOfMemoryError means the container limit was hit by total process memory, not the heap. Check heap settings against the limit, native and metaspace growth, and what the release changed.",
+  "dbg-013": "A cold-cache stampede: every miss went to MySQL at once and the database could not recover even after Redis returned. Prevent it with single-flight loading, gradual warm-up, load shedding and TTL jitter.",
+  "dbg-014": "Your threads all block on the slow dependency until none are left: a cascading failure. Prevent it with tight timeouts, a circuit breaker, a bulkhead per dependency, and a fallback.",
+  "dbg-020": "Roll back by default when the impact lines up with a change and rollback is safe; it stops the harm fastest. Fix forward only when rollback is unsafe, for example after an irreversible data migration.",
+  "perf-001": "Averages hide the slow tail: 99 requests at 50 ms and one at 10 s still average about 150 ms. p99 shows what the unluckiest users feel, and with fan-out most requests hit someone's tail.",
+  "perf-002": "In-flight work = throughput × time per request. At 500 requests per second and 40 ms of database time each, about 20 connections are busy on average, so size the pool near that, not at 200.",
+  "perf-008": "Read the access type (ALL means a full scan), the key used, rows examined versus returned, and the Extra column for filesort or temporary tables, then fix the index or the query.",
+  "perf-014": "OFFSET makes MySQL read and throw away every skipped row, so page 5,000 does 100,000 rows of work. Use keyset pagination: `WHERE (created_at, id) < (?, ?) ORDER BY ... LIMIT 20` on a matching index.",
+  "perf-018": "Many requests miss the same key at once and all hit the database. Prevent it with single-flight loading, early refresh before expiry, and serving stale data while one request refreshes.",
+  "perf-023": "Only if threads spend their time blocked on I/O and you are running out of them. Virtual threads do not speed up CPU work, and a small connection pool still caps throughput.",
+  "conc-001": "Both workers read the same QUEUED row, then both claim it. Claim atomically with `UPDATE ... SET status='RUNNING' WHERE id=? AND status='QUEUED'` and check that one row changed, or use SELECT ... FOR UPDATE SKIP LOCKED.",
+  "conc-002": "Let the database guarantee it: a unique key on (show, seat), so only one insert can commit; for holds, a conditional update on the seat's status with an expiry. App-level locks cannot protect multiple instances.",
+  "conc-003": "Read-modify-write on stock: two requests read the same value and both decrement. Use one conditional statement, `UPDATE ... SET stock = stock - ? WHERE id = ? AND stock >= ?`, and check the row count.",
+  "conc-004": "The payment API is not idempotent. The client sends an Idempotency-Key per payment attempt, the server stores it with the result under a unique constraint, and retries get the stored result instead of a new charge.",
+  "conc-007": "synchronized only excludes threads inside one JVM; the other instances run the same code in parallel. Move the guarantee to the shared resource: a constraint, a conditional update, or a distributed lock.",
+  "conc-011": "Kafka is at-least-once, so redelivery after a rebalance is normal. Make the consumer idempotent: record the message id in the same transaction as the effect, and skip ids already seen.",
+  "test-001": "Many fast unit tests, fewer integration tests at the seams (database, HTTP, messaging) using Testcontainers, and a few end-to-end tests. Push each test to the lowest level that can catch the bug.",
+  "test-003": "A stub returns canned answers, a mock also verifies the calls made to it, a spy wraps a real object, and a fake is a simple working implementation such as an in-memory repository.",
+  "test-005": "@WebMvcTest for controller concerns with services mocked, @DataJpaTest for repositories against a real database, @SpringBootTest for full wiring with external systems faked. Use the smallest one that can catch the bug.",
+  "test-006": "H2 is not MySQL: dialect, functions, locking and constraints differ, so tests pass while production fails. Testcontainers runs the real database in Docker for the price of a slower start.",
+  "test-014": "Understand the intent first, then review in order of production risk: correctness, concurrency, security, data, performance and operability, and only then naming and style. Label each comment by severity.",
+  "test-017": "The transaction holds a database connection and locks during a slow network call, and a rollback cannot undo the charge. Call the API outside the transaction, record the intent first, and make the call idempotent.",
+  "cloud-001": "Start from the workload and the team: ECS on Fargate for a typical long-running API, EKS if the company already runs Kubernetes, Lambda for spiky event-driven work, and EC2 only when you need host control.",
+  "cloud-003": "SNS fanning out to one SQS queue per consumer is the simple default: each service gets its own retries and dead-letter queue. EventBridge adds content-based routing; Kafka or Kinesis when you need replay and very high throughput.",
+  "cloud-005": "Through an IAM role, never access keys: an ECS task role or an EKS service-account role gives the app short-lived credentials automatically, with a least-privilege policy for exactly that bucket and secret.",
+  "cloud-012": "The kernel kills the container for exceeding its memory limit, which counts the whole process: heap plus metaspace, thread stacks, direct buffers and native memory. Leave room for non-heap memory and cap the heap with MaxRAMPercentage.",
+  "cloud-014": "Startup: has the app finished starting. Readiness: can it serve traffic now. Liveness: is the process stuck. Never check the database in liveness, or a database outage restarts every pod.",
+  "cloud-023": "Roll back immediately; restoring service beats debugging in production. If the release included a schema change, roll back only if the migration was backward compatible, which is why you use expand and contract.",
+  "sec-001": "Broken object-level authorization (IDOR): the user is authenticated but nobody checked they own that order. Check ownership on every object access, for example by querying with the user id; random ids do not fix it.",
+  "sec-002": "Mass assignment: the JSON was bound straight onto the entity, so the user set a field they should not control. Bind requests to DTOs with only the allowed fields and set sensitive fields on the server.",
+  "sec-003": "Server-side request forgery: the server fetches any URL, including cloud metadata and internal services. Allow only http and https, resolve and block private address ranges, disable redirects, and cap size and time.",
+  "sec-004": "SQL injection: request values are concatenated into SQL. Use bind parameters for values, and an allowlist for anything that cannot be bound, such as the ORDER BY column.",
+  "sec-007": "Check that the algorithm is pinned, the signature verified with the right key, and expiry, issuer and audience validated, and that failures return 401. Better still, replace it with Spring's OAuth2 resource server.",
+  "sec-013": "With a slow, salted password hash through Spring's PasswordEncoder: Argon2id or bcrypt. SHA-256 is built to be fast, so attackers can try billions of guesses a second.",
+  "aie-001": "You get an AI assistant and a larger, multi-file task. They grade how you understand the code, break down the work, prompt precisely, verify every line and test, not how fast you type.",
+  "aie-003": "Read every line against the requirements, write my own tests for edge cases and failure paths, run them, and check performance and error handling. One passing sample proves very little.",
+  "aie-007": "Treat it as unverified: check the official docs or the library source, confirm the package exists and is the real, maintained one, and try it in a small test before relying on it.",
+  "aie-016": "RAG hands the model the right documents at question time. Use RAG when answers depend on your changing data, fine-tuning to change style or format on a narrow task, and a long prompt when the material is small.",
+  "aie-019": "A synchronous LLM call will not fit 800 ms. Take it off the critical path: return the response without the summary, generate it asynchronously with a timeout, cache it, and fall back when it is missing.",
+  "aie-021": "Prompt injection is text that makes the model ignore its instructions; here it can hide in a customer's email. Treat email content as data, give the bot no direct refund power, and require checks or human approval for refunds.",
+  "lead-001": "Stakes, actions, outcome: why the project mattered, the decisions you personally made and their trade-offs, and the measured result. Make your own part clear, not just the team's.",
+  "lead-002": "Name the options, the criteria that mattered, the data you gathered, the choice and why, how you recorded it, and how it turned out, including what you would change now.",
+  "lead-003": "Show that you understood their reasons, brought evidence instead of opinion, proposed a cheap way to test it, and committed fully once the decision was made.",
+  "lead-005": "Impact first, then your role: how you mitigated before finding the root cause, how you communicated, and the guardrail you added so it cannot happen the same way again.",
+  "lead-007": "Turn ambiguity into a plan: ask what success looks like, ship a small slice to learn, make assumptions explicit, and adjust as requirements change.",
+  "lead-015": "Influence through data and making it easy to say yes: understand each team's incentives, show evidence of the cost, propose a small first step, and share the credit."
+ },
+ "notes": {
+  "concurrency-practical:conc-n01": {
+   "takeaways": [
+    "Answer every race in four parts: the invariant, the interleaving that breaks it, the prevention at the right layer, and how you would test it.",
+    "Most races are check-then-act or read-modify-write: something changes in the gap between reading and writing.",
+    "Fixes remove the gap (one atomic statement), detect the conflict (version check), or exclude others during the gap (lock).",
+    "Pick the layer that owns the invariant: with several app instances, a JVM lock protects nothing."
+   ],
+   "check": [
+    {
+     "q": "What are the four parts of a strong race-condition answer?",
+     "a": "Invariant, breaking interleaving, prevention at the right layer, test."
+    },
+    {
+     "q": "Name the two shapes behind most races.",
+     "a": "Check-then-act and read-modify-write."
+    },
+    {
+     "q": "Why is `synchronized` not enough in a service with three pods?",
+     "a": "It only excludes threads in one JVM; the other pods run the same code in parallel. Use the database or a distributed mechanism."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n02": {
+   "takeaways": [
+    "The classic races: double booking, double charge, oversell, two workers on one task, lost updates, a cron job on every pod, and ordering races.",
+    "Retries, double-clicks and redelivered webhooks create duplicates even with one user; idempotency keys handle them.",
+    "A plain InnoDB SELECT is a snapshot read and takes no lock, so check-then-insert races.",
+    "In review, look for a read followed by a write of the same data without a constraint, conditional update or lock."
+   ],
+   "check": [
+    {
+     "q": "Why does `if (!exists) insert` race even in one transaction?",
+     "a": "The plain SELECT takes no lock; two transactions both see 'not exists' and both insert."
+    },
+    {
+     "q": "A scheduled job sends emails twice after scaling to 3 pods. Why?",
+     "a": "Every instance runs the scheduler; you need a lock or leader (for example ShedLock) and an idempotent job."
+    },
+    {
+     "q": "Where do duplicates come from with a single user?",
+     "a": "Double-clicks, client retries after timeouts, and at-least-once redelivery of messages and webhooks."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n03": {
+   "takeaways": [
+    "Let the database arbitrate: it already serialises writes to a row.",
+    "Unique constraints enforce uniqueness invariants; turn the violation into a friendly error.",
+    "A conditional UPDATE (`... SET stock = stock - 1 WHERE id = ? AND stock > 0`) is check and act in one statement; check the affected row count.",
+    "Claim tasks with a compare-and-set on status plus a lease, so a crashed worker's task can be reclaimed, and keep the task idempotent."
+   ],
+   "check": [
+    {
+     "q": "How do you prevent overselling the last item without explicit locks?",
+     "a": "One conditional UPDATE that decrements only if stock > 0, then check that 1 row was affected."
+    },
+    {
+     "q": "Why does task claiming need a lease?",
+     "a": "If the worker crashes after claiming, the task would stay claimed forever; a lease lets another worker take it after expiry."
+    },
+    {
+     "q": "What must you always check after a conditional update?",
+     "a": "The affected row count: 0 means you lost the race or the condition failed."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n04": {
+   "takeaways": [
+    "Optimistic locking adds `@Version`; the update matches 0 rows on conflict and Hibernate throws, so you retry or return 409.",
+    "Pessimistic locking takes row locks (`SELECT ... FOR UPDATE`) up front; keep those transactions short.",
+    "Deadlocks come from locking rows in different orders; always lock in a consistent order and retry the victim.",
+    "Choose optimistic for low contention and user edits, pessimistic for hot rows where retries are costly."
+   ],
+   "check": [
+    {
+     "q": "What HTTP status fits an optimistic-lock conflict on a user edit?",
+     "a": "409 Conflict, so the client can reload and retry."
+    },
+    {
+     "q": "How do you avoid deadlocks when transferring between two accounts?",
+     "a": "Lock both rows in a consistent global order, for example by account id."
+    },
+    {
+     "q": "When is pessimistic locking the better choice?",
+     "a": "When contention on the same rows is high and failing and retrying would waste a lot of work."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n05": {
+   "takeaways": [
+    "Networks fail ambiguously, so clients must retry, so servers must make retried operations safe.",
+    "The idempotency key pattern: one key per logical operation, stored with a request fingerprint and the final result.",
+    "Handle concurrent duplicates (the second request waits or gets 409) and crashes halfway (store progress in the same transaction).",
+    "Consumers of at-least-once queues record processed message ids in the same transaction as the effect."
+   ],
+   "check": [
+    {
+     "q": "Why store a request fingerprint with the idempotency key?",
+     "a": "To reject the same key reused with a different request body."
+    },
+    {
+     "q": "Should you cache a 500 response under an idempotency key?",
+     "a": "No. Only cache final results, so a retry after a transient failure can still succeed."
+    },
+    {
+     "q": "How does a Kafka consumer avoid applying an event twice?",
+     "a": "Record the event id in a processed table in the same transaction as the side effect, and skip ids already recorded."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n06": {
+   "takeaways": [
+    "First ask if you need a distributed lock at all: a database constraint or partitioning often does the job.",
+    "A Redis lock: `SET key token NX PX ttl`, released only by the owner (compare token in a Lua script).",
+    "Leases expire, so a paused process can lose its lock and still write; fencing tokens let the resource reject stale writers.",
+    "Efficiency locks may fail occasionally; correctness locks need fencing and idempotent work."
+   ],
+   "check": [
+    {
+     "q": "Why must the lock value be a random token?",
+     "a": "So a client releases only its own lock, not one acquired by someone else after its lease expired."
+    },
+    {
+     "q": "What problem do fencing tokens solve?",
+     "a": "A client whose lease expired during a GC pause writes anyway; the resource rejects tokens lower than the last one it saw."
+    },
+    {
+     "q": "Give two alternatives to a distributed lock.",
+     "a": "A unique constraint or conditional update in the database, or partitioning the work so one owner handles each key."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n07": {
+   "takeaways": [
+    "Use ConcurrentHashMap's atomic compound methods (`compute`, `merge`, `computeIfAbsent`) instead of get-then-put.",
+    "Atomics (`AtomicLong`, `LongAdder` for hot counters) for single variables; locks for multi-step invariants.",
+    "Use bounded executors with a rejection policy; virtual threads are for blocking I/O and are never pooled.",
+    "An in-memory limiter is per instance; a global limit across instances needs a shared store such as Redis."
+   ],
+   "check": [
+    {
+     "q": "Why is `map.put(k, map.get(k) + 1)` wrong on a ConcurrentHashMap?",
+     "a": "Get and put are separate steps, so updates are lost; use `merge(k, 1, Long::sum)`."
+    },
+    {
+     "q": "What must you never do inside `computeIfAbsent`'s function?",
+     "a": "Modify the same map; it runs while holding that bin's lock."
+    },
+    {
+     "q": "When are virtual threads not a speed-up?",
+     "a": "For CPU-bound work, and when a downstream limit like a connection pool caps concurrency anyway."
+    }
+   ]
+  },
+  "concurrency-practical:conc-n08": {
+   "takeaways": [
+    "Normal tests run one thread and pass by luck; race tests must maximise collisions and assert an invariant.",
+    "The start-gate harness: many threads wait on a latch, start together, repeat many times, then check the invariant.",
+    "Test races against the real database (Testcontainers), not H2 or mocks.",
+    "Force specific interleavings with latches when you need determinism; jcstress tests the memory model itself."
+   ],
+   "check": [
+    {
+     "q": "What does a start gate do in a concurrency test?",
+     "a": "Holds all threads until they are ready, then releases them together to maximise overlap."
+    },
+    {
+     "q": "Why test a booking race against real MySQL?",
+     "a": "Locking and isolation behaviour differ between databases; H2 or mocks can hide the race."
+    },
+    {
+     "q": "What should a concurrency test assert?",
+     "a": "An invariant, such as 'exactly one booking per seat', not just 'no exception'."
+    }
+   ]
+  },
+  "production-debugging:dbg-n01": {
+   "takeaways": [
+    "The seven-step loop: confirm the symptom, read the golden signals, ask what changed, isolate, mitigate, verify, add a guardrail.",
+    "Mitigate before you find the root cause, with reversible actions such as rollback, a feature flag or shedding load.",
+    "A sharp step usually means a change (deploy, config, traffic); a slow ramp suggests leaks, growth or saturation.",
+    "Sound senior: hypotheses backed by data, impact first, communication during the incident, and a prevention at the end."
+   ],
+   "check": [
+    {
+     "q": "What are the seven steps of the debugging loop?",
+     "a": "Confirm, golden signals, what changed, isolate, mitigate, verify, guardrail."
+    },
+    {
+     "q": "Why mitigate before finding the root cause?",
+     "a": "Users are hurting now; a reversible action stops the damage while you investigate."
+    },
+    {
+     "q": "A metric jumped exactly at 14:02. What do you check first?",
+     "a": "What changed at that time: a deploy, a config change, a feature flag, or a traffic shift."
+    }
+   ]
+  },
+  "production-debugging:dbg-n02": {
+   "takeaways": [
+    "Metrics tell you that something is wrong, traces tell you where, logs tell you why.",
+    "Log structured JSON with ids (trace id, user or order id) at service boundaries, never PII or secrets.",
+    "Put a correlation id in MDC so every log line of a request carries it.",
+    "Keep metric label cardinality low (no user ids as labels); sample traces head-based for cost or tail-based to keep errors and slow requests."
+   ],
+   "check": [
+    {
+     "q": "Which signal answers 'where is the time going in this request'?",
+     "a": "A distributed trace with its spans."
+    },
+    {
+     "q": "Why not tag a Prometheus metric with userId?",
+     "a": "Each unique value creates a new time series; high cardinality explodes memory and cost."
+    },
+    {
+     "q": "What does MDC give you?",
+     "a": "Context such as the trace id attached to every log line on that thread, so you can filter one request's logs."
+    }
+   ]
+  },
+  "production-debugging:dbg-n03": {
+   "takeaways": [
+    "SLI is the measurement, SLO the target (for example 99.9% under 500 ms over 28 days), SLA the contract with penalties.",
+    "The error budget is 100% minus the SLO; 99.9% allows about 43 minutes of downtime a month.",
+    "The budget drives decisions: ship freely while it lasts, slow down and fix reliability when it runs out.",
+    "Alert on burn rate of the budget and on user-facing symptoms, not on CPU or individual causes."
+   ],
+   "check": [
+    {
+     "q": "What is the error budget of a 99.9% monthly SLO?",
+     "a": "0.1% of requests or about 43 minutes of full downtime a month."
+    },
+    {
+     "q": "Why page on symptoms instead of causes?",
+     "a": "Users feel symptoms; cause-based alerts are noisy and miss problems nobody predicted."
+    },
+    {
+     "q": "What happens when the error budget is exhausted?",
+     "a": "Feature releases slow or stop and the team prioritises reliability work."
+    }
+   ]
+  },
+  "production-debugging:dbg-n04": {
+   "takeaways": [
+    "Take three thread dumps 5-10 seconds apart; threads stuck in the same place show contention or a hang.",
+    "For leaks, capture a heap dump and open it in Eclipse MAT; the dominator tree shows what retains the memory.",
+    "JFR is a low-overhead flight recorder you can leave on in production; open it in JDK Mission Control.",
+    "async-profiler makes flame graphs; width is time, look for wide frames at the top."
+   ],
+   "check": [
+    {
+     "q": "Why take several thread dumps instead of one?",
+     "a": "One dump is a snapshot; threads stuck in the same frame across dumps show the real problem."
+    },
+    {
+     "q": "Which view in Eclipse MAT finds a leak fastest?",
+     "a": "The dominator tree, sorted by retained heap."
+    },
+    {
+     "q": "How do you read a flame graph?",
+     "a": "Width is time spent; wide frames with nothing above them are where the CPU actually works."
+    }
+   ]
+  },
+  "production-debugging:dbg-n05": {
+   "takeaways": [
+    "Deploy regression: correlate with the deploy time, roll back first, then diff.",
+    "Memory leak: heap grows after each GC until OutOfMemoryError; capture a heap dump before restarting.",
+    "Connection pool exhaustion: threads wait for a connection, usually because connections are held across slow work or slow queries.",
+    "Thread pool saturation: queues grow and latency climbs; find the slow dependency and add timeouts and bulkheads."
+   ],
+   "check": [
+    {
+     "q": "What is the signature of a heap leak?",
+     "a": "Heap usage after each GC keeps rising, GC runs more often, and eventually OutOfMemoryError."
+    },
+    {
+     "q": "Most common cause of HikariCP exhaustion?",
+     "a": "Connections held during slow work, such as a remote call inside a transaction, or slow queries."
+    },
+    {
+     "q": "A container is OOMKilled but the heap looks fine. Why?",
+     "a": "Memory outside the heap (metaspace, threads, direct buffers) plus heap exceeds the container limit."
+    }
+   ]
+  },
+  "production-debugging:dbg-n06": {
+   "takeaways": [
+    "Cache stampede: many requests miss at once and hit the database; use single-flight loading and TTL jitter.",
+    "DB lock contention often comes from a hot row; slow queries from missing indexes or plan changes.",
+    "If one host, AZ, version or shard is bad, take it out of rotation; compare healthy and unhealthy groups.",
+    "Retries multiply at every layer (3 retries over 5 layers is 3^5 = 243 times the load); retry at one layer with backoff and budgets."
+   ],
+   "check": [
+    {
+     "q": "How do you stop a cache stampede?",
+     "a": "Let one request rebuild the key while others wait or get stale data, and add jitter to TTLs."
+    },
+    {
+     "q": "Why are retries at every layer dangerous?",
+     "a": "They multiply: a failure deep in the stack becomes hundreds of times the load."
+    },
+    {
+     "q": "Errors come only from one of ten pods. First step?",
+     "a": "Remove it from rotation, then compare it with healthy pods (version, host, config)."
+    }
+   ]
+  },
+  "production-debugging:dbg-n07": {
+   "takeaways": [
+    "Roles: incident commander coordinates, subject experts fix, a communications lead updates stakeholders, a scribe keeps the timeline.",
+    "Declare early and set severity by user impact; communicate on a regular cadence.",
+    "A postmortem covers summary, impact, timeline, root cause and contributing factors, and action items with owners.",
+    "Blameless means fixing systems, not blaming people; good action items are specific, owned and prevent recurrence."
+   ],
+   "check": [
+    {
+     "q": "What does the incident commander do?",
+     "a": "Coordinates the response and makes decisions; they usually do not debug themselves."
+    },
+    {
+     "q": "What makes an action item good?",
+     "a": "It is specific, has an owner and a date, and prevents or detects the failure next time."
+    },
+    {
+     "q": "What does 'blameless' mean in practice?",
+     "a": "Ask how the system allowed the mistake, not who made it, so people share the facts."
+    }
+   ]
+  },
+  "production-debugging:dbg-n08": {
+   "takeaways": [
+    "Narrate the loop out loud: confirm, scope, what changed, hypotheses, evidence, mitigation, verification, prevention.",
+    "State the user impact early and keep re-checking it.",
+    "Name concrete tools and queries (dashboards, logs by trace id, thread dumps, EXPLAIN) instead of 'I would check the logs'.",
+    "Rehearse twists: the rollback does not help, the problem is a dependency, or it is only one region."
+   ],
+   "check": [
+    {
+     "q": "What do interviewers listen for in a debugging mock?",
+     "a": "A method, evidence for each step, fast mitigation, and a prevention at the end."
+    },
+    {
+     "q": "The rollback did not fix it. What next?",
+     "a": "The change was not the cause: look at dependencies, data growth, traffic, or a config or infrastructure change."
+    },
+    {
+     "q": "Why name exact tools and queries?",
+     "a": "It shows you have done this for real, rather than speaking in generalities."
+    }
+   ]
+  },
+  "performance:perf-n01": {
+   "takeaways": [
+    "Latency is time per request, throughput is requests per second; push utilisation past about 70% and queueing makes latency explode.",
+    "Use percentiles (p95, p99), not averages; you cannot average percentiles across hosts, merge histograms instead.",
+    "Fan-out makes tail latency worse: one call to 100 servers sees someone's p99 almost every time.",
+    "Little's Law: in-flight work = throughput × latency. Use it to size threads and pools."
+   ],
+   "check": [
+    {
+     "q": "State Little's Law and one use of it.",
+     "a": "L = λ × W; for example 1,000 req/s at 0.1 s needs about 100 requests in flight, so about 100 threads or connections."
+    },
+    {
+     "q": "Why not report average latency?",
+     "a": "It hides the slow tail that users actually feel; percentiles show it."
+    },
+    {
+     "q": "Why does tail latency matter more with fan-out?",
+     "a": "The request is as slow as the slowest of its calls, so rare slow responses become common."
+    }
+   ]
+  },
+  "performance:perf-n02": {
+   "takeaways": [
+    "Most objects die young (the generational hypothesis); survivors are promoted to the old generation.",
+    "G1 is the default general-purpose collector; ZGC targets very low pauses (generational ZGC since JDK 21).",
+    "In containers the default max heap is 25% of the memory limit; set `MaxRAMPercentage` deliberately.",
+    "Tune by measuring pause times, GC frequency, heap after GC and GC CPU share, then reduce allocation before changing flags."
+   ],
+   "check": [
+    {
+     "q": "What is the default max heap of a JVM in a container?",
+     "a": "25% of the container's memory limit, unless you set MaxRAMPercentage or -Xmx."
+    },
+    {
+     "q": "When would you pick ZGC over G1?",
+     "a": "When pause times must stay in the low milliseconds, for example latency-sensitive services with large heaps."
+    },
+    {
+     "q": "What is the first thing to try before GC flag tuning?",
+     "a": "Reduce allocation and measure; most GC problems are allocation problems."
+    }
+   ]
+  },
+  "performance:perf-n03": {
+   "takeaways": [
+    "Measure, do not guess: profile with async-profiler or JFR on realistic load.",
+    "Choose the mode: CPU for computation, wall-clock for waiting, allocation for GC pressure, lock for contention.",
+    "Usual hotspots: serialization, logging, regex, reflection, N+1 queries, and excessive object creation.",
+    "Naive microbenchmarks lie (JIT warm-up, dead-code elimination); use JMH."
+   ],
+   "check": [
+    {
+     "q": "Which profiling mode finds time spent waiting on I/O or locks?",
+     "a": "Wall-clock mode (CPU mode only sees threads on the CPU)."
+    },
+    {
+     "q": "Why does a for-loop timing benchmark lie?",
+     "a": "No warm-up, so you measure the interpreter, and the JIT may remove code whose result is unused."
+    },
+    {
+     "q": "Name three common Java hotspots.",
+     "a": "JSON serialization, logging, and regex or reflection in hot paths; also N+1 queries."
+    }
+   ]
+  },
+  "performance:perf-n04": {
+   "takeaways": [
+    "InnoDB stores rows in the primary-key B+tree; secondary indexes hold the key plus the primary key.",
+    "In EXPLAIN watch for `type: ALL` (full scan), `Using filesort` and `Using temporary`, and compare rows examined with rows returned.",
+    "Composite indexes follow the leftmost-prefix rule: equality columns first, then range or sort columns.",
+    "Functions on columns, implicit type conversion and leading wildcards silently disable indexes."
+   ],
+   "check": [
+    {
+     "q": "Why does `WHERE DATE(created_at) = '2026-10-01'` skip the index?",
+     "a": "The function hides the column; rewrite it as a range on created_at."
+    },
+    {
+     "q": "Index (a, b, c): which filters can use it?",
+     "a": "a; a and b; a, b and c. Not b alone or c alone."
+    },
+    {
+     "q": "What does 'Using index' in EXPLAIN mean?",
+     "a": "The index covers the query, so no lookup into the table rows is needed."
+    }
+   ]
+  },
+  "performance:perf-n05": {
+   "takeaways": [
+    "N+1: detect it by counting queries in tests or logs; fix it with JOIN FETCH, entity graphs, batch fetching or DTO projections.",
+    "Batch writes with JDBC batching; IDENTITY generated ids disable Hibernate insert batching.",
+    "A bigger connection pool is not faster; size it with Little's Law and remember all instances share the database.",
+    "Read replicas lag; send reads that must see the user's own write to the primary."
+   ],
+   "check": [
+    {
+     "q": "Why can IDENTITY ids hurt insert performance in Hibernate?",
+     "a": "Hibernate needs each id immediately, so it cannot batch the inserts."
+    },
+    {
+     "q": "Ten pods with a pool of 50 each. What is the risk?",
+     "a": "500 connections against the database, which may exceed its limit and thrash."
+    },
+    {
+     "q": "How do you give read-your-writes on replicas?",
+     "a": "Route that user's reads to the primary for a short time after a write, or read from the primary for that flow."
+    }
+   ]
+  },
+  "performance:perf-n06": {
+   "takeaways": [
+    "Cache-aside: read from cache, on a miss load from DB and populate; on write update the DB then delete the key.",
+    "Stampede, synchronized expiry, hot keys, penetration and eviction are the classic pitfalls; each has a known mitigation.",
+    "Use single-flight loading, early refresh, serving stale while revalidating, TTL jitter, and negative caching.",
+    "Do not cache when data must be exact and fresh, or when it is cheap to compute or rarely read."
+   ],
+   "check": [
+    {
+     "q": "Why delete the cache key instead of updating it on write?",
+     "a": "Updating can race and leave stale data; deletion lets the next read load the fresh value."
+    },
+    {
+     "q": "What is cache penetration and its fix?",
+     "a": "Repeated requests for keys that do not exist hit the DB every time; cache the 'not found' result briefly or use a Bloom filter."
+    },
+    {
+     "q": "How do you handle a hot key?",
+     "a": "Replicate it across nodes or keep a small local cache in each instance."
+    }
+   ]
+  },
+  "performance:perf-n07": {
+   "takeaways": [
+    "Send less: compress, use DTOs not entities, paginate everything that grows.",
+    "Keyset pagination stays fast for deep pages; offset pagination scans and discards the skipped rows.",
+    "Reuse pooled keep-alive HTTP clients with connect and read timeouts and an overall deadline.",
+    "Run independent calls in parallel, move long work to async jobs, and use HTTP caching headers."
+   ],
+   "check": [
+    {
+     "q": "Why does `OFFSET 100000` get slow?",
+     "a": "The database still reads and discards 100,000 rows; keyset uses `WHERE id > last_id` with an index instead."
+    },
+    {
+     "q": "Which two timeouts must every HTTP client set?",
+     "a": "Connect timeout and read (response) timeout, plus an overall deadline."
+    },
+    {
+     "q": "An endpoint calls three independent services in sequence. Improvement?",
+     "a": "Call them in parallel, for example with CompletableFuture or virtual threads, so latency is the slowest call."
+    }
+   ]
+  },
+  "performance:perf-n08": {
+   "takeaways": [
+    "Load, stress, spike and soak tests answer different questions; soak finds leaks.",
+    "Use an open model (fixed arrival rate) to avoid coordinated omission, which hides latency.",
+    "Make results trustworthy: production-like data volume, a realistic request mix, and a warm-up.",
+    "Find the knee where latency rises faster than throughput; plan capacity below it with headroom."
+   ],
+   "check": [
+    {
+     "q": "What is coordinated omission?",
+     "a": "A closed-model tool sends fewer requests when the system slows, so it under-reports latency."
+    },
+    {
+     "q": "Which test type finds memory leaks?",
+     "a": "A soak test: moderate load for hours."
+    },
+    {
+     "q": "What is the knee of a load test?",
+     "a": "The point where latency starts climbing sharply while throughput stops growing."
+    }
+   ]
+  },
+  "testing-code-review:test-n01": {
+   "takeaways": [
+    "Many fast unit tests, fewer integration tests at the seams (DB, HTTP, messaging), a few end-to-end tests.",
+    "Avoid the ice-cream cone: slow, flaky end-to-end tests at the top and few unit tests.",
+    "Test behaviour, not implementation; one reason to fail per test; arrange, act, assert.",
+    "Use Testcontainers with real MySQL for repository and migration tests."
+   ],
+   "check": [
+    {
+     "q": "What do integration tests catch that unit tests miss?",
+     "a": "Problems at the seams: SQL, mappings, serialization, configuration and wiring."
+    },
+    {
+     "q": "What is the 'ice-cream cone'?",
+     "a": "An inverted pyramid: mostly slow end-to-end and manual tests and few unit tests."
+    },
+    {
+     "q": "How do you answer 'How do you test your service?'",
+     "a": "Describe each layer and what it catches, the tools, and how it runs in CI."
+    }
+   ]
+  },
+  "testing-code-review:test-n02": {
+   "takeaways": [
+    "Inject a Clock and other dependencies so tests control time and collaborators.",
+    "Know the doubles: dummy, stub, fake, spy, mock.",
+    "Mock roles, not values; do not mock what you do not own; prefer fakes for simple dependencies.",
+    "Verify interactions sparingly and use strict stubs; hard-to-test code is design feedback."
+   ],
+   "check": [
+    {
+     "q": "Stub vs mock?",
+     "a": "A stub returns canned answers; a mock also verifies how it was called."
+    },
+    {
+     "q": "Why 'don't mock what you don't own'?",
+     "a": "Your mock encodes your guess about a library's behaviour; wrap the library and test the wrapper against the real thing."
+    },
+    {
+     "q": "How do you test code that uses the current time?",
+     "a": "Inject a `Clock` and use a fixed clock in the test."
+    }
+   ]
+  },
+  "testing-code-review:test-n03": {
+   "takeaways": [
+    "Use the smallest context that can catch the bug: @WebMvcTest for controllers, @DataJpaTest for repositories.",
+    "Test against real MySQL with Testcontainers, not H2, because SQL and behaviour differ.",
+    "Fake external HTTP with WireMock and test unhappy paths (timeouts, 500s, bad payloads).",
+    "Keep suites fast with Spring's context caching and singleton containers."
+   ],
+   "check": [
+    {
+     "q": "Why not H2 for repository tests?",
+     "a": "Dialect, locking and functions differ, so tests can pass on H2 and fail on MySQL."
+    },
+    {
+     "q": "What does @WebMvcTest load?",
+     "a": "Only the web layer (controllers, advice, filters, security), with services mocked."
+    },
+    {
+     "q": "What should you test with WireMock?",
+     "a": "Timeouts, error statuses and malformed responses from the external service."
+    }
+   ]
+  },
+  "testing-code-review:test-n04": {
+   "takeaways": [
+    "Consumer-driven contract tests (Pact or Spring Cloud Contract) catch breaking API changes before deployment.",
+    "Control time with an injected Clock; never use `Thread.sleep` in tests.",
+    "Test async code by running it synchronously or waiting on a condition with Awaitility.",
+    "Treat flaky tests as bugs: find the cause (time, order, shared state, async) and fix or quarantine."
+   ],
+   "check": [
+    {
+     "q": "What does a consumer-driven contract test verify?",
+     "a": "That the provider still satisfies what each consumer actually uses."
+    },
+    {
+     "q": "Replace `Thread.sleep(2000)` in a test with what?",
+     "a": "Awaitility waiting for a condition, or a synchronous executor."
+    },
+    {
+     "q": "Name three causes of flaky tests.",
+     "a": "Time dependence, test order or shared state, and unsynchronised async code."
+    }
+   ]
+  },
+  "testing-code-review:test-n05": {
+   "takeaways": [
+    "Practical rounds grade working, tested code that handles changing requirements.",
+    "Say your test list before coding: happy path, edge cases, error cases.",
+    "Make time injectable so expiry, TTL and rate limits are testable.",
+    "TDD honestly: red, green, refactor where it helps; do not pretend to follow it rigidly."
+   ],
+   "check": [
+    {
+     "q": "What should you do in the first minutes of a practical coding round?",
+     "a": "Clarify requirements and say the list of tests you plan to write."
+    },
+    {
+     "q": "How do you test a TTL cache without waiting?",
+     "a": "Inject a clock and advance it in the test."
+    },
+    {
+     "q": "Name three edge cases for a rate limiter.",
+     "a": "Exactly at the limit, the window boundary, and many concurrent requests."
+    }
+   ]
+  },
+  "testing-code-review:test-n06": {
+   "takeaways": [
+    "Rank findings by production risk: correctness, concurrency, security and data integrity before style.",
+    "Use severity tiers: blocker, major, minor, nit.",
+    "Write specific, actionable comments that explain the risk and suggest a fix.",
+    "Manage the time: skim everything first, then go deep on the riskiest parts."
+   ],
+   "check": [
+    {
+     "q": "What order should you review code in?",
+     "a": "Correctness, concurrency, security and data, performance and operability, then readability and style."
+    },
+    {
+     "q": "What makes a review comment good?",
+     "a": "It names the risk, points to the exact line, and suggests a fix."
+    },
+    {
+     "q": "What is the most common mistake in review rounds?",
+     "a": "Spending time on style and naming while missing a correctness or security bug."
+    }
+   ]
+  },
+  "testing-code-review:test-n07": {
+   "takeaways": [
+    "Typical blockers: missing transaction or after-commit side effects, IDOR, races on balances.",
+    "Typical majors: missing validation, `double` for money, no idempotency, leaking errors.",
+    "Lock accounts in a consistent order in transfers to avoid deadlocks.",
+    "End with the tests you would ask for, so the fix stays fixed."
+   ],
+   "check": [
+    {
+     "q": "Why is `double` wrong for money?",
+     "a": "Binary floating point cannot represent most decimals exactly; use BigDecimal or integer minor units."
+    },
+    {
+     "q": "What is IDOR?",
+     "a": "Insecure direct object reference: the API returns any object by id without checking the caller owns it."
+    },
+    {
+     "q": "Why send emails after commit, not inside the transaction?",
+     "a": "If the transaction rolls back, the email has already gone; use an after-commit hook or outbox."
+    }
+   ]
+  },
+  "testing-code-review:test-n08": {
+   "takeaways": [
+    "Interviewers notice intent-revealing names, small methods, domain types, immutability and clear layers.",
+    "Map smells to refactorings and refactor in small, tested steps.",
+    "Add characterisation tests before changing legacy code.",
+    "Avoid over-engineering: choose the simplest design that is easy to change."
+   ],
+   "check": [
+    {
+     "q": "What is a characterisation test?",
+     "a": "A test that records what existing code does today, so you can refactor without changing behaviour."
+    },
+    {
+     "q": "Give one example of a domain type.",
+     "a": "`Money` or `OrderId` instead of raw `BigDecimal` or `long`, so mistakes do not compile."
+    },
+    {
+     "q": "When should you not refactor?",
+     "a": "Under incident pressure, without tests, or when the code is about to be deleted."
+    }
+   ]
+  },
+  "security:sec-owasp-top10": {
+   "takeaways": [
+    "The OWASP Top 10 (2025) starts with broken access control; supply chain failures and mishandling exceptional conditions are new.",
+    "Map each item to your own Spring Boot code instead of reciting the list.",
+    "The three you will code-review most: access control, injection, and misconfiguration.",
+    "Fail closed: on errors, deny access and say little."
+   ],
+   "check": [
+    {
+     "q": "What is number one on the OWASP Top 10?",
+     "a": "Broken access control."
+    },
+    {
+     "q": "What does 'fail closed' mean?",
+     "a": "When something goes wrong in a security check, deny the request rather than allow it."
+    },
+    {
+     "q": "Name a 2025 addition to the list.",
+     "a": "Software supply chain failures, or mishandling of exceptional conditions."
+    }
+   ]
+  },
+  "security:sec-api-top10": {
+   "takeaways": [
+    "BOLA (broken object-level authorization) is the top API bug: check ownership on every object access.",
+    "Random UUIDs do not fix BOLA; only an authorization check does.",
+    "Mass assignment and data exposure come from binding or returning entities; use request and response DTOs.",
+    "SSRF: the server fetches a user-supplied URL; use an allowlist and block internal addresses."
+   ],
+   "check": [
+    {
+     "q": "Does using UUIDs instead of numeric ids fix BOLA?",
+     "a": "No. Ids leak or get shared; every access must check the caller is allowed."
+    },
+    {
+     "q": "How do you prevent mass assignment?",
+     "a": "Bind requests to DTOs with only the allowed fields, never directly to entities."
+    },
+    {
+     "q": "What is SSRF?",
+     "a": "Tricking a server into requesting an attacker-chosen URL, often internal services or cloud metadata."
+    }
+   ]
+  },
+  "security:sec-injection-xss-csrf-cors": {
+   "takeaways": [
+    "Injection is data interpreted as code: use parameterised queries and never build SQL or shell commands from strings.",
+    "XSS (stored, reflected, DOM): encode output for its context and add a Content-Security-Policy.",
+    "CSRF matters with cookie authentication: use CSRF tokens or SameSite cookies.",
+    "CORS relaxes the browser's same-origin policy; it is not a firewall and does not stop servers or curl."
+   ],
+   "check": [
+    {
+     "q": "Does CORS protect your API from attackers?",
+     "a": "No. It only tells browsers which origins may read responses; other clients ignore it."
+    },
+    {
+     "q": "When do you need CSRF protection?",
+     "a": "When the browser sends credentials automatically, such as session cookies."
+    },
+    {
+     "q": "Main defence against SQL injection?",
+     "a": "Parameterised queries or prepared statements."
+    }
+   ]
+  },
+  "security:sec-authn-sessions-jwt": {
+   "takeaways": [
+    "401 means not authenticated, 403 means authenticated but not allowed.",
+    "A JWT is encoded and signed, not encrypted; never put secrets in it.",
+    "Validate signature, algorithm, issuer, audience and expiry; reject `alg: none` and algorithm confusion.",
+    "Keep access tokens short-lived with rotating refresh tokens; for browsers prefer a backend-for-frontend with HttpOnly cookies."
+   ],
+   "check": [
+    {
+     "q": "401 vs 403?",
+     "a": "401: we do not know who you are. 403: we know, and you are not allowed."
+    },
+    {
+     "q": "Is a JWT payload secret?",
+     "a": "No, it is only Base64URL-encoded; anyone can read it."
+    },
+    {
+     "q": "How do you revoke JWTs?",
+     "a": "Short expiry plus refresh-token revocation, or a denylist of token ids checked on each request."
+    }
+   ]
+  },
+  "security:sec-oauth-oidc": {
+   "takeaways": [
+    "OAuth 2.0 is delegated authorization; OpenID Connect adds authentication with an ID token.",
+    "Users: Authorization Code flow with PKCE (for every client type); the implicit grant is deprecated.",
+    "Services: Client Credentials flow, with no user involved.",
+    "The ID token is for the client to learn who logged in; the access token is for calling APIs."
+   ],
+   "check": [
+    {
+     "q": "Why PKCE?",
+     "a": "It stops an intercepted authorization code from being exchanged by an attacker."
+    },
+    {
+     "q": "Which flow for service-to-service calls?",
+     "a": "Client Credentials."
+    },
+    {
+     "q": "Should an API accept an ID token as a bearer token?",
+     "a": "No. APIs accept access tokens meant for them (checked by audience)."
+    }
+   ]
+  },
+  "security:sec-passwords-secrets-tls": {
+   "takeaways": [
+    "Hash passwords with a slow, salted algorithm: Argon2id, scrypt or bcrypt, never a fast hash like SHA-256.",
+    "Keep secrets in a vault or secrets manager, rotate them, prefer short-lived dynamic credentials, and scan for leaks.",
+    "Encrypt at rest with a KMS and envelope encryption.",
+    "TLS authenticates the server; mTLS also authenticates the client, common between services."
+   ],
+   "check": [
+    {
+     "q": "Why not SHA-256 for passwords?",
+     "a": "It is fast, so attackers can try billions of guesses per second; password hashes must be slow."
+    },
+    {
+     "q": "A secret leaked in a commit. Steps?",
+     "a": "Revoke and rotate it immediately, then remove it from history and add scanning."
+    },
+    {
+     "q": "TLS vs mTLS?",
+     "a": "TLS: client verifies the server. mTLS: both sides present and verify certificates."
+    }
+   ]
+  },
+  "security:sec-abuse-errors-logging": {
+   "takeaways": [
+    "Rate-limit by user, IP and endpoint with a token bucket, usually in Redis, and return 429.",
+    "Protect login and OTP with progressive delays, lockout, attempt limits and no user enumeration.",
+    "Fail closed and return little detail in errors; log the detail server-side.",
+    "Log security events (logins, permission denials, admin actions) and never log secrets or full PII."
+   ],
+   "check": [
+    {
+     "q": "Which status code for rate limiting?",
+     "a": "429 Too Many Requests, ideally with Retry-After."
+    },
+    {
+     "q": "How do you avoid user enumeration on login?",
+     "a": "Return the same message and similar timing for unknown user and wrong password."
+    },
+    {
+     "q": "What should never go in logs?",
+     "a": "Passwords, tokens, secrets and full personal or card data."
+    }
+   ]
+  },
+  "security:sec-review-checklist-privacy": {
+   "takeaways": [
+    "Review in order of how often each area finds real bugs: authorization first, then input handling.",
+    "Supply chain: know what you ship (SBOM), scan continuously, pin and verify versions, and be wary of new packages.",
+    "Protect the CI pipeline itself; it holds the keys to production.",
+    "PII: collect less, mask in logs, encrypt, set retention, and support deletion."
+   ],
+   "check": [
+    {
+     "q": "What should a secure code review check first?",
+     "a": "Authorization: can this caller do this to this object?"
+    },
+    {
+     "q": "What is an SBOM?",
+     "a": "A software bill of materials: a list of every component and version you ship."
+    },
+    {
+     "q": "Name two PII practices.",
+     "a": "Minimise what you collect and mask it in logs; also encryption and retention limits."
+    }
+   ]
+  },
+  "cloud-devops:cloud-aws-service-map": {
+   "takeaways": [
+    "Pick the right managed building block: ECS Fargate or EKS for containers, Lambda for event-driven bursts, RDS or Aurora for SQL.",
+    "DynamoDB for key-value at scale; SQS for queues, SNS for fan-out, EventBridge for event routing.",
+    "ElastiCache for Redis, S3 with presigned URLs for files, CloudFront in front, ALB for HTTP.",
+    "Cost is a design input; name it when you choose services."
+   ],
+   "check": [
+    {
+     "q": "SQS vs SNS?",
+     "a": "SQS is a queue consumed by workers; SNS publishes one message to many subscribers."
+    },
+    {
+     "q": "How do clients upload large files without passing through your API?",
+     "a": "Your API returns an S3 presigned URL and the client uploads directly."
+    },
+    {
+     "q": "When is Lambda a poor fit?",
+     "a": "Long-running or steady high-throughput work, or when cold starts hurt latency."
+    }
+   ]
+  },
+  "cloud-devops:cloud-iam-vpc": {
+   "takeaways": [
+    "IAM: principals, roles and policies; default deny; prefer roles over long-lived keys; least privilege.",
+    "A VPC has public subnets (internet gateway) and private subnets (outbound through a NAT gateway).",
+    "Security groups are stateful and attach to instances; network ACLs are stateless and attach to subnets.",
+    "VPC endpoints keep traffic to AWS services private and save NAT costs."
+   ],
+   "check": [
+    {
+     "q": "Security group vs NACL?",
+     "a": "Security groups are stateful, allow-only, per instance; NACLs are stateless, allow and deny, per subnet."
+    },
+    {
+     "q": "Why roles instead of access keys?",
+     "a": "Roles give short-lived credentials automatically; keys leak and are hard to rotate."
+    },
+    {
+     "q": "Where do databases live in a VPC?",
+     "a": "In private subnets with no direct internet route."
+    }
+   ]
+  },
+  "cloud-devops:cloud-docker-spring": {
+   "takeaways": [
+    "A layer is reused only if every earlier layer is unchanged, so copy dependencies before source code.",
+    "Multi-stage builds keep the JDK and build tools out of the small runtime image.",
+    "Run as non-root with an exec-form ENTRYPOINT so the JVM receives SIGTERM.",
+    "The JVM defaults to 25% of the container memory for heap; set it, and never bake secrets into images."
+   ],
+   "check": [
+    {
+     "q": "Why copy pom.xml before the source in a Dockerfile?",
+     "a": "Dependencies change rarely, so their layer stays cached when only code changes."
+    },
+    {
+     "q": "Why exec-form ENTRYPOINT?",
+     "a": "The JVM runs as PID 1 and receives SIGTERM, allowing graceful shutdown."
+    },
+    {
+     "q": "How do you tag images for traceability?",
+     "a": "With the git SHA (and deploy by digest)."
+    }
+   ]
+  },
+  "cloud-devops:cloud-k8s-core": {
+   "takeaways": [
+    "Kubernetes is a declarative control loop: you state the desired state and controllers converge to it.",
+    "Pod, Deployment (stateless), StatefulSet (stable identity and storage), Service (stable address), Ingress or Gateway API (HTTP routing).",
+    "ConfigMaps and Secrets inject configuration; Secrets are only base64-encoded unless encrypted at rest.",
+    "Rolling updates rely on readiness probes and backward-compatible changes."
+   ],
+   "check": [
+    {
+     "q": "Deployment vs StatefulSet?",
+     "a": "Deployments run interchangeable pods; StatefulSets give each pod a stable name and its own storage."
+    },
+    {
+     "q": "Are Kubernetes Secrets encrypted?",
+     "a": "Only base64-encoded by default; enable encryption at rest or use an external secrets manager."
+    },
+    {
+     "q": "What lets a rolling update avoid downtime?",
+     "a": "Readiness probes, so new pods get traffic only when ready, and old pods drain gracefully."
+    }
+   ]
+  },
+  "cloud-devops:cloud-k8s-production": {
+   "takeaways": [
+    "Startup, readiness and liveness answer different questions; never check the database in liveness.",
+    "Requests drive scheduling; going over the CPU limit throttles, going over the memory limit kills (OOMKilled).",
+    "QoS classes: Guaranteed, Burstable, BestEffort; BestEffort pods are evicted first.",
+    "HPA scales on metrics; graceful shutdown needs a preStop delay and SIGTERM handling."
+   ],
+   "check": [
+    {
+     "q": "What happens when a pod exceeds its memory limit vs its CPU limit?",
+     "a": "Memory: it is killed (OOMKilled). CPU: it is throttled."
+    },
+    {
+     "q": "Why not check the database in a liveness probe?",
+     "a": "A DB outage would restart every pod, making things worse; use readiness for dependencies."
+    },
+    {
+     "q": "Which QoS class is evicted first under pressure?",
+     "a": "BestEffort (no requests or limits)."
+    }
+   ]
+  },
+  "cloud-devops:cloud-cicd-releases": {
+   "takeaways": [
+    "Build once and promote the same artifact through environments.",
+    "Rolling, blue-green, canary and shadow deployments trade cost, speed and risk; canaries need automated analysis.",
+    "Feature flags decouple deploying from releasing; remove old flags.",
+    "Change schemas with expand and contract so old and new code both work during rollout."
+   ],
+   "check": [
+    {
+     "q": "What is expand and contract?",
+     "a": "Add the new schema alongside the old, migrate code and data, then remove the old in a later release."
+    },
+    {
+     "q": "Deploy vs release?",
+     "a": "Deploy puts code in production; release exposes it to users, often by flipping a flag."
+    },
+    {
+     "q": "Name the four DORA metrics.",
+     "a": "Deployment frequency, lead time for changes, change failure rate, and time to restore service."
+    }
+   ]
+  },
+  "cloud-devops:cloud-12factor-iac": {
+   "takeaways": [
+    "The factors that matter most for Spring Boot: config in the environment, stateless processes, and disposability.",
+    "Infrastructure as code makes environments reproducible and reviewable.",
+    "Terraform: providers, resources and data sources, with remote, locked state.",
+    "GitOps (Argo CD, Flux) syncs Kubernetes from Git."
+   ],
+   "check": [
+    {
+     "q": "Why must Terraform state be remote and locked?",
+     "a": "So a team shares one source of truth and two applies cannot run at once."
+    },
+    {
+     "q": "What does 'disposability' mean for a service?",
+     "a": "It starts fast and shuts down gracefully, so instances can be killed and replaced at any time."
+    },
+    {
+     "q": "What is GitOps?",
+     "a": "The cluster's desired state lives in Git and an agent applies it continuously."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-interview-formats": {
+   "takeaways": [
+    "Some companies run AI-assisted coding rounds; they grade how you decompose, prompt, verify and test, not typing speed.",
+    "Expect a small multi-file codebase and features or bugs to handle with an AI tool.",
+    "AI-off rounds still exist; fundamentals and explaining your reasoning still matter.",
+    "Ask the recruiter which tools are allowed and practise reading unfamiliar code fast."
+   ],
+   "check": [
+    {
+     "q": "What do AI-assisted rounds grade?",
+     "a": "Problem decomposition, precise prompting, verification of every line, testing, and judgement."
+    },
+    {
+     "q": "What should you ask the recruiter beforehand?",
+     "a": "Whether AI tools are allowed and which ones, and the format of the round."
+    },
+    {
+     "q": "What habit matters most with AI help?",
+     "a": "Verifying output with tests and reading every line before accepting it."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-workflow": {
+   "takeaways": [
+    "Clarify the problem yourself before opening the AI.",
+    "Decompose, then prompt with constraints (language, signatures, edge cases, style).",
+    "Read and verify every line; choose the test cases yourself.",
+    "Narrate as you go, and when something fails, form a hypothesis before asking the AI."
+   ],
+   "check": [
+    {
+     "q": "Why state the approach yourself before prompting?",
+     "a": "It shows the thinking is yours and keeps the AI's output on your design."
+    },
+    {
+     "q": "Who should choose the test cases?",
+     "a": "You, so the AI cannot hide its own mistakes in its own tests."
+    },
+    {
+     "q": "What goes into a good prompt in an interview?",
+     "a": "The exact task, constraints, signatures, edge cases and what not to change."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-catching-mistakes": {
+   "takeaways": [
+    "Check every time for hallucinated or outdated APIs and packages (slopsquatting).",
+    "Look for boundary errors, missing edge cases, concurrency bugs, security holes and weak error handling.",
+    "Money and time are classic traps: floating point and time zones.",
+    "Read the diff, not the explanation; ask 'what happens when...?'; run your own test."
+   ],
+   "check": [
+    {
+     "q": "What is slopsquatting?",
+     "a": "Attackers register package names that AI tools hallucinate, so installing them pulls malware."
+    },
+    {
+     "q": "Give an example of an outdated API an AI might suggest.",
+     "a": "`WebSecurityConfigurerAdapter` or `javax.persistence` in a Spring Boot 3+ project."
+    },
+    {
+     "q": "Name a concurrency bug AI often writes.",
+     "a": "Get-then-put on a shared map, which loses updates."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-on-the-job": {
+   "takeaways": [
+    "Tools come as inline completion, chat, agents and review bots; each needs a different level of oversight.",
+    "AI helps most with reading code, boilerplate, tests, migrations and first drafts.",
+    "Be careful with security-sensitive code, concurrency, transactions and performance-critical paths.",
+    "Follow data policies (no secrets or customer data in prompts) and keep your own skills sharp."
+   ],
+   "check": [
+    {
+     "q": "Where should you be most careful using AI code?",
+     "a": "Security, concurrency and transactions, and performance-critical paths."
+    },
+    {
+     "q": "What must never go into a prompt?",
+     "a": "Secrets and customer data, unless the tool is approved for it."
+    },
+    {
+     "q": "How do you keep your skills sharp?",
+     "a": "Write critical parts yourself, understand everything you merge, and practise without the tool."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-reviewing-ai-code": {
+   "takeaways": [
+    "Signs of unattended generated code: unused abstractions, invented APIs, inconsistent style, tests that assert nothing.",
+    "Review in order: intent, tests, interfaces and data, correctness hotspots, security, operability, simplicity, style.",
+    "Pull the branch and run it; check every new import and dependency.",
+    "Ask the author to explain it; rank findings by production risk."
+   ],
+   "check": [
+    {
+     "q": "What is a red flag in AI-written tests?",
+     "a": "Tests that only check mocks were called, or would pass whatever the code does."
+    },
+    {
+     "q": "Why check every new dependency?",
+     "a": "It may be hallucinated, typo-squatted, unmaintained or vulnerable."
+    },
+    {
+     "q": "What is a fair team norm for AI-generated PRs?",
+     "a": "The author must be able to explain every line, and the PR is held to the same review bar."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-llm-basics": {
+   "takeaways": [
+    "Tokens, context window, input vs output tokens, temperature and system prompts are the core vocabulary.",
+    "LLMs hallucinate; ground answers with RAG (embed, retrieve, add to the prompt) and cite sources.",
+    "Cost and latency scale with tokens, especially output tokens; do the arithmetic.",
+    "Tool calling: the model asks your code to run a function, and your code decides and executes."
+   ],
+   "check": [
+    {
+     "q": "What is RAG?",
+     "a": "Retrieve relevant documents (usually by embedding similarity) and add them to the prompt so the model answers from them."
+    },
+    {
+     "q": "Why do output tokens matter more for latency?",
+     "a": "They are generated one at a time, so long answers take longer and usually cost more per token."
+    },
+    {
+     "q": "Who executes a tool call?",
+     "a": "Your application; the model only requests it."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-llm-in-spring": {
+   "takeaways": [
+    "Treat the LLM like any unreliable remote dependency: timeouts, limited retries, circuit breaker and a fallback.",
+    "Control cost with quotas, caching and model choice; move slow work to async jobs.",
+    "Defend against direct and indirect prompt injection; give tools least privilege and require human confirmation for risky actions.",
+    "Treat output as untrusted, keep secrets and unneeded personal data out of prompts, and monitor quality."
+   ],
+   "check": [
+    {
+     "q": "What is indirect prompt injection?",
+     "a": "Malicious instructions hidden in content the model reads, such as a retrieved document or email."
+    },
+    {
+     "q": "Why treat LLM output as untrusted?",
+     "a": "It can be wrong or manipulated; validate it before acting or rendering it."
+    },
+    {
+     "q": "Name three resilience controls for an LLM call.",
+     "a": "Timeout, circuit breaker and a fallback response."
+    }
+   ]
+  },
+  "ai-assisted-engineering:aie-ai-system-design-lite": {
+   "takeaways": [
+    "Start with the use case and success metric, and ask whether an LLM is needed at all.",
+    "Cover data and retrieval, model and prompting, serving, safety and privacy, evaluation, cost and latency, operations.",
+    "Enforce permissions at retrieval time so users see only documents they may access.",
+    "Handle freshness and grounding, and say how you evaluate quality."
+   ],
+   "check": [
+    {
+     "q": "Where must permissions be enforced in a RAG system?",
+     "a": "At retrieval, so documents a user may not see never reach the prompt."
+    },
+    {
+     "q": "What is the first question in AI system design?",
+     "a": "What problem and metric, and is an LLM needed at all?"
+    },
+    {
+     "q": "How do you evaluate a RAG assistant?",
+     "a": "A test set of questions with expected answers, measuring retrieval quality and answer faithfulness, plus user feedback."
+    }
+   ]
+  },
+  "senior-leadership:lead-mid-to-senior": {
+   "takeaways": [
+    "Senior means larger scope, handling ambiguity, technical judgement, ownership after release, and making others better.",
+    "Interviews probe it through system design, project deep dives, behavioral follow-ups, code review and debugging.",
+    "Translate service-company work into product language: decisions you made, trade-offs, and measured outcomes.",
+    "Start the behaviours now; they become your interview stories."
+   ],
+   "check": [
+    {
+     "q": "Name three dimensions that change from mid-level to senior.",
+     "a": "Scope, handling ambiguity, influence and multiplying others; also ownership and judgement."
+    },
+    {
+     "q": "How do you describe client work in product terms?",
+     "a": "Focus on what you decided and why, the trade-offs, and the measurable result."
+    },
+    {
+     "q": "What does 'ownership after release' mean?",
+     "a": "Watching metrics, fixing issues and improving the feature after it ships, not stopping at merge."
+    }
+   ]
+  },
+  "senior-leadership:lead-design-docs": {
+   "takeaways": [
+    "Write a design doc when a change is risky, cross-team, or hard to reverse.",
+    "Template: context, problem, goals and non-goals, proposal, alternatives, cross-cutting concerns, rollout, risks.",
+    "Alternatives with honest trade-offs are the most valuable part.",
+    "Keep it short with a summary first, and ask specific reviewers specific questions."
+   ],
+   "check": [
+    {
+     "q": "Why list non-goals?",
+     "a": "They set scope and stop the discussion drifting."
+    },
+    {
+     "q": "What is the most valuable section of a design doc?",
+     "a": "Alternatives and the reasons for choosing one."
+    },
+    {
+     "q": "When is a design doc unnecessary?",
+     "a": "For small, easily reversible changes inside one team."
+    }
+   ]
+  },
+  "senior-leadership:lead-estimation-breakdown": {
+   "takeaways": [
+    "Clarify the outcome, slice vertically, find unknowns and spike them.",
+    "Estimate in ranges and add the invisible work: tests, reviews, rollout, monitoring.",
+    "Sequence by risk so surprises appear early.",
+    "Communicate confidence and re-estimate as you learn; with a fixed date, negotiate scope."
+   ],
+   "check": [
+    {
+     "q": "Why slice work vertically?",
+     "a": "Each slice delivers something usable end to end and exposes integration risk early."
+    },
+    {
+     "q": "What is a spike?",
+     "a": "A short, time-boxed investigation to reduce an unknown before estimating."
+    },
+    {
+     "q": "The date is fixed and the work does not fit. What do you do?",
+     "a": "Cut or phase scope, explicitly agreed with stakeholders."
+    }
+   ]
+  },
+  "senior-leadership:lead-tradeoffs-disagreement": {
+   "takeaways": [
+    "Frame a trade-off: the decision and constraint, 2-4 real options, criteria that matter, an honest comparison.",
+    "Weigh reversibility: decide fast on reversible choices and carefully on irreversible ones; record the decision in an ADR.",
+    "Disagree with evidence, make the idea cheap to test, and separate the person from the idea.",
+    "Escalate transparently if needed, then disagree and commit."
+   ],
+   "check": [
+    {
+     "q": "What is an ADR?",
+     "a": "An architecture decision record: a short note of a decision, its context and consequences."
+    },
+    {
+     "q": "How do you push back on a senior engineer?",
+     "a": "Understand their reasons, bring data, propose a cheap experiment, and commit once decided."
+    },
+    {
+     "q": "Why does reversibility matter?",
+     "a": "Reversible decisions can be made quickly; irreversible ones deserve more analysis."
+    }
+   ]
+  },
+  "senior-leadership:lead-mentoring-code-review": {
+   "takeaways": [
+    "Code review is for correctness and safety, design, knowledge sharing and consistency.",
+    "Review in risk order, label comments (blocker vs nit), explain why, and praise specifically.",
+    "Keep PRs small, review quickly, and move big discussions to a call.",
+    "Mentor with onboarding plans and pairing; raise the bar with automation, not policing."
+   ],
+   "check": [
+    {
+     "q": "Why label review comments?",
+     "a": "So the author knows what must change (blocker) and what is optional (nit)."
+    },
+    {
+     "q": "How do you raise code quality without policing?",
+     "a": "Automate the checks (linters, CI), share examples, and lead by example."
+    },
+    {
+     "q": "Name a practical mentoring technique.",
+     "a": "Pair programming, or a structured onboarding plan with a first small task."
+    }
+   ]
+  },
+  "senior-leadership:lead-incidents-postmortems": {
+   "takeaways": [
+    "Declare incidents early and assign roles: incident commander, experts, communications, scribe.",
+    "Mitigate first, investigate second.",
+    "Update stakeholders on a regular cadence with impact, status and next update time.",
+    "Run blameless postmortems with owned action items; tell incident stories with your actions and the prevention."
+   ],
+   "check": [
+    {
+     "q": "Why declare an incident early?",
+     "a": "It brings the right people and process in quickly; downgrading later is cheap."
+    },
+    {
+     "q": "What goes in an incident status update?",
+     "a": "Impact, current status, what is being done, and when the next update will come."
+    },
+    {
+     "q": "How should an incident story end in an interview?",
+     "a": "With what changed afterwards so it cannot happen the same way again."
+    }
+   ]
+  },
+  "senior-leadership:lead-stakeholder-communication": {
+   "takeaways": [
+    "Know your audience and put the bottom line up front.",
+    "Send regular status updates and raise risks early: no surprises.",
+    "Say no well: acknowledge the goal, explain the cost, offer alternatives, and let them decide.",
+    "Write for leadership in outcomes and decisions, not technical detail."
+   ],
+   "check": [
+    {
+     "q": "What is BLUF?",
+     "a": "Bottom line up front: state the conclusion or request first."
+    },
+    {
+     "q": "How do you say no to a stakeholder?",
+     "a": "Acknowledge the goal, explain the cost, offer alternatives, and let them choose."
+    },
+    {
+     "q": "When should you raise a risk?",
+     "a": "As soon as it is likely enough to matter, not when it has already happened."
+    }
+   ]
+  },
+  "senior-leadership:lead-project-deep-dive": {
+   "takeaways": [
+    "Structure 10-12 minutes: context, constraints, options, decision, a failure you handled, results and lessons.",
+    "Be clear about your own role versus the team's.",
+    "Behavioral answers: stakes (20%), actions (60%), outcome (20%).",
+    "Build a story bank and rehearse the probes: why not X, what would you change, how did you measure it."
+   ],
+   "check": [
+    {
+     "q": "What does the stakes-action-outcome split look like?",
+     "a": "About 20% stakes, 60% your actions, 20% measured outcome."
+    },
+    {
+     "q": "What probe should you always prepare for?",
+     "a": "Why you chose this design over the alternatives, and what you would change now."
+    },
+    {
+     "q": "What is the most common deep-dive mistake?",
+     "a": "Describing what the team did without making your own decisions and contribution clear."
+    }
+   ]
+  },
+  "java:java-n01": {
+   "takeaways": [
+    "Encapsulation, abstraction, inheritance, polymorphism: give a one-line example of each from real code.",
+    "Overriding: same signature, covariant return, no weaker access, no broader checked exceptions; resolved at runtime.",
+    "Prefer composition over inheritance; use an interface for a capability and an abstract class for shared state."
+   ],
+   "check": [
+    {
+     "q": "Can an overriding method throw a broader checked exception?",
+     "a": "No; it may throw the same, narrower or none."
+    },
+    {
+     "q": "Compile-time vs runtime polymorphism?",
+     "a": "Overloading is chosen by the compiler from argument types; overriding is chosen at runtime from the object's type."
+    },
+    {
+     "q": "When an abstract class over an interface?",
+     "a": "When implementations share state or constructor logic."
+    }
+   ]
+  },
+  "java:java-n03": {
+   "takeaways": [
+    "Equal objects must have equal hash codes; override equals and hashCode together.",
+    "Never mutate a field used in hashCode while the object is a key in a HashMap or HashSet.",
+    "For JPA entities, base equality on a stable business key or the id with care, not on all fields."
+   ],
+   "check": [
+    {
+     "q": "Override only equals: what breaks?",
+     "a": "Hash collections put equal objects in different buckets, so lookups and dedupe fail."
+    },
+    {
+     "q": "Why are mutable keys dangerous?",
+     "a": "Changing the key changes its hash, so the entry can no longer be found."
+    },
+    {
+     "q": "Shallow vs deep copy?",
+     "a": "Shallow copies references to the same nested objects; deep copies the nested objects too."
+    }
+   ]
+  },
+  "java:java-n04": {
+   "takeaways": [
+    "HashMap: array of buckets, index from the spread hash, chains become red-black trees past 8, resize doubles at 75% full.",
+    "LinkedHashMap keeps insertion or access order (the basis of an LRU cache); TreeMap keeps keys sorted in O(log n).",
+    "ArrayList for almost everything; fail-fast iterators throw ConcurrentModificationException on outside changes."
+   ],
+   "check": [
+    {
+     "q": "When does a default HashMap first resize?",
+     "a": "When the 13th entry is added: capacity 16 × load factor 0.75 = 12."
+    },
+    {
+     "q": "Why treeify a bucket?",
+     "a": "So a heavily colliding bucket costs O(log n) instead of O(n)."
+    },
+    {
+     "q": "How do you build an LRU cache from the JDK?",
+     "a": "LinkedHashMap with accessOrder = true and removeEldestEntry."
+    }
+   ]
+  },
+  "java:java-n05": {
+   "takeaways": [
+    "ConcurrentHashMap: lock-free reads, CAS into empty bins, a lock on the bin head otherwise; no global lock.",
+    "Use its atomic compound methods (`compute`, `merge`, `putIfAbsent`) instead of get-then-put.",
+    "Pick the concurrent collection by access pattern: CopyOnWriteArrayList for read-mostly lists, BlockingQueue for producer-consumer."
+   ],
+   "check": [
+    {
+     "q": "Why no null keys or values?",
+     "a": "A null from get could not tell 'absent' from 'mapped to null' without racing."
+    },
+    {
+     "q": "Java 7 vs Java 8 ConcurrentHashMap?",
+     "a": "Java 7 locked 16 segments; Java 8 uses CAS and per-bin locks."
+    },
+    {
+     "q": "Which queue for producer-consumer?",
+     "a": "A bounded BlockingQueue such as ArrayBlockingQueue, using put and take."
+    }
+   ]
+  },
+  "java:java-n08": {
+   "takeaways": [
+    "A lambda implements a functional interface; captured local variables must be effectively final.",
+    "Know Predicate, Function, Consumer, Supplier and method references.",
+    "Optional is a return type for 'may be absent': not for fields or parameters; prefer orElseGet for expensive defaults."
+   ],
+   "check": [
+    {
+     "q": "Why must captured variables be effectively final?",
+     "a": "The lambda copies the value; allowing changes would make the copy and the variable disagree."
+    },
+    {
+     "q": "orElse vs orElseGet?",
+     "a": "orElse always evaluates its argument; orElseGet calls the supplier only when empty."
+    },
+    {
+     "q": "Name the four core functional interfaces.",
+     "a": "Predicate, Function, Consumer, Supplier."
+    }
+   ]
+  },
+  "java:java-n09": {
+   "takeaways": [
+    "A stream is source, lazy intermediate operations, then one terminal operation.",
+    "groupingBy with a downstream collector (counting, averaging, mapping, maxBy) solves most coding questions.",
+    "Parallel streams help only for large, CPU-bound, independent work; never with shared mutable state."
+   ],
+   "check": [
+    {
+     "q": "When does a stream pipeline actually run?",
+     "a": "Only when a terminal operation is called."
+    },
+    {
+     "q": "Count words by frequency with streams?",
+     "a": "`groupingBy(Function.identity(), counting())`."
+    },
+    {
+     "q": "Why can parallel streams be slower?",
+     "a": "Splitting and merging overhead, shared common pool, and contention on shared state."
+    }
+   ]
+  },
+  "java:java-n10": {
+   "takeaways": [
+    "Records for data carriers, sealed types for closed hierarchies, pattern matching for switch to handle each case.",
+    "Virtual threads (21) make blocking I/O code scale; they do not speed up CPU work.",
+    "Java 25 is the newest LTS: scoped values, compact source files, flexible constructor bodies."
+   ],
+   "check": [
+    {
+     "q": "What does a record generate?",
+     "a": "A canonical constructor, accessors, equals, hashCode and toString for its components."
+    },
+    {
+     "q": "Why do sealed types pair well with switch?",
+     "a": "The compiler knows every subtype, so a switch can be exhaustive without default."
+    },
+    {
+     "q": "When do virtual threads not help?",
+     "a": "CPU-bound work, or when a pool or rate limit downstream caps throughput anyway."
+    }
+   ]
+  },
+  "java:java-n11": {
+   "takeaways": [
+    "synchronized gives mutual exclusion and visibility; volatile gives visibility and ordering only, not atomicity.",
+    "happens-before is the rule: unlock before lock, volatile write before read, start before the thread's actions.",
+    "wait releases the monitor, sleep does not; interrupt to stop a blocked thread cooperatively."
+   ],
+   "check": [
+    {
+     "q": "Is `count++` on a volatile int thread-safe?",
+     "a": "No; it is read-modify-write. Use AtomicInteger or a lock."
+    },
+    {
+     "q": "sleep vs wait?",
+     "a": "sleep pauses without releasing locks; wait releases the monitor and waits for notify."
+    },
+    {
+     "q": "Why double-checked locking needs volatile?",
+     "a": "Without it another thread may see a partly constructed instance."
+    }
+   ]
+  },
+  "java:java-n12": {
+   "takeaways": [
+    "Use bounded ThreadPoolExecutors with a rejection policy; know core size, max size, queue and keep-alive.",
+    "CompletableFuture composes async work; pass your own executor instead of the common pool for I/O.",
+    "Deadlock needs four conditions; break one, usually by acquiring locks in a fixed order or with tryLock timeouts."
+   ],
+   "check": [
+    {
+     "q": "When does a ThreadPoolExecutor create threads beyond core size?",
+     "a": "Only when the queue is full; with an unbounded queue it never does."
+    },
+    {
+     "q": "Name the four deadlock conditions.",
+     "a": "Mutual exclusion, hold and wait, no preemption, circular wait."
+    },
+    {
+     "q": "thenApply vs thenCompose?",
+     "a": "thenApply maps the result; thenCompose chains another CompletableFuture without nesting."
+    }
+   ]
+  },
+  "java:java-n13": {
+   "takeaways": [
+    "Memory areas: heap (objects), stack per thread, metaspace (class metadata), plus native memory.",
+    "Class loaders delegate to the parent first (bootstrap, platform, application).",
+    "GC reclaims objects unreachable from GC roots; most objects die young, so collectors are generational."
+   ],
+   "check": [
+    {
+     "q": "StackOverflowError vs OutOfMemoryError?",
+     "a": "Stack overflow is too-deep recursion on one thread's stack; OOM is the heap (or metaspace) running out."
+    },
+    {
+     "q": "What is a GC root?",
+     "a": "A reference the GC starts from: thread stacks, static fields, JNI references."
+    },
+    {
+     "q": "Name a common cause of Java memory leaks.",
+     "a": "Objects kept reachable, e.g. a static map or cache that only grows, or unremoved listeners."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n01": {
+   "takeaways": [
+    "The container creates and wires beans; constructor injection is the default choice.",
+    "ApplicationContext adds events, i18n and eager singleton creation on top of BeanFactory.",
+    "Resolve ambiguity with @Primary or @Qualifier; redesign circular dependencies instead of allowing them."
+   ],
+   "check": [
+    {
+     "q": "Why constructor injection?",
+     "a": "Final, explicit, testable dependencies and early failure on cycles."
+    },
+    {
+     "q": "@Primary vs @Qualifier?",
+     "a": "@Primary sets a default; @Qualifier picks a bean at the injection point and wins."
+    },
+    {
+     "q": "How do you fix a circular dependency?",
+     "a": "Extract the shared logic into a third bean or use events; avoid @Lazy hacks."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n02": {
+   "takeaways": [
+    "Singleton by default; prototype, request and session scopes exist.",
+    "Lifecycle: instantiate, inject, Aware callbacks, post-processors, init, use, destroy; AOP proxies appear after init.",
+    "Singletons are shared across threads, so keep them stateless."
+   ],
+   "check": [
+    {
+     "q": "Prototype injected into a singleton: what happens?",
+     "a": "It is created once, so you need ObjectProvider, @Lookup or a scoped proxy for a new one each time."
+    },
+    {
+     "q": "BeanPostProcessor vs BeanFactoryPostProcessor?",
+     "a": "The first changes bean instances; the second changes bean definitions before instances exist."
+    },
+    {
+     "q": "Is a singleton bean thread-safe?",
+     "a": "Only if it holds no mutable shared state."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n03": {
+   "takeaways": [
+    "@SpringBootApplication = configuration + auto-configuration + component scan from the main package.",
+    "Auto-configuration classes apply only when their conditions match; your own beans win.",
+    "Debug what applied with the conditions evaluation report (`--debug` or Actuator)."
+   ],
+   "check": [
+    {
+     "q": "How does Boot decide to configure a DataSource?",
+     "a": "Conditions: the driver class is on the classpath and you have not defined a DataSource bean."
+    },
+    {
+     "q": "How do you see why an auto-configuration did not apply?",
+     "a": "The conditions evaluation report."
+    },
+    {
+     "q": "What is a starter?",
+     "a": "A dependency bundle that brings the libraries plus their auto-configuration."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n05": {
+   "takeaways": [
+    "Request flow: filters, DispatcherServlet, handler mapping, interceptors, controller, message converters.",
+    "One @RestControllerAdvice maps exceptions to status codes and a consistent body (ProblemDetail).",
+    "Validate DTOs with @Valid; filters are servlet-level, interceptors are Spring MVC-level."
+   ],
+   "check": [
+    {
+     "q": "Filter vs interceptor?",
+     "a": "A filter wraps every servlet request; an interceptor wraps handler execution and knows the controller method."
+    },
+    {
+     "q": "Which status for a validation failure?",
+     "a": "400 Bad Request."
+    },
+    {
+     "q": "Why not return JPA entities from controllers?",
+     "a": "They leak internal fields, risk lazy-loading errors and couple the API to the schema."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n06": {
+   "takeaways": [
+    "Entities move between transient, managed, detached and removed; managed changes flush automatically.",
+    "Make associations LAZY and fetch what each use case needs.",
+    "getReferenceById returns a proxy without a query; findById loads the row."
+   ],
+   "check": [
+    {
+     "q": "What is dirty checking?",
+     "a": "At flush, Hibernate compares managed entities to their snapshots and writes the changes."
+    },
+    {
+     "q": "Default fetch type of @ManyToOne?",
+     "a": "EAGER; set it to LAZY."
+    },
+    {
+     "q": "Why does ddl-auto=update not belong in production?",
+     "a": "It changes schemas unpredictably; use Flyway or Liquibase migrations."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n07": {
+   "takeaways": [
+    "N+1: one query for parents plus one per parent for a lazy association.",
+    "Fix with JOIN FETCH, @EntityGraph, batch fetching or DTO projections.",
+    "Turn off Open Session in View so lazy loading cannot hide in the view layer."
+   ],
+   "check": [
+    {
+     "q": "How do you detect N+1?",
+     "a": "SQL logging or Hibernate statistics, and assert the query count in tests."
+    },
+    {
+     "q": "Why not JOIN FETCH two collections at once?",
+     "a": "It creates a Cartesian product (and Hibernate rejects multiple bags)."
+    },
+    {
+     "q": "What is OSIV and why disable it?",
+     "a": "Open Session in View keeps the session open for the whole request, hiding lazy loads and holding connections."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n08": {
+   "takeaways": [
+    "@Transactional works through a proxy: self-invocation, private and final methods bypass it.",
+    "Rollback is on RuntimeException and Error by default; checked exceptions commit unless configured.",
+    "REQUIRED joins, REQUIRES_NEW suspends and starts another; keep transactions short and without remote calls."
+   ],
+   "check": [
+    {
+     "q": "Why does calling a @Transactional method from the same class not start a transaction?",
+     "a": "The call does not go through the proxy."
+    },
+    {
+     "q": "When use REQUIRES_NEW?",
+     "a": "For work that must commit independently, such as an audit record."
+    },
+    {
+     "q": "What is UnexpectedRollbackException?",
+     "a": "An inner REQUIRED method marked the shared transaction rollback-only, but the outer one tried to commit."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n09": {
+   "takeaways": [
+    "Security is a filter chain: authenticate the request, store it in the SecurityContext, then authorise.",
+    "Configure with a SecurityFilterChain bean; for JWTs prefer the OAuth2 resource server support.",
+    "CSRF matters for cookie sessions; CORS is browser policy; store passwords with BCrypt or Argon2."
+   ],
+   "check": [
+    {
+     "q": "Where does Spring Security keep the current user?",
+     "a": "In the SecurityContext, held by the SecurityContextHolder for the request."
+    },
+    {
+     "q": "Do you need CSRF protection for a stateless JWT API?",
+     "a": "Not if tokens are sent in a header rather than cookies."
+    },
+    {
+     "q": "How do you secure a single method?",
+     "a": "@PreAuthorize with @EnableMethodSecurity."
+    }
+   ]
+  },
+  "spring-boot:spring-boot-n12": {
+   "takeaways": [
+    "AOP adds cross-cutting behaviour (transactions, caching, security) through proxies.",
+    "JDK proxies need an interface; CGLIB subclasses the class (Boot's default).",
+    "Self-invocation bypasses the proxy, so advice does not run."
+   ],
+   "check": [
+    {
+     "q": "Why do @Transactional and @Cacheable fail on self-calls?",
+     "a": "The call stays inside the object and never reaches the proxy."
+    },
+    {
+     "q": "JDK dynamic proxy vs CGLIB?",
+     "a": "JDK proxies implement interfaces; CGLIB creates a subclass, so final methods cannot be advised."
+    },
+    {
+     "q": "Name three Spring features built on AOP.",
+     "a": "Transactions, caching and method security."
+    }
+   ]
+  },
+  "sql:sql-n02": {
+   "takeaways": [
+    "WHERE filters rows before grouping; HAVING filters groups.",
+    "Conditional aggregation (`SUM(CASE WHEN ...)`) pivots rows into columns.",
+    "Prefer EXISTS over IN for correlated checks, and NOT EXISTS over NOT IN when NULLs are possible."
+   ],
+   "check": [
+    {
+     "q": "Why can NOT IN return no rows?",
+     "a": "If the subquery contains a NULL, every comparison is unknown."
+    },
+    {
+     "q": "When use a CTE?",
+     "a": "For readability, reuse within one query, or recursion such as hierarchies."
+    },
+    {
+     "q": "Where does a condition on COUNT(*) go?",
+     "a": "In HAVING."
+    }
+   ]
+  },
+  "sql:sql-n03": {
+   "takeaways": [
+    "Window functions compute over related rows without collapsing them.",
+    "ROW_NUMBER, RANK and DENSE_RANK differ only on ties.",
+    "LAG and LEAD compare with neighbours; gaps and islands uses value minus ROW_NUMBER."
+   ],
+   "check": [
+    {
+     "q": "Top 3 salaries per department?",
+     "a": "DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) ≤ 3."
+    },
+    {
+     "q": "Running total?",
+     "a": "SUM(amount) OVER (ORDER BY date ROWS UNBOUNDED PRECEDING)."
+    },
+    {
+     "q": "Window function vs GROUP BY?",
+     "a": "GROUP BY returns one row per group; a window keeps every row and adds the computed value."
+    }
+   ]
+  },
+  "sql:sql-n04": {
+   "takeaways": [
+    "InnoDB stores rows in the primary-key B+tree; secondary indexes hold the key plus the primary key.",
+    "Composite indexes follow the leftmost-prefix rule: equality columns first, then range or sort.",
+    "A covering index answers the query from the index alone."
+   ],
+   "check": [
+    {
+     "q": "Why keep primary keys short?",
+     "a": "Every secondary index stores the primary key, so a wide key bloats all of them."
+    },
+    {
+     "q": "Does an index on (a, b) help `WHERE b = ?`?",
+     "a": "Not normally; b is not a leftmost prefix."
+    },
+    {
+     "q": "Name two things that stop an index being used.",
+     "a": "A function on the column, and an implicit type conversion; also a leading wildcard."
+    }
+   ]
+  },
+  "sql:sql-n05": {
+   "takeaways": [
+    "Find slow queries first (slow log, performance_schema), then EXPLAIN them.",
+    "Watch for full scans, filesort, temporary tables, and rows examined far above rows returned.",
+    "Fix with the right index, sargable predicates, fewer columns and keyset pagination."
+   ],
+   "check": [
+    {
+     "q": "What does 'sargable' mean?",
+     "a": "A predicate the engine can answer with an index seek, e.g. a range on the bare column."
+    },
+    {
+     "q": "EXPLAIN type ALL means?",
+     "a": "A full table scan."
+    },
+    {
+     "q": "Why can SELECT * be slower?",
+     "a": "It reads more data and prevents covering indexes."
+    }
+   ]
+  },
+  "sql:sql-n07": {
+   "takeaways": [
+    "ACID: undo log gives atomicity, redo log gives durability, locks and MVCC give isolation.",
+    "InnoDB defaults to REPEATABLE READ with snapshot reads; locking reads see the latest data.",
+    "Prevent lost updates with a conditional update, optimistic version, or SELECT ... FOR UPDATE."
+   ],
+   "check": [
+    {
+     "q": "Which anomaly does READ COMMITTED still allow?",
+     "a": "Non-repeatable reads (and phantoms)."
+    },
+    {
+     "q": "Why are long transactions harmful?",
+     "a": "They hold locks and keep old row versions alive, slowing everyone."
+    },
+    {
+     "q": "What is a lost update?",
+     "a": "Two transactions read, modify and write the same value; one write overwrites the other."
+    }
+   ]
+  },
+  "sql:sql-n08": {
+   "takeaways": [
+    "MVCC: readers see a snapshot built from undo logs, so plain reads take no locks.",
+    "Locking reads take record, gap and next-key locks on index records.",
+    "InnoDB detects deadlocks and rolls one back; lock in a consistent order and retry."
+   ],
+   "check": [
+    {
+     "q": "What does a next-key lock prevent?",
+     "a": "Inserts into the gap, which would otherwise create phantoms."
+    },
+    {
+     "q": "What does SKIP LOCKED give you?",
+     "a": "Workers grab unlocked rows only, so queues scale without blocking."
+    },
+    {
+     "q": "A query without an index uses FOR UPDATE. Risk?",
+     "a": "It locks many rows (index records scanned), blocking others."
+    }
+   ]
+  },
+  "sql:sql-n10": {
+   "takeaways": [
+    "Scale in order: indexes and queries, caching, vertical scaling, read replicas, partitioning, then sharding.",
+    "Replication is usually asynchronous, so replicas lag; route read-your-writes to the primary.",
+    "Sharding splits data across servers by a key; choose a key that spreads load and keeps queries local."
+   ],
+   "check": [
+    {
+     "q": "Partitioning vs sharding?",
+     "a": "Partitioning splits a table inside one server; sharding spreads data across servers."
+    },
+    {
+     "q": "Why does a user not see their own update?",
+     "a": "The read went to a lagging replica."
+    },
+    {
+     "q": "What makes a good shard key?",
+     "a": "High cardinality, even load, and present in most queries."
+    }
+   ]
+  },
+  "microservices:microservices-n01": {
+   "takeaways": [
+    "Microservices trade simpler, independent deploys for distributed-system complexity.",
+    "Split by business capability with a database per service; avoid a distributed monolith.",
+    "A well-modularised monolith is often the right start; extract with the strangler fig pattern."
+   ],
+   "check": [
+    {
+     "q": "What is a distributed monolith?",
+     "a": "Services that must deploy together or share a database, so you get the costs without the benefits."
+    },
+    {
+     "q": "When stay with a monolith?",
+     "a": "Small team, unclear domain boundaries, or no need for independent scaling."
+    },
+    {
+     "q": "What is the strangler fig pattern?",
+     "a": "Route traffic gradually from the old system to new services until the old part can be removed."
+    }
+   ]
+  },
+  "microservices:microservices-n02": {
+   "takeaways": [
+    "Service discovery maps service names to changing addresses (Eureka, or Kubernetes Services).",
+    "An API gateway centralises routing, auth, rate limiting and TLS for clients.",
+    "Config lives outside the artifact: config server, ConfigMaps and Secrets."
+   ],
+   "check": [
+    {
+     "q": "Client-side vs server-side discovery?",
+     "a": "The caller picks an instance itself, or a load balancer picks for it."
+    },
+    {
+     "q": "Gateway vs load balancer?",
+     "a": "A gateway handles API concerns and routing across services; a load balancer spreads traffic across instances."
+    },
+    {
+     "q": "What does a service mesh add?",
+     "a": "mTLS, retries, timeouts and telemetry in sidecars or the platform, not in code."
+    }
+   ]
+  },
+  "microservices:microservices-n03": {
+   "takeaways": [
+    "Synchronous calls (REST, gRPC) when you need the answer now; messaging when the work can happen later.",
+    "Every remote call needs connect and read timeouts.",
+    "Version APIs, keep changes backward compatible, and propagate trace context."
+   ],
+   "check": [
+    {
+     "q": "Feign vs WebClient vs RestClient?",
+     "a": "Feign: declarative interface; WebClient: non-blocking; RestClient: modern synchronous fluent client."
+    },
+    {
+     "q": "Why are timeouts mandatory?",
+     "a": "Without them a slow dependency ties up all your threads."
+    },
+    {
+     "q": "When choose gRPC?",
+     "a": "Internal, high-throughput service-to-service calls with a strict contract."
+    }
+   ]
+  },
+  "microservices:microservices-n04": {
+   "takeaways": [
+    "Topics are split into partitions; the key picks the partition, and order holds only within one.",
+    "Within a consumer group each partition goes to one consumer; offsets track progress.",
+    "Delivery is at-least-once in practice, so consumers must be idempotent."
+   ],
+   "check": [
+    {
+     "q": "How do you keep an order's events in sequence?",
+     "a": "Use the order id as the key so they land in one partition."
+    },
+    {
+     "q": "What happens with more consumers than partitions?",
+     "a": "The extra consumers sit idle."
+    },
+    {
+     "q": "Why is Kafka fast?",
+     "a": "Sequential disk writes, page cache, batching, compression and zero-copy transfer."
+    }
+   ]
+  },
+  "microservices:microservices-n05": {
+   "takeaways": [
+    "Start with timeouts; retry only idempotent calls with exponential backoff and jitter.",
+    "A circuit breaker fails fast when a dependency is down; a bulkhead limits concurrent calls to it.",
+    "Always define the fallback: cached data, a default, or a clear error."
+   ],
+   "check": [
+    {
+     "q": "Circuit breaker states?",
+     "a": "Closed, open, half-open."
+    },
+    {
+     "q": "Why add jitter to retries?",
+     "a": "So clients do not retry in lockstep and hammer the recovering service together."
+    },
+    {
+     "q": "What does a bulkhead protect?",
+     "a": "Your threads, so one slow dependency cannot consume them all."
+    }
+   ]
+  },
+  "microservices:microservices-n06": {
+   "takeaways": [
+    "Avoid 2PC; use a saga of local transactions with compensations.",
+    "Choreography reacts to events; orchestration has one coordinator; pick orchestration for long flows.",
+    "The outbox pattern publishes events reliably; idempotent consumers handle redelivery."
+   ],
+   "check": [
+    {
+     "q": "Why avoid 2PC?",
+     "a": "It blocks on a coordinator, is slow, and most brokers and NoSQL stores do not support it."
+    },
+    {
+     "q": "What is a compensating transaction?",
+     "a": "A step that semantically undoes an earlier one, such as refunding a charge."
+    },
+    {
+     "q": "Outbox vs CDC?",
+     "a": "Outbox writes events to a table in the same transaction; CDC (e.g. Debezium) streams them from the database log."
+    }
+   ]
+  },
+  "angular:ng-n03": {
+   "takeaways": [
+    "Default change detection checks the whole tree after every async event (via Zone.js).",
+    "OnPush checks a component only on new input references, its own events, signals it reads, or when marked.",
+    "Zoneless (default for new apps in v21) relies on signals and explicit notifications."
+   ],
+   "check": [
+    {
+     "q": "Why does mutating an array input not update an OnPush child?",
+     "a": "The reference did not change; pass a new array."
+    },
+    {
+     "q": "What triggers change detection with Zone.js?",
+     "a": "Any patched async task completing: events, timers, promises, XHR."
+    },
+    {
+     "q": "How would you optimise change detection?",
+     "a": "OnPush, signals, `track` in @for, pure pipes, and moving work out of templates."
+    }
+   ]
+  },
+  "angular:ng-n04": {
+   "takeaways": [
+    "signal holds state, computed derives cached values, effect runs side effects.",
+    "linkedSignal is writable state that resets when its source changes; resource loads async data into signals.",
+    "Use signals for state and RxJS for event streams; bridge with toSignal and toObservable."
+   ],
+   "check": [
+    {
+     "q": "computed vs effect?",
+     "a": "computed returns a derived value; effect performs side effects and returns nothing."
+    },
+    {
+     "q": "When linkedSignal?",
+     "a": "A selection that should reset when the list it depends on changes."
+    },
+    {
+     "q": "Do signals need unsubscribing?",
+     "a": "No; there is no subscription to clean up."
+    }
+   ]
+  },
+  "angular:ng-n06": {
+   "takeaways": [
+    "Injectors form a hierarchy: element injectors up the component tree, then environment injectors.",
+    "providedIn: 'root' gives a tree-shakable singleton; component providers give one instance per component.",
+    "inject() works only in an injection context (constructor, field initialiser, factory)."
+   ],
+   "check": [
+    {
+     "q": "How do you get a separate service instance per component?",
+     "a": "List it in the component's providers."
+    },
+    {
+     "q": "What is an InjectionToken for?",
+     "a": "Injecting non-class values such as configuration."
+    },
+    {
+     "q": "Where can you call inject()?",
+     "a": "In an injection context: constructors, field initialisers, provider factories."
+    }
+   ]
+  },
+  "angular:ng-n07": {
+   "takeaways": [
+    "Observables are lazy streams; cold ones start per subscriber, hot ones share.",
+    "switchMap cancels, mergeMap runs in parallel, concatMap queues, exhaustMap ignores while busy.",
+    "Avoid leaks with the async pipe, toSignal or takeUntilDestroyed."
+   ],
+   "check": [
+    {
+     "q": "Which operator for a search-as-you-type box?",
+     "a": "debounceTime then switchMap, so older requests are cancelled."
+    },
+    {
+     "q": "BehaviorSubject vs Subject?",
+     "a": "BehaviorSubject holds a current value and replays it to new subscribers."
+    },
+    {
+     "q": "Which operator prevents double form submission?",
+     "a": "exhaustMap."
+    }
+   ]
+  },
+  "angular:ng-n11": {
+   "takeaways": [
+    "Measure first, then separate load-time from runtime problems.",
+    "Load time: lazy routes, @defer, smaller bundles. Runtime: OnPush, signals, track in @for, virtual scrolling.",
+    "Network: cache, paginate and avoid duplicate requests."
+   ],
+   "check": [
+    {
+     "q": "What does @defer do?",
+     "a": "Loads a template block and its dependencies lazily, on a trigger such as viewport."
+    },
+    {
+     "q": "Why use track in @for?",
+     "a": "So Angular reuses DOM nodes instead of recreating them when the list changes."
+    },
+    {
+     "q": "A 10,000-row list is slow. Fix?",
+     "a": "Virtual scrolling (CDK) plus OnPush."
+    }
+   ]
+  },
+  "javascript-typescript:js-n02": {
+   "takeaways": [
+    "A closure keeps access to its outer scope after that scope returns.",
+    "Used for private state, factories, memoisation, debounce and throttle.",
+    "Watch for stale closures and retained memory."
+   ],
+   "check": [
+    {
+     "q": "Write debounce in words.",
+     "a": "Keep a timer in a closure; each call clears it and sets a new one; run the function when it fires."
+    },
+    {
+     "q": "Why does a closure cause a leak?",
+     "a": "It keeps referenced variables, and anything they reference, alive."
+    },
+    {
+     "q": "Debounce vs throttle?",
+     "a": "Debounce waits for a pause; throttle runs at most once per interval."
+    }
+   ]
+  },
+  "javascript-typescript:js-n05": {
+   "takeaways": [
+    "One call stack; async callbacks wait in queues.",
+    "After each macrotask, all microtasks (promises) run before the next macrotask (timers, events).",
+    "Long synchronous work blocks rendering and input."
+   ],
+   "check": [
+    {
+     "q": "Order: setTimeout 0 vs Promise.then?",
+     "a": "The promise callback runs first; it is a microtask."
+    },
+    {
+     "q": "Why can a page freeze?",
+     "a": "A long synchronous task blocks the single thread."
+    },
+    {
+     "q": "Is setTimeout(fn, 0) immediate?",
+     "a": "No; it queues a macrotask after the current task and all microtasks."
+    }
+   ]
+  },
+  "javascript-typescript:js-n06": {
+   "takeaways": [
+    "A promise is pending, then fulfilled or rejected, once.",
+    "Promise.all fails fast; allSettled waits for all; race and any take the first.",
+    "await in a loop runs sequentially; use Promise.all for independent work."
+   ],
+   "check": [
+    {
+     "q": "all vs allSettled?",
+     "a": "all rejects on the first failure; allSettled reports every outcome."
+    },
+    {
+     "q": "What does an async function return?",
+     "a": "Always a promise."
+    },
+    {
+     "q": "Why can awaiting in a loop be slow?",
+     "a": "Each await waits for the previous call; independent calls should run in parallel."
+    }
+   ]
+  },
+  "cn:cn-n03": {
+   "takeaways": [
+    "Know methods, idempotency, and status classes; 401 is unauthenticated, 403 is forbidden.",
+    "HTTP/1.1 reuses connections, HTTP/2 multiplexes streams on one TCP connection, HTTP/3 uses QUIC over UDP.",
+    "Caching headers (Cache-Control, ETag) avoid repeat transfers."
+   ],
+   "check": [
+    {
+     "q": "Which methods are idempotent?",
+     "a": "GET, PUT, DELETE, HEAD, OPTIONS; POST is not."
+    },
+    {
+     "q": "What problem does HTTP/3 solve over HTTP/2?",
+     "a": "TCP head-of-line blocking: a lost packet stalls only its own stream."
+    },
+    {
+     "q": "What is an ETag for?",
+     "a": "Conditional requests: the server returns 304 Not Modified if the content is unchanged."
+    }
+   ]
+  },
+  "cn:cn-n05": {
+   "takeaways": [
+    "DNS resolves through resolver, root, TLD and authoritative servers, with caching by TTL.",
+    "Typing a URL: DNS, TCP and TLS handshakes, HTTP request, response, parse, fetch assets, render.",
+    "Answer at the depth the interviewer wants and offer to go deeper on any step."
+   ],
+   "check": [
+    {
+     "q": "Recursive vs iterative DNS query?",
+     "a": "The resolver does the whole lookup for you (recursive) by asking each server in turn (iterative)."
+    },
+    {
+     "q": "What does HSTS do?",
+     "a": "Tells the browser to use HTTPS only for the site."
+    },
+    {
+     "q": "Which DNS record maps a name to an IPv4 address?",
+     "a": "An A record (AAAA for IPv6)."
+    }
+   ]
+  },
+  "os:os-n01": {
+   "takeaways": [
+    "A process has its own address space; threads share their process's memory.",
+    "A context switch saves and restores CPU state; it costs time and cache warmth.",
+    "Concurrency is dealing with many things at once; parallelism is doing them at the same time."
+   ],
+   "check": [
+    {
+     "q": "Why are threads cheaper than processes?",
+     "a": "They share memory, so creating and switching them needs less setup."
+    },
+    {
+     "q": "What is a zombie process?",
+     "a": "A finished child whose exit status its parent has not collected."
+    },
+    {
+     "q": "Concurrency vs parallelism?",
+     "a": "Interleaving tasks vs running them simultaneously on multiple cores."
+    }
+   ]
+  },
+  "behavioral:hr-n01": {
+   "takeaways": [
+    "STAR: situation and task briefly, actions in detail (about 60%), result with numbers.",
+    "Say 'I', be specific, explain your reasoning, and end with what you learned.",
+    "Build a story bank of 6-8 real stories in week 1 and practise them out loud."
+   ],
+   "check": [
+    {
+     "q": "How much of a STAR answer should be actions?",
+     "a": "About 60%."
+    },
+    {
+     "q": "Why say 'I' not 'we'?",
+     "a": "Interviewers grade your contribution, not the team's."
+    },
+    {
+     "q": "Which stories belong in the bank?",
+     "a": "Incident, conflict, ownership, ambiguity, mentoring, failure, and a hard technical problem."
+    }
+   ]
+  },
+  "behavioral:hr-n02": {
+   "takeaways": [
+    "Describe projects by the client's business and scale, the architecture, your ownership, and measured impact.",
+    "Turn tasks into outcomes: what changed for users or the business, with numbers.",
+    "Prepare a 60-second pitch and deep-dive answers for your main project."
+   ],
+   "check": [
+    {
+     "q": "What are the four layers of a project description?",
+     "a": "Business context and scale, architecture, your ownership, highlights with impact."
+    },
+    {
+     "q": "No dashboards: how do you find numbers?",
+     "a": "Estimate from logs, tickets, release notes or before-and-after timings, and say they are estimates."
+    },
+    {
+     "q": "What should you avoid saying?",
+     "a": "'I just did what the client asked' or vague 'we worked on' answers."
+    }
+   ]
+  },
+  "behavioral:hr-n03": {
+   "takeaways": [
+    "Tell me about yourself: present, past, future in 60-90 seconds.",
+    "Why switch: move towards ownership, scale and product impact; never criticise your employer.",
+    "Why us: product, engineering challenge, your fit, and growth."
+   ],
+   "check": [
+    {
+     "q": "How long should 'tell me about yourself' be?",
+     "a": "60-90 seconds."
+    },
+    {
+     "q": "'Is it about money?' How do you answer?",
+     "a": "Acknowledge pay matters, then focus on the role, ownership and growth."
+    },
+    {
+     "q": "Why leave after only 2 years?",
+     "a": "You have learned what the role offers and want more scale, ownership and product depth."
+    }
+   ]
+  },
+  "behavioral:hr-n05": {
+   "takeaways": [
+    "Amazon grades stories against its Leadership Principles, with a Bar Raiser in the loop.",
+    "Map each story to 2-3 principles (Ownership, Dive Deep, Customer Obsession, Deliver Results, Disagree and Commit).",
+    "Expect follow-up probes for detail, data and what you would do differently."
+   ],
+   "check": [
+    {
+     "q": "What is a Bar Raiser?",
+     "a": "An interviewer from outside the team who checks the hire raises the bar and can veto."
+    },
+    {
+     "q": "Which principle fits a disagreement story?",
+     "a": "Have Backbone; Disagree and Commit."
+    },
+    {
+     "q": "What do LP follow-ups look for?",
+     "a": "Specific actions, data, and your own judgement."
+    }
+   ]
+  }
+ },
+ "core": [
+  "aie-001",
+  "aie-003",
+  "aie-007",
+  "aie-016",
+  "aie-019",
+  "aie-021",
+  "cloud-001",
+  "cloud-003",
+  "cloud-005",
+  "cloud-012",
+  "cloud-014",
+  "cloud-023",
+  "cn-001",
+  "cn-003",
+  "cn-004",
+  "cn-005",
+  "cn-006",
+  "cn-007",
+  "cn-008",
+  "cn-009",
+  "conc-001",
+  "conc-002",
+  "conc-003",
+  "conc-004",
+  "conc-007",
+  "conc-011",
+  "dbg-001",
+  "dbg-007",
+  "dbg-008",
+  "dbg-013",
+  "dbg-014",
+  "dbg-020",
+  "dbms-002",
+  "dbms-003",
+  "dbms-004",
+  "dbms-008",
+  "hr-001",
+  "hr-002",
+  "hr-003",
+  "hr-004",
+  "hr-005",
+  "hr-006",
+  "hr-007",
+  "hr-008",
+  "hr-009",
+  "hr-010",
+  "java-001",
+  "java-002",
+  "java-003",
+  "java-005",
+  "java-006",
+  "java-007",
+  "java-008",
+  "java-009",
+  "java-012",
+  "java-013",
+  "java-014",
+  "java-016",
+  "java-017",
+  "java-019",
+  "java-020",
+  "java-023",
+  "java-024",
+  "java-026",
+  "java-027",
+  "java-029",
+  "java-030",
+  "java-031",
+  "java-032",
+  "java-033",
+  "java-034",
+  "java-035",
+  "java-036",
+  "js-001",
+  "js-002",
+  "js-003",
+  "js-004",
+  "js-005",
+  "js-006",
+  "js-007",
+  "js-008",
+  "lead-001",
+  "lead-002",
+  "lead-003",
+  "lead-005",
+  "lead-007",
+  "lead-015",
+  "microservices-001",
+  "microservices-002",
+  "microservices-003",
+  "microservices-004",
+  "microservices-005",
+  "microservices-006",
+  "microservices-007",
+  "microservices-008",
+  "microservices-009",
+  "microservices-010",
+  "microservices-012",
+  "microservices-013",
+  "microservices-014",
+  "microservices-015",
+  "microservices-016",
+  "microservices-017",
+  "microservices-018",
+  "microservices-020",
+  "microservices-021",
+  "microservices-022",
+  "microservices-023",
+  "microservices-024",
+  "microservices-025",
+  "microservices-027",
+  "microservices-028",
+  "microservices-029",
+  "microservices-031",
+  "ng-001",
+  "ng-002",
+  "ng-003",
+  "ng-004",
+  "ng-005",
+  "ng-006",
+  "ng-007",
+  "ng-009",
+  "ng-010",
+  "ng-012",
+  "oop-002",
+  "oop-005",
+  "oop-006",
+  "oop-007",
+  "oop-008",
+  "os-001",
+  "os-002",
+  "os-003",
+  "os-006",
+  "os-009",
+  "os-010",
+  "perf-001",
+  "perf-002",
+  "perf-008",
+  "perf-014",
+  "perf-018",
+  "perf-023",
+  "sec-001",
+  "sec-002",
+  "sec-003",
+  "sec-004",
+  "sec-007",
+  "sec-013",
+  "spring-boot-001",
+  "spring-boot-002",
+  "spring-boot-004",
+  "spring-boot-005",
+  "spring-boot-006",
+  "spring-boot-007",
+  "spring-boot-008",
+  "spring-boot-010",
+  "spring-boot-011",
+  "spring-boot-013",
+  "spring-boot-015",
+  "spring-boot-016",
+  "spring-boot-017",
+  "spring-boot-018",
+  "spring-boot-019",
+  "spring-boot-020",
+  "spring-boot-021",
+  "spring-boot-022",
+  "spring-boot-023",
+  "spring-boot-024",
+  "spring-boot-027",
+  "spring-boot-028",
+  "spring-boot-029",
+  "spring-boot-030",
+  "spring-boot-031",
+  "spring-boot-032",
+  "spring-boot-033",
+  "spring-boot-061",
+  "sql-001",
+  "sql-002",
+  "sql-003",
+  "sql-004",
+  "sql-005",
+  "sql-006",
+  "sql-007",
+  "sql-008",
+  "sql-009",
+  "sql-010",
+  "sql-011",
+  "sql-012",
+  "sql-013",
+  "sql-014",
+  "sql-015",
+  "sql-016",
+  "sql-022",
+  "sql-023",
+  "sql-024",
+  "sql-025",
+  "sql-026",
+  "sql-027",
+  "sql-028",
+  "sql-029",
+  "sql-030",
+  "sql-031",
+  "sql-032",
+  "test-001",
+  "test-003",
+  "test-005",
+  "test-006",
+  "test-014",
+  "test-017"
+ ],
+ "dupOf": {
+  "oop-001": "java-001",
+  "oop-003": "java-002",
+  "oop-004": "java-003",
+  "java-045": "os-001",
+  "spring-boot-040": "test-005",
+  "dbms-019": "microservices-031",
+  "cloud-017": "microservices-040",
+  "dbms-015": "sql-029",
+  "dbms-018": "sql-031",
+  "sql-037": "dbms-004",
+  "dbms-007": "sql-038",
+  "sql-051": "dbms-003",
+  "lead-017": "hr-011",
+  "dbms-009": "spring-boot-030"
+ },
+ "coreNotes": [
+  "java:java-n01",
+  "java:java-n03",
+  "java:java-n04",
+  "java:java-n05",
+  "java:java-n08",
+  "java:java-n09",
+  "java:java-n10",
+  "java:java-n11",
+  "java:java-n12",
+  "java:java-n13",
+  "concurrency-practical:conc-n01",
+  "concurrency-practical:conc-n02",
+  "concurrency-practical:conc-n03",
+  "concurrency-practical:conc-n04",
+  "concurrency-practical:conc-n05",
+  "concurrency-practical:conc-n06",
+  "concurrency-practical:conc-n07",
+  "concurrency-practical:conc-n08",
+  "spring-boot:spring-boot-n01",
+  "spring-boot:spring-boot-n02",
+  "spring-boot:spring-boot-n03",
+  "spring-boot:spring-boot-n05",
+  "spring-boot:spring-boot-n06",
+  "spring-boot:spring-boot-n07",
+  "spring-boot:spring-boot-n08",
+  "spring-boot:spring-boot-n09",
+  "spring-boot:spring-boot-n12",
+  "sql:sql-n02",
+  "sql:sql-n03",
+  "sql:sql-n04",
+  "sql:sql-n05",
+  "sql:sql-n07",
+  "sql:sql-n08",
+  "sql:sql-n10",
+  "microservices:microservices-n01",
+  "microservices:microservices-n02",
+  "microservices:microservices-n03",
+  "microservices:microservices-n04",
+  "microservices:microservices-n05",
+  "microservices:microservices-n06",
+  "production-debugging:dbg-n01",
+  "production-debugging:dbg-n02",
+  "production-debugging:dbg-n03",
+  "production-debugging:dbg-n04",
+  "production-debugging:dbg-n05",
+  "production-debugging:dbg-n06",
+  "production-debugging:dbg-n07",
+  "production-debugging:dbg-n08",
+  "angular:ng-n03",
+  "angular:ng-n04",
+  "angular:ng-n06",
+  "angular:ng-n07",
+  "angular:ng-n11",
+  "performance:perf-n01",
+  "performance:perf-n02",
+  "performance:perf-n06",
+  "testing-code-review:test-n01",
+  "testing-code-review:test-n02",
+  "testing-code-review:test-n03",
+  "testing-code-review:test-n05",
+  "testing-code-review:test-n06",
+  "testing-code-review:test-n07",
+  "behavioral:hr-n01",
+  "behavioral:hr-n02",
+  "behavioral:hr-n03",
+  "behavioral:hr-n05",
+  "ai-assisted-engineering:aie-interview-formats",
+  "ai-assisted-engineering:aie-workflow",
+  "ai-assisted-engineering:aie-catching-mistakes",
+  "ai-assisted-engineering:aie-llm-basics",
+  "security:sec-owasp-top10",
+  "security:sec-injection-xss-csrf-cors",
+  "security:sec-authn-sessions-jwt",
+  "security:sec-oauth-oidc",
+  "senior-leadership:lead-mid-to-senior",
+  "senior-leadership:lead-tradeoffs-disagreement",
+  "senior-leadership:lead-project-deep-dive",
+  "javascript-typescript:js-n02",
+  "javascript-typescript:js-n05",
+  "javascript-typescript:js-n06",
+  "cn:cn-n03",
+  "cn:cn-n05",
+  "os:os-n01",
+  "cloud-devops:cloud-aws-service-map",
+  "cloud-devops:cloud-docker-spring",
+  "cloud-devops:cloud-k8s-core",
+  "cloud-devops:cloud-cicd-releases"
+ ],
+ "coreSd": [
+  "ai-system-design-rag",
+  "api-design",
+  "back-of-envelope",
+  "bookmyshow-lld",
+  "caching",
+  "cap-pacelc-consistency",
+  "cdn-blob-storage",
+  "chat-whatsapp",
+  "concurrency-for-lld",
+  "consistent-hashing",
+  "cost-and-capacity-planning",
+  "databases-sql-vs-nosql",
+  "design-patterns-behavioral",
+  "design-patterns-creational",
+  "design-patterns-structural",
+  "distributed-job-scheduler",
+  "ecommerce-flipkart-checkout",
+  "elevator-system",
+  "failure-handling-resilience",
+  "flash-sale-inventory",
+  "how-to-approach",
+  "how-to-approach-lld",
+  "idempotency-exactly-once",
+  "in-memory-key-value-store",
+  "indexing-internals",
+  "leaderboard-top-k-trending",
+  "load-balancing",
+  "message-queues",
+  "microservices-patterns",
+  "news-feed",
+  "notification-system",
+  "observability",
+  "observability-slos-at-scale",
+  "parking-lot",
+  "payment-processing-reliability",
+  "payment-system-upi",
+  "pub-sub-message-queue",
+  "rate-limiter-design",
+  "rate-limiter-lld",
+  "rate-limiting",
+  "replication",
+  "ride-hailing-uber",
+  "scalability-basics",
+  "search-autocomplete",
+  "security-auth",
+  "sharding-partitioning",
+  "snake-and-ladder",
+  "solid-principles",
+  "splitwise",
+  "ticket-booking-bookmyshow",
+  "unique-id-generation",
+  "url-shortener",
+  "webhook-delivery-system"
+ ]
+}

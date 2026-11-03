@@ -1,17 +1,18 @@
-import { Component, computed, inject, input, resource, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { QA } from '../core/models';
 import { ProgressService } from '../core/progress.service';
 import { CodePipe, MarkdownPipe } from '../shared/markdown.pipe';
 import { QaList } from '../shared/qa-list';
 import { Quiz } from '../shared/quiz';
-import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
+import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
 
 @Component({
   selector: 'app-final-day',
-  imports: [RouterLink, MarkdownPipe, CodePipe, Quiz, QaList, DoneToggle, ReviseToggle, NoteBox],
+  imports: [RouterLink, MarkdownPipe, CodePipe, Quiz, QaList, DoneToggle, ReviseToggle, NoteBox, PageState],
   template: `
     <a routerLink="/final-round" class="back">← Final Round</a>
     @if (data(); as d) {
@@ -23,13 +24,14 @@ import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
         <button [class.active]="tab() === 'coding'" (click)="tab.set('coding')">Coding ({{ d.day.coding.length }})</button>
         <button [class.active]="tab() === 'theory'" (click)="tab.set('theory')">Theory ({{ d.day.theory.length }})</button>
       </div>
+      <!-- hidden, not removed, so switching tabs does not throw away a test in progress -->
+      <div [hidden]="tab() !== 'mcq'">
+        <app-quiz [questions]="d.day.mcqs" [quizKey]="quizKey()" [timed]="true" [secondsPerQuestion]="72" />
+      </div>
       @switch (tab()) {
-        @case ('mcq') {
-          <app-quiz [questions]="d.day.mcqs" [quizKey]="quizKey()" [timed]="true" [secondsPerQuestion]="72" />
-        }
         @case ('coding') {
           @for (c of d.day.coding; track c.id; let i = $index) {
-            <section class="card coding" [class.done]="isDone(c.id)">
+            <section class="card coding" [id]="'item-' + c.id" [class.done]="isDone(c.id)" [class.target]="c.id === item()">
               <div class="card-head">
                 <h2>{{ i + 1 }}. {{ c.title }}</h2>
                 <div class="row">
@@ -61,13 +63,15 @@ import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
         }
         @case ('theory') {
           <p class="muted">Answer each out loud first (as you would in the interview), then open the model answer.</p>
-          <app-qa-list [items]="d.day.theory" section="final" [keyFn]="theoryKey" />
+          <app-qa-list [items]="d.day.theory" section="final" [keyFn]="theoryKey" [openIds]="item() ? [item()!] : []" />
         }
       }
       <div class="row">
         @if (d.day.day > 1) { <a class="btn" [routerLink]="['/final-round', d.day.day - 1]">← Day {{ d.day.day - 1 }}</a> }
         @if (d.day.day < d.count) { <a class="btn primary" [routerLink]="['/final-round', d.day.day + 1]">Day {{ d.day.day + 1 }} →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/final-round" backLabel="All final-round days" />
     }
   `,
 })
@@ -76,7 +80,11 @@ export class FinalDayPage {
   private progress = inject(ProgressService);
   private progressKeys = keys;
   day = input.required<string>();
-  private res = resource({ loader: () => this.content.finalRound() });
+  protected res = resource({ loader: () => this.content.finalRound() });
+  /** ?tab=coding or ?tab=theory, from search and revision-list links. */
+  tabParam = input<string>(undefined, { alias: 'tab' });
+  /** ?item=<id>: the coding problem to scroll to, or the theory question to open. */
+  item = input<string>();
   protected tab = signal<'mcq' | 'coding' | 'theory'>('mcq');
   private revealed = signal<Set<string>>(new Set());
 
@@ -92,4 +100,19 @@ export class FinalDayPage {
   isDone(id: string) { return this.progress.isDone(keys.final(id)); }
   reveal(id: string, what: string) { this.revealed.update(s => new Set(s).add(id + what)); }
   shown(id: string, what: string) { return this.revealed().has(id + what); }
+
+  constructor() {
+    effect(() => {
+      const t = this.tabParam();
+      untracked(() => this.tab.set(t === 'coding' || t === 'theory' ? t : 'mcq'));
+    });
+    effect(() => {
+      const id = this.item();
+      if (id && this.data()) setTimeout(() => document.getElementById('item-' + id)?.scrollIntoView({ block: 'start' }));
+    });
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? `Final round day ${d.day.day}: ${d.day.title}` : undefined;
+    });
+  }
 }

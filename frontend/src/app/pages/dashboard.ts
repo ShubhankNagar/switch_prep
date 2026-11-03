@@ -5,6 +5,10 @@ import { ContentService } from '../core/content.service';
 import { Section } from '../core/models';
 import { HabitService } from '../core/habit.service';
 import { ProgressService, toIso, todayIso } from '../core/progress.service';
+import { RecentService } from '../core/recent.service';
+import { GOOGLE_CLIENT_ID } from '../core/api.config';
+import { isDue } from '../core/review';
+import { SearchService } from '../shared/search';
 import { trapOfTheDay } from '../shared/trap-card';
 import { DoneToggle, LinkPipe, ProgressBar } from '../shared/ui';
 
@@ -20,6 +24,7 @@ interface SectionCard { section: Section; title: string; icon: string; link: str
         <h1>{{ greeting() }}</h1>
         <p class="muted">Goal: product-company offer (~15 LPA) in 60 days of study + 14 days of final-round practice.
           Started {{ progress.startDate() }} · <a routerLink="/account">change</a></p>
+        <button class="search-cta" (click)="openSearch()">🔍 Search any topic, problem or question… <kbd>/</kbd></button>
       </div>
       <div class="hero-stats">
         <div><b>{{ progress.streak() }}</b><span>day streak</span></div>
@@ -27,6 +32,30 @@ interface SectionCard { section: Section; title: string; icon: string; link: str
         <div><b>{{ overallPct() }}%</b><span>overall</span></div>
       </div>
     </section>
+
+    @if (isNew()) {
+      <section class="card start-here">
+        <h2>👋 New here? Start in three steps</h2>
+        <ol>
+          <li><b>Set your Day 1.</b> It is today ({{ progress.startDate() }}). Started earlier or starting later?
+            <a routerLink="/account">Change the start date</a>.</li>
+          <li><b>Open today's plan below</b> and tick tasks as you finish them. Every item on the site has a ✓ (done)
+            and a ☆ (revise later).</li>
+          <li><b>Find a weak spot fast</b> with search (press <kbd>/</kbd>) and try the <a routerLink="/traps">trap of the day</a>:
+            the questions most candidates get wrong.</li>
+        </ol>
+        <p class="muted small">Progress saves in this browser automatically.
+          @if (canSync()) { <a routerLink="/account">Sign in with Google</a> to keep it on every device. }</p>
+      </section>
+    }
+
+    @if (resume(); as r) {
+      <a class="card resume" [routerLink]="r.link | link">
+        <span class="big-icon">📖</span>
+        <span class="grow"><span class="muted small">Continue where you left off</span><br /><b>{{ r.title }}</b></span>
+        <span class="btn small primary">Resume →</span>
+      </a>
+    }
 
     @if (behind() > 0) {
       <div class="banner warn">You have {{ behind() }} unfinished plan task(s) from earlier days.
@@ -83,13 +112,20 @@ interface SectionCard { section: Section; title: string; icon: string; link: str
       </section>
     </div>
 
+    <a class="card resume" routerLink="/mock">
+      <span class="big-icon">🎤</span>
+      <span class="grow"><b>Mock interview</b><br />
+        <span class="muted small">10 questions, answered out loud against a timer, graded against the model answer.</span></span>
+      <span class="btn small">Start →</span>
+    </a>
+
     @if (trap(); as t) {
       <section class="card trap-teaser">
         <div class="card-head">
           <h2>🪤 Trap of the day</h2>
           <a [routerLink]="['/traps', t.id]" class="btn small primary">Try it →</a>
         </div>
-        <p><b>{{ t.title }}</b> <span class="muted small">· {{ t.frequency }} · most candidates get this wrong</span></p>
+        <p><b>{{ t.title }}</b> <span class="muted small">· most candidates get this wrong</span></p>
       </section>
     }
 
@@ -116,7 +152,8 @@ interface SectionCard { section: Section; title: string; icon: string; link: str
         }
       </div>
       <p class="muted small">Each square is a day; darker means more items completed.</p>
-      <p><a routerLink="/revision">★ {{ reviseCount() }} item(s) in your revision list</a></p>
+      <p><a routerLink="/revision">★ {{ reviseCount() }} item(s) in your revision list
+        @if (dueCount() > 0) { · <b>{{ dueCount() }} due for review</b> }</a></p>
     </section>
   `,
 })
@@ -126,8 +163,25 @@ export class Dashboard {
   private catalog = inject(CatalogService);
   protected habits = inject(HabitService);
   protected planKey = keys.plan;
-  private trapsRes = resource({ loader: () => this.content.traps() });
-  protected trap = computed(() => trapOfTheDay(this.trapsRes.value() ?? [], k => this.progress.isDone(k), todayIso()));
+  private recent = inject(RecentService);
+  protected trap = computed(() => {
+    const traps = (this.catalogRes.value() ?? [])
+      .filter(e => e.section === 'traps')
+      .map(e => ({ id: e.key.slice('trap:'.length), title: e.title }));
+    return trapOfTheDay(traps, k => this.progress.isDone(k), todayIso());
+  });
+  /** Nothing tracked yet on this device: show the getting-started steps. */
+  protected isNew = computed(() =>
+    Object.keys(this.progress.items()).length === 0 && this.progress.attempts().length === 0 && !this.recent.pages().length);
+  protected canSync = computed(() => !!GOOGLE_CLIENT_ID || this.progress.backendAvailable());
+  protected resume = computed(() => {
+    const r = this.recent.pages()[0];
+    return r ? { link: r.url, title: r.title } : undefined;
+  });
+  protected dueCount = computed(() => {
+    const now = Date.now();
+    return Object.values(this.progress.items()).filter(i => i.revise && isDue(i.updatedAt, now)).length;
+  });
   protected routineMet = computed(() => this.habits.today().statuses.filter(x => x.met).length);
 
   private planRes = resource({ loader: () => this.content.plan() });
@@ -178,9 +232,16 @@ export class Dashboard {
     return 'Interview mode';
   });
   protected greeting = computed(() => {
-    const name = this.progress.user()?.displayName ?? 'Raj';
-    return `Let's go, ${name}.`;
+    const first = this.progress.user()?.displayName?.trim().split(/\s+/)[0];
+    const h = new Date().getHours();
+    const hello = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    return first ? `${hello}, ${first}.` : `${hello}. Let's get you interview-ready.`;
   });
+
+  private search = inject(SearchService);
+  openSearch() {
+    this.search.open.set(true);
+  }
 
   protected behind = computed(() => {
     const days = this.planRes.value()?.days ?? [];

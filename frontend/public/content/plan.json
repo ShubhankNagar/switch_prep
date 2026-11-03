@@ -1,6 +1,6 @@
 {
- "intro": "This plan is **selective on purpose**: it schedules the high-yield part of the site (must-do problems, frequently asked questions, the senior topics product companies probe in 2026-27) and leaves the rest as optional depth. Each day has **DSA**, a **core** block, a **design** topic and one **trap** (a question most people get wrong). Interview-round playbooks appear on the day their material starts. Long days (6th and 7th of each week) carry more and an optional AI lesson. The last week before revision is lighter on purpose: use it to catch up. Tick tasks as you go; the **Daily Routine** page tracks your streak. After day 60, move to the **Final Round**.",
- "hoursPerDay": "About 2-4 hours on normal days and 3.5-6 on long days (optional AI lessons not counted). If a day runs over, finish it the next morning; the dashboard tracks what is pending.",
+ "intro": "This plan is **selective on purpose**: it schedules the high-yield part of the site (must-do problems, core questions, the senior topics product companies probe in 2026-27) and leaves the rest as optional depth. Each day has **DSA**, a **core** block, a **design** topic and one **trap** (a question most people get wrong). Interview-round playbooks appear on the day their material starts. Long days (6th and 7th of each week) carry more and an optional AI lesson. The last week before revision is lighter on purpose: use it to catch up. Tick tasks as you go; the **Daily Routine** page tracks your streak. After day 60, move to the **Final Round**.",
+ "hoursPerDay": "About 1-4 hours on normal days and 1-5 on long days (optional AI lessons not counted). If a day runs over, finish it the next morning; the dashboard tracks what is pending.",
  "weeks": [
   {
    "week": 1,
@@ -53,7 +53,7 @@
    "day": 1,
    "week": 1,
    "title": "Arrays & Hashing",
-   "focus": "DSA: Arrays & Hashing · Core Java · Design: How to Approach a System Design Interview · ~3.1 h",
+   "focus": "DSA: Arrays & Hashing · Core Java · Design: How to Approach a System Design Interview · ~3.3 h",
    "tasks": [
     {
      "id": "round-rounds-dsa-live-coding",
@@ -101,17 +101,24 @@
      "link": "/core/java?chapter=1"
     },
     {
-     "id": "core-java-chapter-2",
+     "id": "core-java-chapter-3",
      "type": "core",
-     "title": "Core Java: read \"Strings, Immutability and the String Pool\"",
+     "title": "Core Java: read \"equals(), hashCode() and the Object Class\"",
      "minutes": 20,
-     "link": "/core/java?chapter=2"
+     "link": "/core/java?chapter=3"
+    },
+    {
+     "id": "core-java-chapter-4",
+     "type": "core",
+     "title": "Core Java: read \"Collections Framework and HashMap Internals\"",
+     "minutes": 20,
+     "link": "/core/java?chapter=4"
     },
     {
      "id": "sd-system-design-concepts-how-to-approach",
      "type": "sd",
      "title": "HLD: How to Approach a System Design Interview",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/how-to-approach"
     }
    ]
@@ -120,7 +127,7 @@
    "day": 2,
    "week": 1,
    "title": "Arrays & Hashing",
-   "focus": "DSA: Arrays & Hashing · Core Java · Design: Back-of-the-Envelope Estimation · ~3.2 h",
+   "focus": "DSA: Arrays & Hashing · Core Java · Design: Back-of-the-Envelope Estimation · ~3.1 h",
    "tasks": [
     {
      "id": "career-read-the-strategy-guide-and-set-your-start-date",
@@ -154,25 +161,25 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-java-chapter-3",
+     "id": "core-java-chapter-5",
      "type": "core",
-     "title": "Core Java: read \"equals(), hashCode() and the Object Class\"",
+     "title": "Core Java: read \"ConcurrentHashMap and Concurrent Collections\"",
      "minutes": 20,
-     "link": "/core/java?chapter=3"
+     "link": "/core/java?chapter=5"
     },
     {
      "id": "core-java-qa-0",
      "type": "core",
-     "title": "Core Java: answer 9 frequently asked questions out loud (set 1 of 6)",
+     "title": "Core Java: answer 9 core questions out loud (set 1 of 3)",
      "minutes": 25,
-     "link": "/core/java?view=qa&filter=frequent-todo",
+     "link": "/core/java?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "sd-system-design-concepts-back-of-envelope",
      "type": "sd",
      "title": "HLD: Back-of-the-Envelope Estimation",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/back-of-envelope"
     }
    ]
@@ -181,7 +188,7 @@
    "day": 3,
    "week": 1,
    "title": "Arrays & Hashing",
-   "focus": "DSA: Arrays & Hashing · Core Java · Design: Scalability Basics: Vertical, Horizontal and Stateless Services · ~3.1 h",
+   "focus": "DSA: Arrays & Hashing · Core Java · Design: Scalability Basics: Vertical, Horizontal and Stateless Services · ~3.2 h",
    "tasks": [
     {
      "id": "career-rewrite-your-resume-every-bullet-action-tech-measurable-resu",
@@ -207,32 +214,38 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-arrays-hashing-subarray-sum-equals-k",
-     "type": "dsa",
-     "title": "Solve: Subarray Sum Equals K (Medium)",
-     "minutes": 40,
-     "link": "/dsa/arrays-hashing/subarray-sum-equals-k",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+     "id": "core-java-chapter-8",
+     "type": "core",
+     "title": "Core Java: read \"Java 8: Lambdas, Functional Interfaces and Optional\"",
+     "minutes": 20,
+     "link": "/core/java?chapter=8"
     },
     {
-     "id": "core-java-chapter-4",
+     "id": "core-java-chapter-9",
      "type": "core",
-     "title": "Core Java: read \"Collections Framework and HashMap Internals\"",
+     "title": "Core Java: read \"Streams API Deep Dive with Coding Patterns\"",
      "minutes": 20,
-     "link": "/core/java?chapter=4"
+     "link": "/core/java?chapter=9"
     },
     {
-     "id": "core-java-chapter-5",
+     "id": "core-java-chapter-10",
      "type": "core",
-     "title": "Core Java: read \"ConcurrentHashMap and Concurrent Collections\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=5"
+     "title": "Core Java: read \"Modern Java (11 to 25): Records, Sealed Classes, Pattern Matching, Virtual Threads\"",
+     "minutes": 25,
+     "link": "/core/java?chapter=10"
+    },
+    {
+     "id": "core-java-chapter-11",
+     "type": "core",
+     "title": "Core Java: read \"Multithreading Basics: Threads, synchronized, volatile\"",
+     "minutes": 25,
+     "link": "/core/java?chapter=11"
     },
     {
      "id": "sd-system-design-concepts-scalability-basics",
      "type": "sd",
      "title": "HLD: Scalability Basics: Vertical, Horizontal and Stateless Services",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/scalability-basics"
     }
    ]
@@ -241,7 +254,7 @@
    "day": 4,
    "week": 1,
    "title": "Arrays & Hashing",
-   "focus": "DSA: Arrays & Hashing · Core Java · Design: Load Balancing · ~3.1 h",
+   "focus": "DSA: Arrays & Hashing · Core Java · Design: Load Balancing · ~3.0 h",
    "tasks": [
     {
      "id": "round-rounds-online-assessment",
@@ -259,12 +272,72 @@
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
+     "id": "dsa-dsa-arrays-hashing-subarray-sum-equals-k",
+     "type": "dsa",
+     "title": "Solve: Subarray Sum Equals K (Medium)",
+     "minutes": 40,
+     "link": "/dsa/arrays-hashing/subarray-sum-equals-k",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
      "id": "dsa-dsa-arrays-hashing-maximum-subarray",
      "type": "dsa",
      "title": "Solve: Maximum Subarray (Kadane) (Medium)",
      "minutes": 40,
      "link": "/dsa/arrays-hashing/maximum-subarray",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-java-qa-1",
+     "type": "core",
+     "title": "Core Java: answer 9 core questions out loud (set 2 of 3)",
+     "minutes": 25,
+     "link": "/core/java?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-java-chapter-12",
+     "type": "core",
+     "title": "Core Java: read \"Concurrency Utilities: Locks, Executors, CompletableFuture, Deadlock\"",
+     "minutes": 20,
+     "link": "/core/java?chapter=12"
+    },
+    {
+     "id": "sd-system-design-concepts-load-balancing",
+     "type": "sd",
+     "title": "HLD: Load Balancing",
+     "minutes": 20,
+     "link": "/system-design/concepts/load-balancing"
+    }
+   ]
+  },
+  {
+   "day": 5,
+   "week": 1,
+   "title": "Arrays & Hashing",
+   "focus": "DSA: Arrays & Hashing · Core Java, Practical Concurrency & Idempotency · Design: Caching · ~3.8 h",
+   "tasks": [
+    {
+     "id": "career-update-linkedin-headline-about-and-naukri-profile-turn-on-op",
+     "type": "career",
+     "title": "Update LinkedIn headline, About, and Naukri profile; turn on Open to Work",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "round-rounds-concurrency-round",
+     "type": "round",
+     "title": "Round playbook: Concurrency Round (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/concurrency-round"
+    },
+    {
+     "id": "trap-traps-trap-java-mutable-hashmap-key",
+     "type": "trap",
+     "title": "Trap: Mutating a HashMap key after put()",
+     "minutes": 10,
+     "link": "/traps/trap-java-mutable-hashmap-key",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-arrays-hashing-sort-colors",
@@ -275,48 +348,55 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-java-chapter-6",
+     "id": "core-java-chapter-13",
      "type": "core",
-     "title": "Core Java: read \"Generics and Type Erasure\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=6"
+     "title": "Core Java: read \"JVM Internals: Memory, Class Loading, Garbage Collection\"",
+     "minutes": 25,
+     "link": "/core/java?chapter=13"
     },
     {
-     "id": "core-java-qa-1",
+     "id": "core-java-qa-2",
      "type": "core",
-     "title": "Core Java: answer 9 frequently asked questions out loud (set 2 of 6)",
+     "title": "Core Java: answer 9 core questions out loud (set 3 of 3)",
      "minutes": 25,
-     "link": "/core/java?view=qa&filter=frequent-todo",
+     "link": "/core/java?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "sd-system-design-concepts-load-balancing",
-     "type": "sd",
-     "title": "HLD: Load Balancing",
+     "id": "core-concurrency-practical-chapter-1",
+     "type": "core",
+     "title": "Practical Concurrency & Idempotency: read \"The Concurrency Round: Format and How to Answer\"",
      "minutes": 25,
-     "link": "/system-design/concepts/load-balancing"
+     "link": "/core/concurrency-practical?chapter=1"
+    },
+    {
+     "id": "core-concurrency-practical-chapter-2",
+     "type": "core",
+     "title": "Practical Concurrency & Idempotency: read \"Race Conditions in Real Systems\"",
+     "minutes": 25,
+     "link": "/core/concurrency-practical?chapter=2"
+    },
+    {
+     "id": "sd-system-design-concepts-caching",
+     "type": "sd",
+     "title": "HLD: Caching",
+     "minutes": 20,
+     "link": "/system-design/concepts/caching"
     }
    ]
   },
   {
-   "day": 5,
+   "day": 6,
    "week": 1,
-   "title": "Arrays & Hashing",
-   "focus": "DSA: Arrays & Hashing · Core Java · Design: Caching · ~3.2 h",
+   "title": "Arrays & Hashing + Two Pointers",
+   "focus": "DSA: Arrays & Hashing, Two Pointers · Practical Concurrency & Idempotency · Design: Databases: SQL vs NoSQL · ~5.0 h",
    "tasks": [
     {
-     "id": "career-update-linkedin-headline-about-and-naukri-profile-turn-on-op",
-     "type": "career",
-     "title": "Update LinkedIn headline, About, and Naukri profile; turn on Open to Work",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "trap-traps-trap-java-mutable-hashmap-key",
+     "id": "trap-traps-trap-concurrency-volatile-not-atomic",
      "type": "trap",
-     "title": "Trap: Mutating a HashMap key after put()",
+     "title": "Trap: volatile is not atomic (count++)",
      "minutes": 10,
-     "link": "/traps/trap-java-mutable-hashmap-key",
+     "link": "/traps/trap-concurrency-volatile-not-atomic",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -336,70 +416,11 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-java-chapter-7",
-     "type": "core",
-     "title": "Core Java: read \"Exception Handling\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=7"
-    },
-    {
-     "id": "core-java-chapter-8",
-     "type": "core",
-     "title": "Core Java: read \"Java 8: Lambdas, Functional Interfaces and Optional\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=8"
-    },
-    {
-     "id": "core-java-chapter-9",
-     "type": "core",
-     "title": "Core Java: read \"Streams API Deep Dive with Coding Patterns\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=9"
-    },
-    {
-     "id": "sd-system-design-concepts-caching",
-     "type": "sd",
-     "title": "HLD: Caching",
-     "minutes": 25,
-     "link": "/system-design/concepts/caching"
-    }
-   ]
-  },
-  {
-   "day": 6,
-   "week": 1,
-   "title": "Two Pointers",
-   "focus": "DSA: Two Pointers · Core Java · Design: Databases: SQL vs NoSQL · ~5.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-java-aslist-listof-immutability",
-     "type": "trap",
-     "title": "Trap: Arrays.asList vs List.of vs unmodifiable views",
-     "minutes": 10,
-     "link": "/traps/trap-java-aslist-listof-immutability",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-java-finally-return",
-     "type": "trap",
-     "title": "Trap: finally vs return",
-     "minutes": 10,
-     "link": "/traps/trap-java-finally-return",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
      "id": "dsa-dsa-two-pointers",
      "type": "dsa",
      "title": "Learn pattern: Two Pointers (read intro + template)",
      "minutes": 20,
      "link": "/dsa/two-pointers"
-    },
-    {
-     "id": "dsa-dsa-two-pointers-valid-palindrome",
-     "type": "dsa",
-     "title": "Solve: Valid Palindrome (Easy)",
-     "minutes": 25,
-     "link": "/dsa/two-pointers/valid-palindrome"
     },
     {
      "id": "dsa-dsa-two-pointers-3sum",
@@ -410,62 +431,52 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-two-pointers-container-with-most-water",
-     "type": "dsa",
-     "title": "Solve: Container With Most Water (Medium)",
-     "minutes": 40,
-     "link": "/dsa/two-pointers/container-with-most-water",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-java-qa-2",
+     "id": "core-concurrency-practical-chapter-3",
      "type": "core",
-     "title": "Core Java: answer 9 frequently asked questions out loud (set 3 of 6)",
+     "title": "Practical Concurrency & Idempotency: read \"Database Guards: Constraints, Conditional Updates and Task Claiming\"",
      "minutes": 25,
-     "link": "/core/java?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/concurrency-practical?chapter=3"
     },
     {
-     "id": "core-java-chapter-10",
+     "id": "core-concurrency-practical-chapter-4",
      "type": "core",
-     "title": "Core Java: read \"Modern Java (11 to 21): Records, Sealed Classes, Pattern Matching, Virtual Threads\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=10"
-    },
-    {
-     "id": "core-java-chapter-11",
-     "type": "core",
-     "title": "Core Java: read \"Multithreading Basics: Threads, synchronized, volatile\"",
+     "title": "Practical Concurrency & Idempotency: read \"Optimistic vs Pessimistic Locking in JPA\"",
      "minutes": 25,
-     "link": "/core/java?chapter=11"
+     "link": "/core/concurrency-practical?chapter=4"
     },
     {
-     "id": "core-java-chapter-12",
+     "id": "core-concurrency-practical-chapter-5",
      "type": "core",
-     "title": "Core Java: read \"Concurrency Utilities: Locks, Executors, CompletableFuture, Deadlock\"",
-     "minutes": 20,
-     "link": "/core/java?chapter=12"
-    },
-    {
-     "id": "core-java-qa-3",
-     "type": "core",
-     "title": "Core Java: answer 9 frequently asked questions out loud (set 4 of 6)",
+     "title": "Practical Concurrency & Idempotency: read \"Idempotency Keys and Exactly-Once Effects\"",
      "minutes": 25,
-     "link": "/core/java?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/concurrency-practical?chapter=5"
+    },
+    {
+     "id": "core-concurrency-practical-chapter-6",
+     "type": "core",
+     "title": "Practical Concurrency & Idempotency: read \"Distributed Locks: Redis, Leases and Fencing Tokens\"",
+     "minutes": 25,
+     "link": "/core/concurrency-practical?chapter=6"
+    },
+    {
+     "id": "core-concurrency-practical-chapter-7",
+     "type": "core",
+     "title": "Practical Concurrency & Idempotency: read \"Java-Level Concurrency for Practical Rounds\"",
+     "minutes": 25,
+     "link": "/core/concurrency-practical?chapter=7"
     },
     {
      "id": "sd-system-design-concepts-databases-sql-vs-nosql",
      "type": "sd",
      "title": "HLD: Databases: SQL vs NoSQL",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/databases-sql-vs-nosql"
     },
     {
      "id": "sd-system-design-concepts-indexing-internals",
      "type": "sd",
      "title": "HLD: Indexing Internals: B+ Trees, LSM Trees and InnoDB",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/indexing-internals"
     },
     {
@@ -480,31 +491,24 @@
   {
    "day": 7,
    "week": 1,
-   "title": "Two Pointers + Sliding Window",
-   "focus": "DSA: Two Pointers, Sliding Window · Core Java, Practical Concurrency & Idempotency · Design: How to Approach an LLD / Machine Coding Round · ~5.4 h",
+   "title": "Two Pointers",
+   "focus": "DSA: Two Pointers · Practical Concurrency & Idempotency, Spring & Spring Boot · Design: How to Approach an LLD / Machine Coding Round · ~5.0 h",
    "tasks": [
     {
-     "id": "round-rounds-concurrency-round",
-     "type": "round",
-     "title": "Round playbook: Concurrency Round (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/concurrency-round"
-    },
-    {
-     "id": "trap-traps-trap-java-overload-resolution",
+     "id": "trap-traps-trap-concurrency-chm-check-then-act",
      "type": "trap",
-     "title": "Trap: Overloading with null, widening, boxing, varargs",
+     "title": "Trap: ConcurrentHashMap check-then-act race",
      "minutes": 10,
-     "link": "/traps/trap-java-overload-resolution",
+     "link": "/traps/trap-concurrency-chm-check-then-act",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-java-int-overflow-math-abs",
-     "type": "trap",
-     "title": "Trap: Integer overflow and Math.abs(Integer.MIN_VALUE)",
-     "minutes": 10,
-     "link": "/traps/trap-java-int-overflow-math-abs",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+     "id": "dsa-dsa-two-pointers-container-with-most-water",
+     "type": "dsa",
+     "title": "Solve: Container With Most Water (Medium)",
+     "minutes": 40,
+     "link": "/dsa/two-pointers/container-with-most-water",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-two-pointers-trapping-rain-water",
@@ -515,49 +519,48 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-sliding-window",
-     "type": "dsa",
-     "title": "Learn pattern: Sliding Window (read intro + template)",
-     "minutes": 20,
-     "link": "/dsa/sliding-window"
-    },
-    {
-     "id": "dsa-dsa-sliding-window-longest-substring-without-repeating-chara",
-     "type": "dsa",
-     "title": "Solve: Longest Substring Without Repeating Characters (Medium)",
-     "minutes": 40,
-     "link": "/dsa/sliding-window/longest-substring-without-repeating-characters",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-java-chapter-13",
+     "id": "core-concurrency-practical-chapter-8",
      "type": "core",
-     "title": "Core Java: read \"JVM Internals: Memory, Class Loading, Garbage Collection\"",
+     "title": "Practical Concurrency & Idempotency: read \"Testing Concurrency: Harnesses, Real Databases and jcstress\"",
      "minutes": 25,
-     "link": "/core/java?chapter=13"
+     "link": "/core/concurrency-practical?chapter=8"
     },
     {
-     "id": "core-java-qa-4",
+     "id": "core-concurrency-practical-qa-0",
      "type": "core",
-     "title": "Core Java: answer 8 frequently asked questions out loud (set 5 of 6)",
-     "minutes": 20,
-     "link": "/core/java?view=qa&filter=frequent-todo",
+     "title": "Practical Concurrency & Idempotency: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/concurrency-practical?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "core-java-qa-5",
+     "id": "core-spring-boot-chapter-1",
      "type": "core",
-     "title": "Core Java: answer 8 frequently asked questions out loud (set 6 of 6)",
+     "title": "Spring & Spring Boot: read \"IoC, Dependency Injection and the ApplicationContext\"",
      "minutes": 20,
-     "link": "/core/java?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/spring-boot?chapter=1"
     },
     {
-     "id": "core-concurrency-practical-chapter-1",
+     "id": "core-spring-boot-chapter-2",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"The Concurrency Round: Format and How to Answer\"",
+     "title": "Spring & Spring Boot: read \"Bean Scopes and Bean Lifecycle\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=2"
+    },
+    {
+     "id": "core-spring-boot-chapter-3",
+     "type": "core",
+     "title": "Spring & Spring Boot: read \"Spring Boot: Auto-configuration, Starters and Startup\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=3"
+    },
+    {
+     "id": "core-spring-boot-qa-0",
+     "type": "core",
+     "title": "Spring & Spring Boot: answer 10 core questions out loud (set 1 of 3)",
      "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=1"
+     "link": "/core/spring-boot?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "sd-system-design-lld-fundamentals-how-to-approach-lld",
@@ -570,7 +573,7 @@
      "id": "sd-system-design-concepts-replication",
      "type": "sd",
      "title": "HLD: Database Replication",
-     "minutes": 25,
+     "minutes": 20,
      "link": "/system-design/concepts/replication"
     },
     {
@@ -593,14 +596,81 @@
    "day": 8,
    "week": 2,
    "title": "Sliding Window",
-   "focus": "DSA: Sliding Window · Practical Concurrency & Idempotency · Design: SOLID Principles with Bad vs Good Java · ~3.2 h",
+   "focus": "DSA: Sliding Window · Spring & Spring Boot · Design: SOLID Principles with Bad vs Good Java · ~3.1 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-concurrency-volatile-not-atomic",
+     "id": "trap-traps-trap-spring-transactional-self-invocation",
      "type": "trap",
-     "title": "Trap: volatile is not atomic (count++)",
+     "title": "Trap: @Transactional self-invocation (proxy bypass)",
      "minutes": 10,
-     "link": "/traps/trap-concurrency-volatile-not-atomic",
+     "link": "/traps/trap-spring-transactional-self-invocation",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-sliding-window",
+     "type": "dsa",
+     "title": "Learn pattern: Sliding Window (read intro + template)",
+     "minutes": 20,
+     "link": "/dsa/sliding-window"
+    },
+    {
+     "id": "dsa-dsa-sliding-window-longest-substring-without-repeating-chara",
+     "type": "dsa",
+     "title": "Solve: Longest Substring Without Repeating Characters (Medium)",
+     "minutes": 40,
+     "link": "/dsa/sliding-window/longest-substring-without-repeating-characters",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-spring-boot-chapter-5",
+     "type": "core",
+     "title": "Spring & Spring Boot: read \"Building REST APIs: Controllers, Exception Handling, Validation\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=5"
+    },
+    {
+     "id": "core-spring-boot-chapter-6",
+     "type": "core",
+     "title": "Spring & Spring Boot: read \"Spring Data JPA and Hibernate Essentials\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=6"
+    },
+    {
+     "id": "core-spring-boot-chapter-7",
+     "type": "core",
+     "title": "Spring & Spring Boot: read \"The N+1 Problem, Fetching Strategies and JPA Performance\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=7"
+    },
+    {
+     "id": "core-spring-boot-qa-1",
+     "type": "core",
+     "title": "Spring & Spring Boot: answer 9 core questions out loud (set 2 of 3)",
+     "minutes": 25,
+     "link": "/core/spring-boot?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "sd-system-design-lld-fundamentals-solid-principles",
+     "type": "sd",
+     "title": "LLD: SOLID Principles with Bad vs Good Java",
+     "minutes": 30,
+     "link": "/system-design/lld-fundamentals/solid-principles"
+    }
+   ]
+  },
+  {
+   "day": 9,
+   "week": 2,
+   "title": "Sliding Window",
+   "focus": "DSA: Sliding Window · Spring & Spring Boot · Design: Sharding and Partitioning · ~3.2 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-spring-rollback-checked-exception",
+     "type": "trap",
+     "title": "Trap: No rollback on checked exceptions by default",
+     "minutes": 10,
+     "link": "/traps/trap-spring-rollback-checked-exception",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -620,47 +690,69 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-concurrency-practical-chapter-2",
+     "id": "core-spring-boot-chapter-8",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Race Conditions in Real Systems\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=2"
+     "title": "Spring & Spring Boot: read \"Transactions: @Transactional, Propagation, Isolation and Pitfalls\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=8"
     },
     {
-     "id": "core-concurrency-practical-chapter-3",
+     "id": "core-spring-boot-chapter-9",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Database Guards: Constraints, Conditional Updates and Task Claiming\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=3"
+     "title": "Spring & Spring Boot: read \"Spring Security: Filter Chain, Authentication, JWT and OAuth2\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=9"
     },
     {
-     "id": "core-concurrency-practical-chapter-4",
+     "id": "core-spring-boot-chapter-12",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Optimistic vs Pessimistic Locking in JPA\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=4"
+     "title": "Spring & Spring Boot: read \"Spring AOP and Proxies\"",
+     "minutes": 20,
+     "link": "/core/spring-boot?chapter=12"
     },
     {
-     "id": "sd-system-design-lld-fundamentals-solid-principles",
+     "id": "core-spring-boot-qa-2",
+     "type": "core",
+     "title": "Spring & Spring Boot: answer 9 core questions out loud (set 3 of 3)",
+     "minutes": 25,
+     "link": "/core/spring-boot?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "sd-system-design-concepts-sharding-partitioning",
      "type": "sd",
-     "title": "LLD: SOLID Principles with Bad vs Good Java",
-     "minutes": 30,
-     "link": "/system-design/lld-fundamentals/solid-principles"
+     "title": "HLD: Sharding and Partitioning",
+     "minutes": 20,
+     "link": "/system-design/concepts/sharding-partitioning"
     }
    ]
   },
   {
-   "day": 9,
+   "day": 10,
    "week": 2,
    "title": "Sliding Window + Stack & Monotonic Stack",
-   "focus": "DSA: Sliding Window, Stack & Monotonic Stack · Practical Concurrency & Idempotency · Design: Sharding and Partitioning · ~3.1 h",
+   "focus": "DSA: Sliding Window, Stack & Monotonic Stack · SQL & MySQL · Design: Creational Patterns: Singleton, Factory, Abstract Factory, Builder, Prototype · ~3.3 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-concurrency-chm-check-then-act",
+     "id": "career-write-your-2-minute-project-story-and-practise-it-out-loud",
+     "type": "career",
+     "title": "Write your 2-minute project story and practise it out loud",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "round-rounds-project-deep-dive",
+     "type": "round",
+     "title": "Round playbook: Project Deep Dive (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/project-deep-dive"
+    },
+    {
+     "id": "trap-traps-trap-sql-null-comparison",
      "type": "trap",
-     "title": "Trap: ConcurrentHashMap check-then-act race",
+     "title": "Trap: NULL = NULL and <> with NULLs",
      "minutes": 10,
-     "link": "/traps/trap-concurrency-chm-check-then-act",
+     "link": "/traps/trap-sql-null-comparison",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -687,86 +779,11 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-concurrency-practical-qa-0",
+     "id": "core-sql-chapter-2",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/concurrency-practical?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-concurrency-practical-chapter-5",
-     "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Idempotency Keys and Exactly-Once Effects\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=5"
-    },
-    {
-     "id": "core-concurrency-practical-chapter-6",
-     "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Distributed Locks: Redis, Leases and Fencing Tokens\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=6"
-    },
-    {
-     "id": "sd-system-design-concepts-sharding-partitioning",
-     "type": "sd",
-     "title": "HLD: Sharding and Partitioning",
-     "minutes": 25,
-     "link": "/system-design/concepts/sharding-partitioning"
-    }
-   ]
-  },
-  {
-   "day": 10,
-   "week": 2,
-   "title": "Stack & Monotonic Stack",
-   "focus": "DSA: Stack & Monotonic Stack · Practical Concurrency & Idempotency · Design: Creational Patterns: Singleton, Factory, Abstract Factory, Builder, Prototype · ~3.3 h",
-   "tasks": [
-    {
-     "id": "career-write-your-2-minute-project-story-and-practise-it-out-loud",
-     "type": "career",
-     "title": "Write your 2-minute project story and practise it out loud",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "round-rounds-project-deep-dive",
-     "type": "round",
-     "title": "Round playbook: Project Deep Dive (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/project-deep-dive"
-    },
-    {
-     "id": "trap-traps-trap-concurrency-hashmap-shared",
-     "type": "trap",
-     "title": "Trap: Plain HashMap shared between threads",
-     "minutes": 10,
-     "link": "/traps/trap-concurrency-hashmap-shared",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-stack-min-stack",
-     "type": "dsa",
-     "title": "Solve: Min Stack (Medium)",
-     "minutes": 40,
-     "link": "/dsa/stack/min-stack",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-stack-daily-temperatures",
-     "type": "dsa",
-     "title": "Solve: Daily Temperatures (Medium)",
-     "minutes": 40,
-     "link": "/dsa/stack/daily-temperatures",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-concurrency-practical-chapter-7",
-     "type": "core",
-     "title": "Practical Concurrency & Idempotency: read \"Java-Level Concurrency for Practical Rounds\"",
-     "minutes": 25,
-     "link": "/core/concurrency-practical?chapter=7"
+     "title": "SQL & MySQL: read \"GROUP BY, HAVING, Aggregates, Subqueries and CTEs\"",
+     "minutes": 20,
+     "link": "/core/sql?chapter=2"
     },
     {
      "id": "sd-system-design-lld-fundamentals-design-patterns-creational",
@@ -781,15 +798,97 @@
    "day": 11,
    "week": 2,
    "title": "Stack & Monotonic Stack",
-   "focus": "DSA: Stack & Monotonic Stack · Practical Concurrency & Idempotency, Spring & Spring Boot · Design: Consistent Hashing · ~3.2 h",
+   "focus": "DSA: Stack & Monotonic Stack · SQL & MySQL · Design: Consistent Hashing · ~3.0 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-concurrency-deadlock-lock-ordering",
+     "id": "trap-traps-trap-sql-not-in-with-null",
      "type": "trap",
-     "title": "Trap: Deadlock from inconsistent lock order",
+     "title": "Trap: NOT IN with a NULL in the subquery",
      "minutes": 10,
-     "link": "/traps/trap-concurrency-deadlock-lock-ordering",
+     "link": "/traps/trap-sql-not-in-with-null",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-stack-min-stack",
+     "type": "dsa",
+     "title": "Solve: Min Stack (Medium)",
+     "minutes": 40,
+     "link": "/dsa/stack/min-stack",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-sql-chapter-3",
+     "type": "core",
+     "title": "SQL & MySQL: read \"Window Functions\"",
+     "minutes": 20,
+     "link": "/core/sql?chapter=3"
+    },
+    {
+     "id": "core-sql-chapter-4",
+     "type": "core",
+     "title": "SQL & MySQL: read \"Indexes in MySQL InnoDB: B+Trees, Clustered, Composite, Covering\"",
+     "minutes": 25,
+     "link": "/core/sql?chapter=4"
+    },
+    {
+     "id": "core-sql-qa-0",
+     "type": "core",
+     "title": "SQL & MySQL: answer 9 core questions out loud (set 1 of 3)",
+     "minutes": 25,
+     "link": "/core/sql?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-sql-chapter-5",
+     "type": "core",
+     "title": "SQL & MySQL: read \"EXPLAIN and Query Optimization\"",
+     "minutes": 20,
+     "link": "/core/sql?chapter=5"
+    },
+    {
+     "id": "core-sql-chapter-7",
+     "type": "core",
+     "title": "SQL & MySQL: read \"Transactions, ACID and Isolation Levels in InnoDB\"",
+     "minutes": 20,
+     "link": "/core/sql?chapter=7"
+    },
+    {
+     "id": "sd-system-design-concepts-consistent-hashing",
+     "type": "sd",
+     "title": "HLD: Consistent Hashing",
+     "minutes": 20,
+     "link": "/system-design/concepts/consistent-hashing"
+    }
+   ]
+  },
+  {
+   "day": 12,
+   "week": 2,
+   "title": "Stack & Monotonic Stack",
+   "focus": "DSA: Stack & Monotonic Stack · SQL & MySQL · Design: Structural Patterns: Adapter, Decorator, Facade, Proxy, Composite · ~3.2 h",
+   "tasks": [
+    {
+     "id": "round-rounds-resume-deep-dive",
+     "type": "round",
+     "title": "Round playbook: Resume Deep Dive (your own stack) (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/resume-deep-dive"
+    },
+    {
+     "id": "trap-traps-trap-sql-left-join-where-filter",
+     "type": "trap",
+     "title": "Trap: WHERE on the right table turns LEFT JOIN into INNER",
+     "minutes": 10,
+     "link": "/traps/trap-sql-left-join-where-filter",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-stack-daily-temperatures",
+     "type": "dsa",
+     "title": "Solve: Daily Temperatures (Medium)",
+     "minutes": 40,
+     "link": "/dsa/stack/daily-temperatures",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-stack-largest-rectangle-in-histogram",
@@ -800,99 +899,18 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-stack-asteroid-collision",
-     "type": "dsa",
-     "title": "Solve: Asteroid Collision (Medium)",
-     "minutes": 40,
-     "link": "/dsa/stack/asteroid-collision"
-    },
-    {
-     "id": "core-concurrency-practical-qa-1",
+     "id": "core-sql-chapter-8",
      "type": "core",
-     "title": "Practical Concurrency & Idempotency: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/concurrency-practical?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-spring-boot-chapter-1",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"IoC, Dependency Injection and the ApplicationContext\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=1"
-    },
-    {
-     "id": "core-spring-boot-chapter-2",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Bean Scopes and Bean Lifecycle\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=2"
-    },
-    {
-     "id": "core-spring-boot-chapter-3",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Spring Boot: Auto-configuration, Starters and Startup\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=3"
-    },
-    {
-     "id": "sd-system-design-concepts-consistent-hashing",
-     "type": "sd",
-     "title": "HLD: Consistent Hashing",
+     "title": "SQL & MySQL: read \"InnoDB Locking, MVCC and Deadlocks\"",
      "minutes": 25,
-     "link": "/system-design/concepts/consistent-hashing"
-    }
-   ]
-  },
-  {
-   "day": 12,
-   "week": 2,
-   "title": "Binary Search",
-   "focus": "DSA: Binary Search · Spring & Spring Boot · Design: Structural Patterns: Adapter, Decorator, Facade, Proxy, Composite · ~3.1 h",
-   "tasks": [
-    {
-     "id": "round-rounds-resume-deep-dive",
-     "type": "round",
-     "title": "Round playbook: Resume Deep Dive (your own stack) (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/resume-deep-dive"
+     "link": "/core/sql?chapter=8"
     },
     {
-     "id": "trap-traps-trap-spring-transactional-self-invocation",
-     "type": "trap",
-     "title": "Trap: @Transactional self-invocation (proxy bypass)",
-     "minutes": 10,
-     "link": "/traps/trap-spring-transactional-self-invocation",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-binary-search",
-     "type": "dsa",
-     "title": "Learn pattern: Binary Search (read intro + template)",
-     "minutes": 20,
-     "link": "/dsa/binary-search"
-    },
-    {
-     "id": "dsa-dsa-binary-search-search-a-2d-matrix",
-     "type": "dsa",
-     "title": "Solve: Search a 2D Matrix (Medium)",
-     "minutes": 40,
-     "link": "/dsa/binary-search/search-a-2d-matrix"
-    },
-    {
-     "id": "dsa-dsa-binary-search-search-in-rotated-sorted-array",
-     "type": "dsa",
-     "title": "Solve: Search in Rotated Sorted Array (Medium)",
-     "minutes": 40,
-     "link": "/dsa/binary-search/search-in-rotated-sorted-array",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-spring-boot-qa-0",
+     "id": "core-sql-qa-1",
      "type": "core",
-     "title": "Spring & Spring Boot: answer 9 frequently asked questions out loud (set 1 of 5)",
+     "title": "SQL & MySQL: answer 9 core questions out loud (set 2 of 3)",
      "minutes": 25,
-     "link": "/core/spring-boot?view=qa&filter=frequent-todo",
+     "link": "/core/sql?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
@@ -908,7 +926,7 @@
    "day": 13,
    "week": 2,
    "title": "Binary Search",
-   "focus": "DSA: Binary Search · Spring & Spring Boot · Design: Design a Parking Lot · ~5.3 h",
+   "focus": "DSA: Binary Search · SQL & MySQL · Design: Design a Parking Lot · ~4.9 h",
    "tasks": [
     {
      "id": "round-rounds-machine-coding-lld",
@@ -918,20 +936,27 @@
      "link": "/rounds/machine-coding-lld"
     },
     {
-     "id": "trap-traps-trap-spring-rollback-checked-exception",
+     "id": "trap-traps-trap-sql-group-by-nonaggregated-column",
      "type": "trap",
-     "title": "Trap: No rollback on checked exceptions by default",
+     "title": "Trap: Non-aggregated column in GROUP BY (ONLY_FULL_GROUP_BY)",
      "minutes": 10,
-     "link": "/traps/trap-spring-rollback-checked-exception",
+     "link": "/traps/trap-sql-group-by-nonaggregated-column",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-spring-async-self-invocation",
-     "type": "trap",
-     "title": "Trap: @Async self-invocation, void return and the default executor",
-     "minutes": 10,
-     "link": "/traps/trap-spring-async-self-invocation",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+     "id": "dsa-dsa-binary-search",
+     "type": "dsa",
+     "title": "Learn pattern: Binary Search (read intro + template)",
+     "minutes": 20,
+     "link": "/dsa/binary-search"
+    },
+    {
+     "id": "dsa-dsa-binary-search-search-in-rotated-sorted-array",
+     "type": "dsa",
+     "title": "Solve: Search in Rotated Sorted Array (Medium)",
+     "minutes": 40,
+     "link": "/dsa/binary-search/search-in-rotated-sorted-array",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-binary-search-find-first-and-last-position-of-element-in",
@@ -940,6 +965,66 @@
      "minutes": 40,
      "link": "/dsa/binary-search/find-first-and-last-position-of-element-in-sorted-array",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-sql-chapter-10",
+     "type": "core",
+     "title": "SQL & MySQL: read \"Replication, Scaling, Partitioning and MySQL Architecture\"",
+     "minutes": 25,
+     "link": "/core/sql?chapter=10"
+    },
+    {
+     "id": "core-sql-qa-2",
+     "type": "core",
+     "title": "SQL & MySQL: answer 9 core questions out loud (set 3 of 3)",
+     "minutes": 25,
+     "link": "/core/sql?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "sd-system-design-lld-problems-parking-lot",
+     "type": "sd",
+     "title": "Machine coding: Design a Parking Lot",
+     "minutes": 90,
+     "link": "/system-design/lld-problems/parking-lot",
+     "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
+    },
+    {
+     "id": "sd-system-design-concepts-cap-pacelc-consistency",
+     "type": "sd",
+     "title": "HLD: CAP, PACELC and Consistency Models",
+     "minutes": 20,
+     "link": "/system-design/concepts/cap-pacelc-consistency"
+    },
+    {
+     "id": "ai-ai-m01-python-m01-l3-functions",
+     "type": "ai",
+     "title": "(Optional) AI course: Functions, Lambdas, Closures & Decorators",
+     "minutes": 50,
+     "link": "/ai/m01-python/m01-l3-functions"
+    }
+   ]
+  },
+  {
+   "day": 14,
+   "week": 2,
+   "title": "Binary Search",
+   "focus": "DSA: Binary Search · Microservices & Distributed Systems · Design: Design Splitwise (Expense Sharing) · ~5.1 h",
+   "tasks": [
+    {
+     "id": "career-build-a-target-list-of-40-companies-find-2-referral-contacts",
+     "type": "career",
+     "title": "Build a target list of 40 companies; find 2 referral contacts at each",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "trap-traps-trap-distributed-systems-timeout-is-unknown",
+     "type": "trap",
+     "title": "Trap: A timeout is not a failure",
+     "minutes": 10,
+     "link": "/traps/trap-distributed-systems-timeout-is-unknown",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-binary-search-koko-eating-bananas",
@@ -958,101 +1043,11 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-spring-boot-chapter-4",
+     "id": "core-microservices-chapter-1",
      "type": "core",
-     "title": "Spring & Spring Boot: read \"Configuration, Profiles and Externalised Properties\"",
+     "title": "Microservices & Distributed Systems: read \"Monolith vs Microservices\"",
      "minutes": 20,
-     "link": "/core/spring-boot?chapter=4"
-    },
-    {
-     "id": "core-spring-boot-chapter-5",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Building REST APIs: Controllers, Exception Handling, Validation\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=5"
-    },
-    {
-     "id": "sd-system-design-lld-problems-parking-lot",
-     "type": "sd",
-     "title": "Machine coding: Design a Parking Lot",
-     "minutes": 90,
-     "link": "/system-design/lld-problems/parking-lot",
-     "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
-    },
-    {
-     "id": "sd-system-design-concepts-cap-pacelc-consistency",
-     "type": "sd",
-     "title": "HLD: CAP, PACELC and Consistency Models",
-     "minutes": 25,
-     "link": "/system-design/concepts/cap-pacelc-consistency"
-    },
-    {
-     "id": "ai-ai-m01-python-m01-l3-functions",
-     "type": "ai",
-     "title": "(Optional) AI course: Functions, Lambdas, Closures & Decorators",
-     "minutes": 50,
-     "link": "/ai/m01-python/m01-l3-functions"
-    }
-   ]
-  },
-  {
-   "day": 14,
-   "week": 2,
-   "title": "Binary Search + Linked List",
-   "focus": "DSA: Binary Search, Linked List · Spring & Spring Boot · Design: Design Splitwise (Expense Sharing) · ~5.3 h",
-   "tasks": [
-    {
-     "id": "career-build-a-target-list-of-40-companies-find-2-referral-contacts",
-     "type": "career",
-     "title": "Build a target list of 40 companies; find 2 referral contacts at each",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "trap-traps-trap-spring-field-vs-constructor-injection",
-     "type": "trap",
-     "title": "Trap: Field injection vs constructor injection",
-     "minutes": 10,
-     "link": "/traps/trap-spring-field-vs-constructor-injection",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-spring-singleton-thread-safety",
-     "type": "trap",
-     "title": "Trap: Are Spring singleton beans thread-safe?",
-     "minutes": 10,
-     "link": "/traps/trap-spring-singleton-thread-safety",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-binary-search-median-of-two-sorted-arrays",
-     "type": "dsa",
-     "title": "Solve: Median of Two Sorted Arrays (Hard)",
-     "minutes": 40,
-     "link": "/dsa/binary-search/median-of-two-sorted-arrays",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-linked-list",
-     "type": "dsa",
-     "title": "Learn pattern: Linked List (read intro + template)",
-     "minutes": 20,
-     "link": "/dsa/linked-list"
-    },
-    {
-     "id": "dsa-dsa-linked-list-reverse-linked-list",
-     "type": "dsa",
-     "title": "Solve: Reverse Linked List (Easy)",
-     "minutes": 25,
-     "link": "/dsa/linked-list/reverse-linked-list",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-spring-boot-chapter-6",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Spring Data JPA and Hibernate Essentials\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=6"
+     "link": "/core/microservices?chapter=1"
     },
     {
      "id": "sd-system-design-lld-problems-splitwise",
@@ -1088,15 +1083,97 @@
   {
    "day": 15,
    "week": 3,
-   "title": "Linked List",
-   "focus": "DSA: Linked List · Spring & Spring Boot · Design: Transactions, Isolation Levels and Distributed Transactions · ~3.3 h",
+   "title": "Binary Search + Linked List",
+   "focus": "DSA: Binary Search, Linked List · Microservices & Distributed Systems · Design: Message Queues and Event Streaming (Kafka vs RabbitMQ) · ~3.3 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-spring-unexpected-rollback",
+     "id": "trap-traps-trap-distributed-systems-exactly-once-myth",
      "type": "trap",
-     "title": "Trap: Caught exception, yet UnexpectedRollbackException",
+     "title": "Trap: \"Kafka gives exactly-once, so no dedupe needed\"",
      "minutes": 10,
-     "link": "/traps/trap-spring-unexpected-rollback",
+     "link": "/traps/trap-distributed-systems-exactly-once-myth",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-binary-search-median-of-two-sorted-arrays",
+     "type": "dsa",
+     "title": "Solve: Median of Two Sorted Arrays (Hard)",
+     "minutes": 40,
+     "link": "/dsa/binary-search/median-of-two-sorted-arrays",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "dsa-dsa-linked-list",
+     "type": "dsa",
+     "title": "Learn pattern: Linked List (read intro + template)",
+     "minutes": 20,
+     "link": "/dsa/linked-list"
+    },
+    {
+     "id": "dsa-dsa-linked-list-reverse-linked-list",
+     "type": "dsa",
+     "title": "Solve: Reverse Linked List (Easy)",
+     "minutes": 25,
+     "link": "/dsa/linked-list/reverse-linked-list",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-microservices-chapter-2",
+     "type": "core",
+     "title": "Microservices & Distributed Systems: read \"Service Discovery, API Gateway and Config Server\"",
+     "minutes": 20,
+     "link": "/core/microservices?chapter=2"
+    },
+    {
+     "id": "core-microservices-qa-0",
+     "type": "core",
+     "title": "Microservices & Distributed Systems: answer 9 core questions out loud (set 1 of 3)",
+     "minutes": 25,
+     "link": "/core/microservices?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-microservices-chapter-3",
+     "type": "core",
+     "title": "Microservices & Distributed Systems: read \"Inter-service Communication: REST, Feign, WebClient, gRPC\"",
+     "minutes": 20,
+     "link": "/core/microservices?chapter=3"
+    },
+    {
+     "id": "core-microservices-chapter-4",
+     "type": "core",
+     "title": "Microservices & Distributed Systems: read \"Apache Kafka for Event-Driven Microservices\"",
+     "minutes": 20,
+     "link": "/core/microservices?chapter=4"
+    },
+    {
+     "id": "sd-system-design-concepts-message-queues",
+     "type": "sd",
+     "title": "HLD: Message Queues and Event Streaming (Kafka vs RabbitMQ)",
+     "minutes": 20,
+     "link": "/system-design/concepts/message-queues"
+    }
+   ]
+  },
+  {
+   "day": 16,
+   "week": 3,
+   "title": "Linked List",
+   "focus": "DSA: Linked List · Microservices & Distributed Systems, Production Debugging & Incidents · Design: Concurrency for LLD: Making Designs Thread-Safe · ~3.5 h",
+   "tasks": [
+    {
+     "id": "round-rounds-debugging-production-round",
+     "type": "round",
+     "title": "Round playbook: Debugging & Production Incident Round (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/debugging-production-round"
+    },
+    {
+     "id": "trap-traps-trap-distributed-systems-dual-write",
+     "type": "trap",
+     "title": "Trap: Dual write: DB + Kafka in one method",
+     "minutes": 10,
+     "link": "/traps/trap-distributed-systems-dual-write",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -1108,109 +1185,41 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-linked-list-linked-list-cycle-ii",
-     "type": "dsa",
-     "title": "Solve: Linked List Cycle II (Medium)",
-     "minutes": 40,
-     "link": "/dsa/linked-list/linked-list-cycle-ii",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-spring-boot-qa-1",
+     "id": "core-microservices-qa-1",
      "type": "core",
-     "title": "Spring & Spring Boot: answer 8 frequently asked questions out loud (set 2 of 5)",
-     "minutes": 20,
-     "link": "/core/spring-boot?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-spring-boot-chapter-7",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"The N+1 Problem, Fetching Strategies and JPA Performance\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=7"
-    },
-    {
-     "id": "core-spring-boot-chapter-8",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Transactions: @Transactional, Propagation, Isolation and Pitfalls\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=8"
-    },
-    {
-     "id": "core-spring-boot-chapter-9",
-     "type": "core",
-     "title": "Spring & Spring Boot: read \"Spring Security: Filter Chain, Authentication, JWT and OAuth2\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=9"
-    },
-    {
-     "id": "core-spring-boot-qa-2",
-     "type": "core",
-     "title": "Spring & Spring Boot: answer 8 frequently asked questions out loud (set 3 of 5)",
-     "minutes": 20,
-     "link": "/core/spring-boot?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-concepts-transactions-isolation",
-     "type": "sd",
-     "title": "HLD: Transactions, Isolation Levels and Distributed Transactions",
+     "title": "Microservices & Distributed Systems: answer 9 core questions out loud (set 2 of 3)",
      "minutes": 25,
-     "link": "/system-design/concepts/transactions-isolation"
-    }
-   ]
-  },
-  {
-   "day": 16,
-   "week": 3,
-   "title": "Linked List",
-   "focus": "DSA: Linked List · Spring & Spring Boot · Design: Concurrency for LLD: Making Designs Thread-Safe · ~3.1 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-spring-requires-new-pool-exhaustion",
-     "type": "trap",
-     "title": "Trap: REQUIRES_NEW: same-class calls and connection-pool deadlock",
-     "minutes": 10,
-     "link": "/traps/trap-spring-requires-new-pool-exhaustion",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+     "link": "/core/microservices?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "dsa-dsa-linked-list-copy-list-with-random-pointer",
-     "type": "dsa",
-     "title": "Solve: Copy List with Random Pointer (Medium)",
-     "minutes": 40,
-     "link": "/dsa/linked-list/copy-list-with-random-pointer",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-linked-list-lru-cache",
-     "type": "dsa",
-     "title": "Solve: LRU Cache (Medium)",
-     "minutes": 40,
-     "link": "/dsa/linked-list/lru-cache",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-spring-boot-chapter-10",
+     "id": "core-microservices-chapter-5",
      "type": "core",
-     "title": "Spring & Spring Boot: read \"Testing Spring Boot Apps: JUnit 5, Mockito, Slices\"",
+     "title": "Microservices & Distributed Systems: read \"Resilience Patterns with Resilience4j\"",
      "minutes": 20,
-     "link": "/core/spring-boot?chapter=10"
+     "link": "/core/microservices?chapter=5"
     },
     {
-     "id": "core-spring-boot-chapter-11",
+     "id": "core-microservices-chapter-6",
      "type": "core",
-     "title": "Spring & Spring Boot: read \"Actuator, Caching, Async and Scheduling\"",
+     "title": "Microservices & Distributed Systems: read \"Distributed Transactions: Saga, Outbox, 2PC and Idempotency\"",
      "minutes": 20,
-     "link": "/core/spring-boot?chapter=11"
+     "link": "/core/microservices?chapter=6"
     },
     {
-     "id": "core-spring-boot-chapter-12",
+     "id": "core-microservices-qa-2",
      "type": "core",
-     "title": "Spring & Spring Boot: read \"Spring AOP and Proxies\"",
-     "minutes": 20,
-     "link": "/core/spring-boot?chapter=12"
+     "title": "Microservices & Distributed Systems: answer 9 core questions out loud (set 3 of 3)",
+     "minutes": 25,
+     "link": "/core/microservices?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-production-debugging-chapter-1",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"The Debugging Method: From Page to Guardrail\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=1"
     },
     {
      "id": "sd-system-design-lld-fundamentals-concurrency-for-lld",
@@ -1225,14 +1234,140 @@
    "day": 17,
    "week": 3,
    "title": "Linked List",
-   "focus": "DSA: Linked List · Spring & Spring Boot, SQL & MySQL · Design: Message Queues and Event Streaming (Kafka vs RabbitMQ) · ~3.3 h",
+   "focus": "DSA: Linked List · Production Debugging & Incidents · Design: API Design: REST, gRPC, GraphQL and Real-Time Protocols · ~3.1 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-spring-prototype-in-singleton",
+     "id": "trap-traps-trap-system-design-jump-to-architecture",
      "type": "trap",
-     "title": "Trap: Prototype bean injected into a singleton",
+     "title": "Trap: Drawing boxes before requirements and numbers",
      "minutes": 10,
-     "link": "/traps/trap-spring-prototype-in-singleton",
+     "link": "/traps/trap-system-design-jump-to-architecture",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-linked-list-linked-list-cycle-ii",
+     "type": "dsa",
+     "title": "Solve: Linked List Cycle II (Medium)",
+     "minutes": 40,
+     "link": "/dsa/linked-list/linked-list-cycle-ii",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "dsa-dsa-linked-list-copy-list-with-random-pointer",
+     "type": "dsa",
+     "title": "Solve: Copy List with Random Pointer (Medium)",
+     "minutes": 40,
+     "link": "/dsa/linked-list/copy-list-with-random-pointer",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-production-debugging-chapter-2",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"Observability: Logs, Metrics, Traces and Correlation IDs\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=2"
+    },
+    {
+     "id": "core-production-debugging-chapter-3",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"SLIs, SLOs, Error Budgets and Alerting\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=3"
+    },
+    {
+     "id": "core-production-debugging-chapter-4",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"JVM Forensics: Thread Dumps, Heap Dumps, JFR and async-profiler\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=4"
+    },
+    {
+     "id": "sd-system-design-concepts-api-design",
+     "type": "sd",
+     "title": "HLD: API Design: REST, gRPC, GraphQL and Real-Time Protocols",
+     "minutes": 20,
+     "link": "/system-design/concepts/api-design"
+    }
+   ]
+  },
+  {
+   "day": 18,
+   "week": 3,
+   "title": "Linked List",
+   "focus": "DSA: Linked List · Production Debugging & Incidents · Design: Rate Limiting Algorithms · ~3.3 h",
+   "tasks": [
+    {
+     "id": "career-prepare-6-star-stories-from-your-work-incident-conflict-owne",
+     "type": "career",
+     "title": "Prepare 6 STAR stories from your work (incident, conflict, ownership, ambiguity, mentoring, failure)",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "trap-traps-trap-system-design-cache-aside-race",
+     "type": "trap",
+     "title": "Trap: Cache-aside write ordering and stale cache",
+     "minutes": 10,
+     "link": "/traps/trap-system-design-cache-aside-race",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-linked-list-lru-cache",
+     "type": "dsa",
+     "title": "Solve: LRU Cache (Medium)",
+     "minutes": 40,
+     "link": "/dsa/linked-list/lru-cache",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-production-debugging-chapter-5",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"Incident Playbook I: Deploy Regressions, Leaks, Pools and Thread Pools\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=5"
+    },
+    {
+     "id": "core-production-debugging-chapter-6",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"Incident Playbook II: Caches, Databases, Bad Hosts, Retry Storms, Disk and Certs\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=6"
+    },
+    {
+     "id": "core-production-debugging-chapter-7",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"Incident Response and Blameless Postmortems\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=7"
+    },
+    {
+     "id": "core-production-debugging-chapter-8",
+     "type": "core",
+     "title": "Production Debugging & Incidents: read \"Mock Round: Debugging Out Loud\"",
+     "minutes": 25,
+     "link": "/core/production-debugging?chapter=8"
+    },
+    {
+     "id": "sd-system-design-concepts-rate-limiting",
+     "type": "sd",
+     "title": "HLD: Rate Limiting Algorithms",
+     "minutes": 20,
+     "link": "/system-design/concepts/rate-limiting"
+    }
+   ]
+  },
+  {
+   "day": 19,
+   "week": 3,
+   "title": "Linked List",
+   "focus": "DSA: Linked List · Production Debugging & Incidents, Angular · Design: CDN and Blob/Object Storage · ~3.1 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-system-design-shard-key",
+     "type": "trap",
+     "title": "Trap: Choosing a shard key that creates hotspots",
+     "minutes": 10,
+     "link": "/traps/trap-system-design-shard-key",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -1252,63 +1387,55 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-spring-boot-qa-3",
+     "id": "core-production-debugging-qa-0",
      "type": "core",
-     "title": "Spring & Spring Boot: answer 8 frequently asked questions out loud (set 4 of 5)",
-     "minutes": 20,
-     "link": "/core/spring-boot?view=qa&filter=frequent-todo",
+     "title": "Production Debugging & Incidents: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/production-debugging?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "core-spring-boot-qa-4",
+     "id": "core-angular-chapter-3",
      "type": "core",
-     "title": "Spring & Spring Boot: answer 8 frequently asked questions out loud (set 5 of 5)",
+     "title": "Angular: read \"Change Detection: Default, OnPush, Zone.js and Zoneless\"",
      "minutes": 20,
-     "link": "/core/spring-boot?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/angular?chapter=3"
     },
     {
-     "id": "core-sql-chapter-1",
+     "id": "core-angular-chapter-4",
      "type": "core",
-     "title": "SQL & MySQL: read \"SQL Fundamentals and Joins\"",
-     "minutes": 25,
-     "link": "/core/sql?chapter=1"
-    },
-    {
-     "id": "core-sql-chapter-2",
-     "type": "core",
-     "title": "SQL & MySQL: read \"GROUP BY, HAVING, Aggregates, Subqueries and CTEs\"",
+     "title": "Angular: read \"Signals: signal, computed, effect, linkedSignal, resource\"",
      "minutes": 20,
-     "link": "/core/sql?chapter=2"
+     "link": "/core/angular?chapter=4"
     },
     {
-     "id": "sd-system-design-concepts-message-queues",
+     "id": "core-angular-chapter-6",
+     "type": "core",
+     "title": "Angular: read \"Dependency Injection & Providers\"",
+     "minutes": 20,
+     "link": "/core/angular?chapter=6"
+    },
+    {
+     "id": "sd-system-design-concepts-cdn-blob-storage",
      "type": "sd",
-     "title": "HLD: Message Queues and Event Streaming (Kafka vs RabbitMQ)",
-     "minutes": 25,
-     "link": "/system-design/concepts/message-queues"
+     "title": "HLD: CDN and Blob/Object Storage",
+     "minutes": 20,
+     "link": "/system-design/concepts/cdn-blob-storage"
     }
    ]
   },
   {
-   "day": 18,
+   "day": 20,
    "week": 3,
    "title": "Binary Trees & BST",
-   "focus": "DSA: Binary Trees & BST · SQL & MySQL · Design: API Design: REST, gRPC, GraphQL and Real-Time Protocols · ~3.0 h",
+   "focus": "DSA: Binary Trees & BST · Angular, Performance · Design: Design a Rate Limiter (LLD) · ~4.9 h",
    "tasks": [
     {
-     "id": "career-prepare-6-star-stories-from-your-work-incident-conflict-owne",
-     "type": "career",
-     "title": "Prepare 6 STAR stories from your work (incident, conflict, ownership, ambiguity, mentoring, failure)",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "trap-traps-trap-sql-null-comparison",
+     "id": "trap-traps-trap-angular-js-var-closure-loop",
      "type": "trap",
-     "title": "Trap: NULL = NULL and <> with NULLs",
+     "title": "Trap: Closures in loops: var vs let",
      "minutes": 10,
-     "link": "/traps/trap-sql-null-comparison",
+     "link": "/traps/trap-angular-js-var-closure-loop",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -1319,57 +1446,12 @@
      "link": "/dsa/trees"
     },
     {
-     "id": "dsa-dsa-trees-maximum-depth-of-binary-tree",
-     "type": "dsa",
-     "title": "Solve: Maximum Depth of Binary Tree (Easy)",
-     "minutes": 25,
-     "link": "/dsa/trees/maximum-depth-of-binary-tree"
-    },
-    {
      "id": "dsa-dsa-trees-diameter-of-binary-tree",
      "type": "dsa",
      "title": "Solve: Diameter of Binary Tree (Easy)",
      "minutes": 25,
      "link": "/dsa/trees/diameter-of-binary-tree",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-sql-qa-0",
-     "type": "core",
-     "title": "SQL & MySQL: answer 9 frequently asked questions out loud (set 1 of 5)",
-     "minutes": 25,
-     "link": "/core/sql?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-sql-chapter-3",
-     "type": "core",
-     "title": "SQL & MySQL: read \"Window Functions\"",
-     "minutes": 20,
-     "link": "/core/sql?chapter=3"
-    },
-    {
-     "id": "sd-system-design-concepts-api-design",
-     "type": "sd",
-     "title": "HLD: API Design: REST, gRPC, GraphQL and Real-Time Protocols",
-     "minutes": 25,
-     "link": "/system-design/concepts/api-design"
-    }
-   ]
-  },
-  {
-   "day": 19,
-   "week": 3,
-   "title": "Binary Trees & BST",
-   "focus": "DSA: Binary Trees & BST · SQL & MySQL · Design: Rate Limiting Algorithms · ~3.3 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-sql-not-in-with-null",
-     "type": "trap",
-     "title": "Trap: NOT IN with a NULL in the subquery",
-     "minutes": 10,
-     "link": "/traps/trap-sql-not-in-with-null",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-trees-binary-tree-level-order-traversal",
@@ -1380,116 +1462,33 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-trees-binary-tree-right-side-view",
-     "type": "dsa",
-     "title": "Solve: Binary Tree Right Side View (Medium)",
-     "minutes": 40,
-     "link": "/dsa/trees/binary-tree-right-side-view",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-sql-chapter-4",
+     "id": "core-angular-chapter-7",
      "type": "core",
-     "title": "SQL & MySQL: read \"Indexes in MySQL InnoDB: B+Trees, Clustered, Composite, Covering\"",
-     "minutes": 25,
-     "link": "/core/sql?chapter=4"
-    },
-    {
-     "id": "core-sql-qa-1",
-     "type": "core",
-     "title": "SQL & MySQL: answer 8 frequently asked questions out loud (set 2 of 5)",
+     "title": "Angular: read \"RxJS Essentials: Observables, Operators, Subjects\"",
      "minutes": 20,
-     "link": "/core/sql?view=qa&filter=frequent-todo",
+     "link": "/core/angular?chapter=7"
+    },
+    {
+     "id": "core-angular-chapter-11",
+     "type": "core",
+     "title": "Angular: read \"Performance Optimisation in Angular\"",
+     "minutes": 20,
+     "link": "/core/angular?chapter=11"
+    },
+    {
+     "id": "core-angular-qa-0",
+     "type": "core",
+     "title": "Angular: answer 10 core questions out loud (the most-asked ones)",
+     "minutes": 25,
+     "link": "/core/angular?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "core-sql-chapter-5",
+     "id": "core-performance-chapter-1",
      "type": "core",
-     "title": "SQL & MySQL: read \"EXPLAIN and Query Optimization\"",
-     "minutes": 20,
-     "link": "/core/sql?chapter=5"
-    },
-    {
-     "id": "core-sql-chapter-6",
-     "type": "core",
-     "title": "SQL & MySQL: read \"Normalization and Schema Design\"",
-     "minutes": 20,
-     "link": "/core/sql?chapter=6"
-    },
-    {
-     "id": "sd-system-design-concepts-rate-limiting",
-     "type": "sd",
-     "title": "HLD: Rate Limiting Algorithms",
+     "title": "Performance: JVM, Database & Caching: read \"Performance Vocabulary: Latency, Throughput, Percentiles and Little's Law\"",
      "minutes": 25,
-     "link": "/system-design/concepts/rate-limiting"
-    }
-   ]
-  },
-  {
-   "day": 20,
-   "week": 3,
-   "title": "Binary Trees & BST",
-   "focus": "DSA: Binary Trees & BST · SQL & MySQL · Design: Design a Rate Limiter (LLD) · ~5.0 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-sql-left-join-where-filter",
-     "type": "trap",
-     "title": "Trap: WHERE on the right table turns LEFT JOIN into INNER",
-     "minutes": 10,
-     "link": "/traps/trap-sql-left-join-where-filter",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-sql-group-by-nonaggregated-column",
-     "type": "trap",
-     "title": "Trap: Non-aggregated column in GROUP BY (ONLY_FULL_GROUP_BY)",
-     "minutes": 10,
-     "link": "/traps/trap-sql-group-by-nonaggregated-column",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-trees-binary-tree-zigzag-level-order-traversal",
-     "type": "dsa",
-     "title": "Solve: Binary Tree Zigzag Level Order Traversal (Medium)",
-     "minutes": 40,
-     "link": "/dsa/trees/binary-tree-zigzag-level-order-traversal"
-    },
-    {
-     "id": "dsa-dsa-trees-lowest-common-ancestor-of-a-binary-search-tree",
-     "type": "dsa",
-     "title": "Solve: Lowest Common Ancestor of a Binary Search Tree (Medium)",
-     "minutes": 40,
-     "link": "/dsa/trees/lowest-common-ancestor-of-a-binary-search-tree"
-    },
-    {
-     "id": "core-sql-qa-2",
-     "type": "core",
-     "title": "SQL & MySQL: answer 8 frequently asked questions out loud (set 3 of 5)",
-     "minutes": 20,
-     "link": "/core/sql?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-sql-chapter-7",
-     "type": "core",
-     "title": "SQL & MySQL: read \"Transactions, ACID and Isolation Levels in InnoDB\"",
-     "minutes": 20,
-     "link": "/core/sql?chapter=7"
-    },
-    {
-     "id": "core-sql-chapter-8",
-     "type": "core",
-     "title": "SQL & MySQL: read \"InnoDB Locking, MVCC and Deadlocks\"",
-     "minutes": 25,
-     "link": "/core/sql?chapter=8"
-    },
-    {
-     "id": "core-sql-qa-3",
-     "type": "core",
-     "title": "SQL & MySQL: answer 8 frequently asked questions out loud (set 4 of 5)",
-     "minutes": 20,
-     "link": "/core/sql?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/performance?chapter=1"
     },
     {
      "id": "sd-system-design-lld-problems-rate-limiter-lld",
@@ -1500,11 +1499,11 @@
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
     },
     {
-     "id": "sd-system-design-concepts-cdn-blob-storage",
+     "id": "sd-system-design-concepts-microservices-patterns",
      "type": "sd",
-     "title": "HLD: CDN and Blob/Object Storage",
-     "minutes": 25,
-     "link": "/system-design/concepts/cdn-blob-storage"
+     "title": "HLD: Microservices Patterns",
+     "minutes": 20,
+     "link": "/system-design/concepts/microservices-patterns"
     },
     {
      "id": "ai-ai-m01-python-m01-l5-tooling",
@@ -1519,7 +1518,7 @@
    "day": 21,
    "week": 3,
    "title": "Binary Trees & BST",
-   "focus": "DSA: Binary Trees & BST · SQL & MySQL · Design: Design Snake and Ladder · ~5.8 h",
+   "focus": "DSA: Binary Trees & BST · Performance · Design: Design Snake and Ladder · ~4.9 h",
    "tasks": [
     {
      "id": "career-start-applying-10-15-applications-3-5-referral-requests-per-",
@@ -1529,20 +1528,20 @@
      "link": "/guide"
     },
     {
-     "id": "trap-traps-trap-sql-index-sargability",
+     "id": "trap-traps-trap-jpa-hibernate-n-plus-one",
      "type": "trap",
-     "title": "Trap: Functions on indexed columns kill the index",
+     "title": "Trap: The N+1 select problem",
      "minutes": 10,
-     "link": "/traps/trap-sql-index-sargability",
+     "link": "/traps/trap-jpa-hibernate-n-plus-one",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-sql-nth-highest-with-duplicates",
-     "type": "trap",
-     "title": "Trap: Nth highest salary with LIMIT/OFFSET and ties",
-     "minutes": 10,
-     "link": "/traps/trap-sql-nth-highest-with-duplicates",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+     "id": "dsa-dsa-trees-binary-tree-right-side-view",
+     "type": "dsa",
+     "title": "Solve: Binary Tree Right Side View (Medium)",
+     "minutes": 40,
+     "link": "/dsa/trees/binary-tree-right-side-view",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-trees-lowest-common-ancestor-of-a-binary-tree",
@@ -1553,27 +1552,11 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-trees-validate-binary-search-tree",
-     "type": "dsa",
-     "title": "Solve: Validate Binary Search Tree (Medium)",
-     "minutes": 40,
-     "link": "/dsa/trees/validate-binary-search-tree",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-trees-construct-binary-tree-from-preorder-and-inorder-tr",
-     "type": "dsa",
-     "title": "Solve: Construct Binary Tree from Preorder and Inorder Traversal (Medium)",
-     "minutes": 40,
-     "link": "/dsa/trees/construct-binary-tree-from-preorder-and-inorder-traversal",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-sql-chapter-10",
+     "id": "core-performance-chapter-2",
      "type": "core",
-     "title": "SQL & MySQL: read \"Replication, Scaling, Partitioning and MySQL Architecture\"",
+     "title": "Performance: JVM, Database & Caching: read \"JVM Memory and Garbage Collection\"",
      "minutes": 25,
-     "link": "/core/sql?chapter=10"
+     "link": "/core/performance?chapter=2"
     },
     {
      "id": "sd-system-design-lld-problems-snake-and-ladder",
@@ -1584,11 +1567,11 @@
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
     },
     {
-     "id": "sd-system-design-concepts-microservices-patterns",
+     "id": "sd-system-design-concepts-observability",
      "type": "sd",
-     "title": "HLD: Microservices Patterns",
-     "minutes": 25,
-     "link": "/system-design/concepts/microservices-patterns"
+     "title": "HLD: Observability: Logs, Metrics, Tracing, SLOs",
+     "minutes": 20,
+     "link": "/system-design/concepts/observability"
     },
     {
      "id": "revise-revision",
@@ -1610,14 +1593,89 @@
    "day": 22,
    "week": 4,
    "title": "Binary Trees & BST",
-   "focus": "DSA: Binary Trees & BST · SQL & MySQL, Microservices & Distributed Systems · Design: Observability: Logs, Metrics, Tracing, SLOs · ~3.2 h",
+   "focus": "DSA: Binary Trees & BST · Performance, Testing & Code Review · Design: Security and Authentication: Sessions, JWT, OAuth2, HTTPS, OWASP · ~3.7 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-sql-delete-duplicates-mysql-1093",
+     "id": "round-rounds-code-review-round",
+     "type": "round",
+     "title": "Round playbook: Code Review Round (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/code-review-round"
+    },
+    {
+     "id": "trap-traps-trap-jpa-hibernate-lazy-initialization",
      "type": "trap",
-     "title": "Trap: Deleting duplicates in MySQL (ERROR 1093)",
+     "title": "Trap: LazyInitializationException and the wrong fixes",
      "minutes": 10,
-     "link": "/traps/trap-sql-delete-duplicates-mysql-1093",
+     "link": "/traps/trap-jpa-hibernate-lazy-initialization",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-trees-validate-binary-search-tree",
+     "type": "dsa",
+     "title": "Solve: Validate Binary Search Tree (Medium)",
+     "minutes": 40,
+     "link": "/dsa/trees/validate-binary-search-tree",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "dsa-dsa-trees-construct-binary-tree-from-preorder-and-inorder-tr",
+     "type": "dsa",
+     "title": "Solve: Construct Binary Tree from Preorder and Inorder Traversal (Medium)",
+     "minutes": 40,
+     "link": "/dsa/trees/construct-binary-tree-from-preorder-and-inorder-traversal",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-performance-chapter-6",
+     "type": "core",
+     "title": "Performance: JVM, Database & Caching: read \"Caching Strategy and Pitfalls\"",
+     "minutes": 25,
+     "link": "/core/performance?chapter=6"
+    },
+    {
+     "id": "core-performance-qa-0",
+     "type": "core",
+     "title": "Performance: JVM, Database & Caching: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/performance?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-testing-code-review-chapter-1",
+     "type": "core",
+     "title": "Testing & Code Review: read \"The Test Pyramid in a Spring Boot Service\"",
+     "minutes": 25,
+     "link": "/core/testing-code-review?chapter=1"
+    },
+    {
+     "id": "core-testing-code-review-chapter-2",
+     "type": "core",
+     "title": "Testing & Code Review: read \"Unit Testing with JUnit 5 and Mockito\"",
+     "minutes": 20,
+     "link": "/core/testing-code-review?chapter=2"
+    },
+    {
+     "id": "sd-system-design-concepts-security-auth",
+     "type": "sd",
+     "title": "HLD: Security and Authentication: Sessions, JWT, OAuth2, HTTPS, OWASP",
+     "minutes": 20,
+     "link": "/system-design/concepts/security-auth"
+    }
+   ]
+  },
+  {
+   "day": 23,
+   "week": 4,
+   "title": "Binary Trees & BST",
+   "focus": "DSA: Binary Trees & BST · Testing & Code Review · Design: Unique ID Generation in Distributed Systems · ~3.0 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-api-design-idempotency-keys",
+     "type": "trap",
+     "title": "Trap: Making POST retries safe with idempotency keys",
+     "minutes": 10,
+     "link": "/traps/trap-api-design-idempotency-keys",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -1629,65 +1687,85 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
+     "id": "core-testing-code-review-chapter-3",
+     "type": "core",
+     "title": "Testing & Code Review: read \"Spring Test Slices, Testcontainers and WireMock\"",
+     "minutes": 20,
+     "link": "/core/testing-code-review?chapter=3"
+    },
+    {
+     "id": "core-testing-code-review-chapter-5",
+     "type": "core",
+     "title": "Testing & Code Review: read \"Tests in Practical Coding Rounds (and Honest TDD)\"",
+     "minutes": 25,
+     "link": "/core/testing-code-review?chapter=5"
+    },
+    {
+     "id": "core-testing-code-review-chapter-6",
+     "type": "core",
+     "title": "Testing & Code Review: read \"The Code Review Round: How to Review Out Loud\"",
+     "minutes": 25,
+     "link": "/core/testing-code-review?chapter=6"
+    },
+    {
+     "id": "core-testing-code-review-chapter-7",
+     "type": "core",
+     "title": "Testing & Code Review: read \"Review Exercises: Flawed Spring Code, Findings Ranked\"",
+     "minutes": 25,
+     "link": "/core/testing-code-review?chapter=7"
+    },
+    {
+     "id": "core-testing-code-review-qa-0",
+     "type": "core",
+     "title": "Testing & Code Review: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/testing-code-review?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "sd-system-design-concepts-unique-id-generation",
+     "type": "sd",
+     "title": "HLD: Unique ID Generation in Distributed Systems",
+     "minutes": 20,
+     "link": "/system-design/concepts/unique-id-generation"
+    }
+   ]
+  },
+  {
+   "day": 24,
+   "week": 4,
+   "title": "Binary Trees & BST + Tries",
+   "focus": "DSA: Binary Trees & BST, Tries · Behavioral & HR · Design: Design a URL Shortener (TinyURL / Bitly) · ~3.8 h",
+   "tasks": [
+    {
+     "id": "round-rounds-system-design-senior",
+     "type": "round",
+     "title": "Round playbook: System Design (HLD) at SDE-2 / Senior (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/system-design-senior"
+    },
+    {
+     "id": "round-rounds-behavioral-leadership",
+     "type": "round",
+     "title": "Round playbook: Behavioral & Leadership (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/behavioral-leadership"
+    },
+    {
+     "id": "trap-traps-trap-behavioral-we-instead-of-i",
+     "type": "trap",
+     "title": "Trap: Saying \"we\" so the interviewer can't see you",
+     "minutes": 10,
+     "link": "/traps/trap-behavioral-we-instead-of-i",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
      "id": "dsa-dsa-trees-serialize-and-deserialize-binary-tree",
      "type": "dsa",
      "title": "Solve: Serialize and Deserialize Binary Tree (Hard)",
      "minutes": 40,
      "link": "/dsa/trees/serialize-and-deserialize-binary-tree",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-sql-qa-4",
-     "type": "core",
-     "title": "SQL & MySQL: answer 8 frequently asked questions out loud (set 5 of 5)",
-     "minutes": 20,
-     "link": "/core/sql?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-microservices-chapter-1",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Monolith vs Microservices\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=1"
-    },
-    {
-     "id": "core-microservices-chapter-2",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Service Discovery, API Gateway and Config Server\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=2"
-    },
-    {
-     "id": "core-microservices-qa-0",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: answer 8 frequently asked questions out loud (set 1 of 4)",
-     "minutes": 20,
-     "link": "/core/microservices?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-concepts-observability",
-     "type": "sd",
-     "title": "HLD: Observability: Logs, Metrics, Tracing, SLOs",
-     "minutes": 25,
-     "link": "/system-design/concepts/observability"
-    }
-   ]
-  },
-  {
-   "day": 23,
-   "week": 4,
-   "title": "Tries",
-   "focus": "DSA: Tries · Microservices & Distributed Systems · Design: Security and Authentication: Sessions, JWT, OAuth2, HTTPS, OWASP · ~3.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-distributed-systems-timeout-is-unknown",
-     "type": "trap",
-     "title": "Trap: A timeout is not a failure",
-     "minutes": 10,
-     "link": "/traps/trap-distributed-systems-timeout-is-unknown",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-tries",
@@ -1705,57 +1783,43 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
+     "id": "core-behavioral-chapter-1",
+     "type": "core",
+     "title": "Behavioral & HR: read \"The STAR Method & Building Your Story Bank\"",
+     "minutes": 25,
+     "link": "/core/behavioral?chapter=1"
+    },
+    {
+     "id": "sd-system-design-case-studies-url-shortener",
+     "type": "sd",
+     "title": "Design: Design a URL Shortener (TinyURL / Bitly)",
+     "minutes": 40,
+     "link": "/system-design/case-studies/url-shortener",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 25,
+   "week": 4,
+   "title": "Tries + Heap / Priority Queue",
+   "focus": "DSA: Tries, Heap / Priority Queue · Behavioral & HR · Design: Design a Distributed Rate Limiter · ~3.3 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-behavioral-blaming-current-company",
+     "type": "trap",
+     "title": "Trap: \"Why are you leaving?\" turned into a complaint",
+     "minutes": 10,
+     "link": "/traps/trap-behavioral-blaming-current-company",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
      "id": "dsa-dsa-tries-word-search-ii",
      "type": "dsa",
      "title": "Solve: Word Search II (Hard)",
      "minutes": 40,
      "link": "/dsa/tries/word-search-ii",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-microservices-chapter-3",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Inter-service Communication: REST, Feign, WebClient, gRPC\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=3"
-    },
-    {
-     "id": "core-microservices-chapter-4",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Apache Kafka for Event-Driven Microservices\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=4"
-    },
-    {
-     "id": "core-microservices-qa-1",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: answer 8 frequently asked questions out loud (set 2 of 4)",
-     "minutes": 20,
-     "link": "/core/microservices?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-concepts-security-auth",
-     "type": "sd",
-     "title": "HLD: Security and Authentication: Sessions, JWT, OAuth2, HTTPS, OWASP",
-     "minutes": 25,
-     "link": "/system-design/concepts/security-auth"
-    }
-   ]
-  },
-  {
-   "day": 24,
-   "week": 4,
-   "title": "Heap / Priority Queue",
-   "focus": "DSA: Heap / Priority Queue · Microservices & Distributed Systems · Design: Unique ID Generation in Distributed Systems · ~3.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-distributed-systems-exactly-once-myth",
-     "type": "trap",
-     "title": "Trap: \"Kafka gives exactly-once, so no dedupe needed\"",
-     "minutes": 10,
-     "link": "/traps/trap-distributed-systems-exactly-once-myth",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-heap",
@@ -1773,116 +1837,34 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-heap-kth-largest-element-in-an-array",
-     "type": "dsa",
-     "title": "Solve: Kth Largest Element in an Array (Medium)",
-     "minutes": 40,
-     "link": "/dsa/heap/kth-largest-element-in-an-array",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-microservices-chapter-5",
+     "id": "core-behavioral-chapter-2",
      "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Resilience Patterns with Resilience4j\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=5"
+     "title": "Behavioral & HR: read \"Presenting Service-Company Projects So They Sound Impactful\"",
+     "minutes": 25,
+     "link": "/core/behavioral?chapter=2"
     },
     {
-     "id": "core-microservices-chapter-6",
+     "id": "core-behavioral-chapter-3",
      "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Distributed Transactions: Saga, Outbox, 2PC and Idempotency\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=6"
+     "title": "Behavioral & HR: read \"Tell Me About Yourself, Why Switch & Why This Company\"",
+     "minutes": 25,
+     "link": "/core/behavioral?chapter=3"
     },
     {
-     "id": "core-microservices-qa-2",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: answer 8 frequently asked questions out loud (set 3 of 4)",
-     "minutes": 20,
-     "link": "/core/microservices?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-concepts-unique-id-generation",
+     "id": "sd-system-design-case-studies-rate-limiter-design",
      "type": "sd",
-     "title": "HLD: Unique ID Generation in Distributed Systems",
-     "minutes": 25,
-     "link": "/system-design/concepts/unique-id-generation"
-    }
-   ]
-  },
-  {
-   "day": 25,
-   "week": 4,
-   "title": "Heap / Priority Queue",
-   "focus": "DSA: Heap / Priority Queue · Microservices & Distributed Systems, Production Debugging & Incidents · Design: Search and Elasticsearch · ~3.4 h",
-   "tasks": [
-    {
-     "id": "round-rounds-debugging-production-round",
-     "type": "round",
-     "title": "Round playbook: Debugging & Production Incident Round (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/debugging-production-round"
-    },
-    {
-     "id": "trap-traps-trap-distributed-systems-dual-write",
-     "type": "trap",
-     "title": "Trap: Dual write: DB + Kafka in one method",
-     "minutes": 10,
-     "link": "/traps/trap-distributed-systems-dual-write",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-heap-find-median-from-data-stream",
-     "type": "dsa",
-     "title": "Solve: Find Median from Data Stream (Hard)",
+     "title": "Design: Design a Distributed Rate Limiter",
      "minutes": 40,
-     "link": "/dsa/heap/find-median-from-data-stream",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-heap-top-k-frequent-words",
-     "type": "dsa",
-     "title": "Solve: Top K Frequent Words (Medium)",
-     "minutes": 40,
-     "link": "/dsa/heap/top-k-frequent-words"
-    },
-    {
-     "id": "core-microservices-chapter-7",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: read \"Observability: Logging, Metrics and Distributed Tracing\"",
-     "minutes": 20,
-     "link": "/core/microservices?chapter=7"
-    },
-    {
-     "id": "core-microservices-qa-3",
-     "type": "core",
-     "title": "Microservices & Distributed Systems: answer 7 frequently asked questions out loud (set 4 of 4)",
-     "minutes": 20,
-     "link": "/core/microservices?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-production-debugging-chapter-1",
-     "type": "core",
-     "title": "Production Debugging & Incidents: read \"The Debugging Method: From Page to Guardrail\"",
-     "minutes": 25,
-     "link": "/core/production-debugging?chapter=1"
-    },
-    {
-     "id": "sd-system-design-concepts-search-elasticsearch",
-     "type": "sd",
-     "title": "HLD: Search and Elasticsearch",
-     "minutes": 25,
-     "link": "/system-design/concepts/search-elasticsearch"
+     "link": "/system-design/case-studies/rate-limiter-design",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
    "day": 26,
    "week": 4,
-   "title": "Backtracking",
-   "focus": "DSA: Backtracking · Production Debugging & Incidents · Design: Distributed Coordination: Leader Election, ZooKeeper and Distributed Locks · ~3.1 h",
+   "title": "Heap / Priority Queue",
+   "focus": "DSA: Heap / Priority Queue · Behavioral & HR, AI-Assisted Engineering & AI Literacy · Design: Failure Handling & Resilience Patterns · ~3.6 h",
    "tasks": [
     {
      "id": "round-rounds-practical-coding",
@@ -1892,12 +1874,81 @@
      "link": "/rounds/practical-coding"
     },
     {
-     "id": "trap-traps-trap-system-design-jump-to-architecture",
+     "id": "round-rounds-ai-assisted-coding",
+     "type": "round",
+     "title": "Round playbook: AI-Assisted Coding (how it's scored, how to ace it)",
+     "minutes": 25,
+     "link": "/rounds/ai-assisted-coding"
+    },
+    {
+     "id": "trap-traps-trap-behavioral-no-measurable-result",
      "type": "trap",
-     "title": "Trap: Drawing boxes before requirements and numbers",
+     "title": "Trap: Stories with no structure and no measurable result",
      "minutes": 10,
-     "link": "/traps/trap-system-design-jump-to-architecture",
+     "link": "/traps/trap-behavioral-no-measurable-result",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-heap-kth-largest-element-in-an-array",
+     "type": "dsa",
+     "title": "Solve: Kth Largest Element in an Array (Medium)",
+     "minutes": 40,
+     "link": "/dsa/heap/kth-largest-element-in-an-array",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-behavioral-chapter-5",
+     "type": "core",
+     "title": "Behavioral & HR: read \"Amazon Leadership Principles & Behavioral Themes\"",
+     "minutes": 25,
+     "link": "/core/behavioral?chapter=5"
+    },
+    {
+     "id": "core-behavioral-qa-0",
+     "type": "core",
+     "title": "Behavioral & HR: answer 10 core questions out loud (the most-asked ones)",
+     "minutes": 25,
+     "link": "/core/behavioral?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-ai-assisted-engineering-chapter-1",
+     "type": "core",
+     "title": "AI-Assisted Engineering & AI Literacy: read \"AI-Assisted Coding Interviews in 2025-26: Formats and Grading\"",
+     "minutes": 25,
+     "link": "/core/ai-assisted-engineering?chapter=1"
+    },
+    {
+     "id": "sd-system-design-senior-failure-handling-resilience",
+     "type": "sd",
+     "title": "Senior design: Failure Handling & Resilience Patterns",
+     "minutes": 40,
+     "link": "/system-design/senior/failure-handling-resilience",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 27,
+   "week": 4,
+   "title": "Heap / Priority Queue + Backtracking",
+   "focus": "DSA: Heap / Priority Queue, Backtracking · AI-Assisted Engineering & AI Literacy · Design: Design BookMyShow (Movie Ticket Booking) · ~4.8 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-dsa-binary-search-bounds",
+     "type": "trap",
+     "title": "Trap: Binary search: infinite loop and wrong bounds",
+     "minutes": 10,
+     "link": "/traps/trap-dsa-binary-search-bounds",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-heap-find-median-from-data-stream",
+     "type": "dsa",
+     "title": "Solve: Find Median from Data Stream (Hard)",
+     "minutes": 40,
+     "link": "/dsa/heap/find-median-from-data-stream",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-backtracking",
@@ -1915,94 +1966,18 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-backtracking-permutations",
-     "type": "dsa",
-     "title": "Solve: Permutations (Medium)",
-     "minutes": 40,
-     "link": "/dsa/backtracking/permutations",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-production-debugging-chapter-2",
+     "id": "core-ai-assisted-engineering-chapter-2",
      "type": "core",
-     "title": "Production Debugging & Incidents: read \"Observability: Logs, Metrics, Traces and Correlation IDs\"",
+     "title": "AI-Assisted Engineering & AI Literacy: read \"The Interview Workflow: Clarify, Decompose, Prompt, Verify, Test, Iterate\"",
      "minutes": 25,
-     "link": "/core/production-debugging?chapter=2"
+     "link": "/core/ai-assisted-engineering?chapter=2"
     },
     {
-     "id": "sd-system-design-concepts-distributed-coordination",
-     "type": "sd",
-     "title": "HLD: Distributed Coordination: Leader Election, ZooKeeper and Distributed Locks",
-     "minutes": 25,
-     "link": "/system-design/concepts/distributed-coordination"
-    }
-   ]
-  },
-  {
-   "day": 27,
-   "week": 4,
-   "title": "Backtracking",
-   "focus": "DSA: Backtracking · Production Debugging & Incidents · Design: Design BookMyShow (Movie Ticket Booking) · ~5.3 h",
-   "tasks": [
-    {
-     "id": "round-rounds-system-design-senior",
-     "type": "round",
-     "title": "Round playbook: System Design (HLD) at SDE-2 / Senior (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/system-design-senior"
-    },
-    {
-     "id": "trap-traps-trap-system-design-cache-aside-race",
-     "type": "trap",
-     "title": "Trap: Cache-aside write ordering and stale cache",
-     "minutes": 10,
-     "link": "/traps/trap-system-design-cache-aside-race",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-system-design-shard-key",
-     "type": "trap",
-     "title": "Trap: Choosing a shard key that creates hotspots",
-     "minutes": 10,
-     "link": "/traps/trap-system-design-shard-key",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-backtracking-combination-sum",
-     "type": "dsa",
-     "title": "Solve: Combination Sum (Medium)",
-     "minutes": 40,
-     "link": "/dsa/backtracking/combination-sum",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "dsa-dsa-backtracking-letter-combinations-of-a-phone-number",
-     "type": "dsa",
-     "title": "Solve: Letter Combinations of a Phone Number (Medium)",
-     "minutes": 40,
-     "link": "/dsa/backtracking/letter-combinations-of-a-phone-number"
-    },
-    {
-     "id": "core-production-debugging-chapter-4",
+     "id": "core-ai-assisted-engineering-chapter-3",
      "type": "core",
-     "title": "Production Debugging & Incidents: read \"JVM Forensics: Thread Dumps, Heap Dumps, JFR and async-profiler\"",
+     "title": "AI-Assisted Engineering & AI Literacy: read \"Catching AI Mistakes: A Field Guide\"",
      "minutes": 25,
-     "link": "/core/production-debugging?chapter=4"
-    },
-    {
-     "id": "core-production-debugging-qa-0",
-     "type": "core",
-     "title": "Production Debugging & Incidents: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/production-debugging?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-production-debugging-chapter-5",
-     "type": "core",
-     "title": "Production Debugging & Incidents: read \"Incident Playbook I: Deploy Regressions, Leaks, Pools and Thread Pools\"",
-     "minutes": 25,
-     "link": "/core/production-debugging?chapter=5"
+     "link": "/core/ai-assisted-engineering?chapter=3"
     },
     {
      "id": "sd-system-design-lld-problems-bookmyshow-lld",
@@ -2013,11 +1988,11 @@
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
     },
     {
-     "id": "sd-system-design-case-studies-url-shortener",
+     "id": "sd-system-design-case-studies-notification-system",
      "type": "sd",
-     "title": "Design: Design a URL Shortener (TinyURL / Bitly)",
+     "title": "Design: Design a Notification System",
      "minutes": 40,
-     "link": "/system-design/case-studies/url-shortener",
+     "link": "/system-design/case-studies/notification-system",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
@@ -2033,82 +2008,74 @@
    "day": 28,
    "week": 4,
    "title": "Mock day",
-   "focus": "DSA: Backtracking · Production Debugging & Incidents, Angular · ~5.2 h",
+   "focus": "DSA: Backtracking · AI-Assisted Engineering & AI Literacy, Security for Backend Engineers · ~5.0 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-system-design-just-add-kafka",
+     "id": "trap-traps-trap-dsa-bfs-visited-on-enqueue",
      "type": "trap",
-     "title": "Trap: \"Just add Kafka\" without delivery semantics",
+     "title": "Trap: BFS: mark visited on enqueue, not dequeue",
      "minutes": 10,
-     "link": "/traps/trap-system-design-just-add-kafka",
+     "link": "/traps/trap-dsa-bfs-visited-on-enqueue",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-system-design-hot-key",
-     "type": "trap",
-     "title": "Trap: Hot key / celebrity problem",
-     "minutes": 10,
-     "link": "/traps/trap-system-design-hot-key",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-backtracking-word-search",
+     "id": "dsa-dsa-backtracking-permutations",
      "type": "dsa",
-     "title": "Solve: Word Search (Medium)",
+     "title": "Solve: Permutations (Medium)",
      "minutes": 40,
-     "link": "/dsa/backtracking/word-search",
+     "link": "/dsa/backtracking/permutations",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-production-debugging-chapter-6",
+     "id": "core-ai-assisted-engineering-chapter-6",
      "type": "core",
-     "title": "Production Debugging & Incidents: read \"Incident Playbook II: Caches, Databases, Bad Hosts, Retry Storms, Disk and Certs\"",
+     "title": "AI-Assisted Engineering & AI Literacy: read \"LLM Basics Every Backend Developer Is Asked\"",
      "minutes": 25,
-     "link": "/core/production-debugging?chapter=6"
+     "link": "/core/ai-assisted-engineering?chapter=6"
     },
     {
-     "id": "core-production-debugging-chapter-8",
+     "id": "core-ai-assisted-engineering-qa-0",
      "type": "core",
-     "title": "Production Debugging & Incidents: read \"Mock Round: Debugging Out Loud\"",
-     "minutes": 25,
-     "link": "/core/production-debugging?chapter=8"
-    },
-    {
-     "id": "core-production-debugging-qa-1",
-     "type": "core",
-     "title": "Production Debugging & Incidents: answer 6 frequently asked questions out loud (set 2 of 2)",
+     "title": "AI-Assisted Engineering & AI Literacy: answer 6 core questions out loud (the most-asked ones)",
      "minutes": 15,
-     "link": "/core/production-debugging?view=qa&filter=frequent-todo",
+     "link": "/core/ai-assisted-engineering?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "core-angular-chapter-3",
+     "id": "core-security-chapter-1",
      "type": "core",
-     "title": "Angular: read \"Change Detection: Default, OnPush, Zone.js and Zoneless\"",
-     "minutes": 20,
-     "link": "/core/angular?chapter=3"
-    },
-    {
-     "id": "core-angular-chapter-4",
-     "type": "core",
-     "title": "Angular: read \"Signals: signal, computed, effect, linkedSignal, resource\"",
-     "minutes": 20,
-     "link": "/core/angular?chapter=4"
-    },
-    {
-     "id": "core-angular-qa-0",
-     "type": "core",
-     "title": "Angular: answer 10 frequently asked questions out loud (set 1 of 3)",
+     "title": "Security for Backend Engineers: read \"OWASP Top 10 (2021 and 2025) Through a Spring Boot Lens\"",
      "minutes": 25,
-     "link": "/core/angular?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+     "link": "/core/security?chapter=1"
     },
     {
-     "id": "core-angular-chapter-6",
+     "id": "core-security-chapter-3",
      "type": "core",
-     "title": "Angular: read \"Dependency Injection & Providers\"",
+     "title": "Security for Backend Engineers: read \"Injection, XSS, CSRF and CORS: What Actually Protects You\"",
+     "minutes": 25,
+     "link": "/core/security?chapter=3"
+    },
+    {
+     "id": "core-security-chapter-4",
+     "type": "core",
+     "title": "Security for Backend Engineers: read \"Authentication, Sessions vs JWT and Token Pitfalls\"",
+     "minutes": 25,
+     "link": "/core/security?chapter=4"
+    },
+    {
+     "id": "core-security-chapter-5",
+     "type": "core",
+     "title": "Security for Backend Engineers: read \"OAuth 2.0 and OIDC: Authorization Code + PKCE, Client Credentials\"",
      "minutes": 20,
-     "link": "/core/angular?chapter=6"
+     "link": "/core/security?chapter=5"
+    },
+    {
+     "id": "core-security-qa-0",
+     "type": "core",
+     "title": "Security for Backend Engineers: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/security?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "mock-dsa-mock-ai-off-2-unseen-mediums-in-60-minutes-explaining-ou",
@@ -2136,16 +2103,99 @@
   {
    "day": 29,
    "week": 5,
-   "title": "Graphs (BFS/DFS)",
-   "focus": "DSA: Graphs (BFS/DFS) · Angular · Design: Design a Distributed Rate Limiter · ~3.2 h",
+   "title": "Backtracking",
+   "focus": "DSA: Backtracking · Senior Engineer Skills, JavaScript & TypeScript · Design: Design a Chat System (WhatsApp) · ~3.3 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-angular-js-var-closure-loop",
+     "id": "trap-traps-trap-behavioral-fake-weakness",
      "type": "trap",
-     "title": "Trap: Closures in loops: var vs let",
+     "title": "Trap: The fake weakness (\"I'm a perfectionist\")",
      "minutes": 10,
-     "link": "/traps/trap-angular-js-var-closure-loop",
+     "link": "/traps/trap-behavioral-fake-weakness",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-backtracking-combination-sum",
+     "type": "dsa",
+     "title": "Solve: Combination Sum (Medium)",
+     "minutes": 40,
+     "link": "/dsa/backtracking/combination-sum",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "core-senior-leadership-chapter-1",
+     "type": "core",
+     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"What Changes from Mid-Level to Senior (SDE-2 and Beyond)\"",
+     "minutes": 25,
+     "link": "/core/senior-leadership?chapter=1"
+    },
+    {
+     "id": "core-senior-leadership-chapter-4",
+     "type": "core",
+     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"Making Trade-offs and Handling Disagreement\"",
+     "minutes": 25,
+     "link": "/core/senior-leadership?chapter=4"
+    },
+    {
+     "id": "core-senior-leadership-chapter-8",
+     "type": "core",
+     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"The Project Deep-Dive Round and Stakes-Action-Outcome Stories\"",
+     "minutes": 25,
+     "link": "/core/senior-leadership?chapter=8"
+    },
+    {
+     "id": "core-senior-leadership-qa-0",
+     "type": "core",
+     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/senior-leadership?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-javascript-typescript-chapter-2",
+     "type": "core",
+     "title": "JavaScript & TypeScript: read \"Closures\"",
+     "minutes": 20,
+     "link": "/core/javascript-typescript?chapter=2"
+    },
+    {
+     "id": "sd-system-design-case-studies-chat-whatsapp",
+     "type": "sd",
+     "title": "Design: Design a Chat System (WhatsApp)",
+     "minutes": 40,
+     "link": "/system-design/case-studies/chat-whatsapp",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 30,
+   "week": 5,
+   "title": "Backtracking + Graphs (BFS/DFS)",
+   "focus": "DSA: Backtracking, Graphs (BFS/DFS) · JavaScript & TypeScript · Design: Idempotency & Exactly-Once Processing · ~3.3 h",
+   "tasks": [
+    {
+     "id": "career-review-the-application-tracker-follow-up-on-pending-referral",
+     "type": "career",
+     "title": "Review the application tracker; follow up on pending referrals",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "trap-traps-trap-angular-js-this-in-callbacks",
+     "type": "trap",
+     "title": "Trap: Losing `this` when passing a method as a callback",
+     "minutes": 10,
+     "link": "/traps/trap-angular-js-this-in-callbacks",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-backtracking-word-search",
+     "type": "dsa",
+     "title": "Solve: Word Search (Medium)",
+     "minutes": 40,
+     "link": "/dsa/backtracking/word-search",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-graphs",
@@ -2163,56 +2213,34 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-graphs-clone-graph",
-     "type": "dsa",
-     "title": "Solve: Clone Graph (Medium)",
-     "minutes": 40,
-     "link": "/dsa/graphs/clone-graph"
-    },
-    {
-     "id": "core-angular-chapter-7",
+     "id": "core-javascript-typescript-chapter-5",
      "type": "core",
-     "title": "Angular: read \"RxJS Essentials: Observables, Operators, Subjects\"",
+     "title": "JavaScript & TypeScript: read \"Event Loop, Call Stack, Microtasks & Macrotasks\"",
      "minutes": 20,
-     "link": "/core/angular?chapter=7"
+     "link": "/core/javascript-typescript?chapter=5"
     },
     {
-     "id": "core-angular-qa-1",
-     "type": "core",
-     "title": "Angular: answer 10 frequently asked questions out loud (set 2 of 3)",
-     "minutes": 25,
-     "link": "/core/angular?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-case-studies-rate-limiter-design",
+     "id": "sd-system-design-senior-idempotency-exactly-once",
      "type": "sd",
-     "title": "Design: Design a Distributed Rate Limiter",
+     "title": "Senior design: Idempotency & Exactly-Once Processing",
      "minutes": 40,
-     "link": "/system-design/case-studies/rate-limiter-design",
+     "link": "/system-design/senior/idempotency-exactly-once",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 30,
+   "day": 31,
    "week": 5,
    "title": "Graphs (BFS/DFS)",
-   "focus": "DSA: Graphs (BFS/DFS) · Angular · Design: Failure Handling & Resilience Patterns · ~3.0 h",
+   "focus": "DSA: Graphs (BFS/DFS) · JavaScript & TypeScript, Computer Networks · Design: Design a News Feed (Twitter / Instagram Feed) · ~3.2 h",
    "tasks": [
     {
-     "id": "career-review-the-application-tracker-follow-up-on-pending-referral",
-     "type": "career",
-     "title": "Review the application tracker; follow up on pending referrals",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "trap-traps-trap-angular-js-this-in-callbacks",
+     "id": "trap-traps-trap-angular-js-event-loop-order",
      "type": "trap",
-     "title": "Trap: Losing `this` when passing a method as a callback",
+     "title": "Trap: Event loop: microtasks vs macrotasks",
      "minutes": 10,
-     "link": "/traps/trap-angular-js-this-in-callbacks",
+     "link": "/traps/trap-angular-js-event-loop-order",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2232,34 +2260,49 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-angular-chapter-11",
+     "id": "core-javascript-typescript-chapter-6",
      "type": "core",
-     "title": "Angular: read \"Performance Optimisation in Angular\"",
+     "title": "JavaScript & TypeScript: read \"Promises & Async/Await\"",
      "minutes": 20,
-     "link": "/core/angular?chapter=11"
+     "link": "/core/javascript-typescript?chapter=6"
     },
     {
-     "id": "sd-system-design-senior-failure-handling-resilience",
+     "id": "core-javascript-typescript-qa-0",
+     "type": "core",
+     "title": "JavaScript & TypeScript: answer 8 core questions out loud (the most-asked ones)",
+     "minutes": 20,
+     "link": "/core/javascript-typescript?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-cn-chapter-3",
+     "type": "core",
+     "title": "Computer Networks: read \"HTTP: Methods, Status Codes, HTTP/1.1 vs HTTP/2 vs HTTP/3\"",
+     "minutes": 20,
+     "link": "/core/cn?chapter=3"
+    },
+    {
+     "id": "sd-system-design-case-studies-news-feed",
      "type": "sd",
-     "title": "Senior design: Failure Handling & Resilience Patterns",
+     "title": "Design: Design a News Feed (Twitter / Instagram Feed)",
      "minutes": 40,
-     "link": "/system-design/senior/failure-handling-resilience",
+     "link": "/system-design/case-studies/news-feed",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 31,
+   "day": 32,
    "week": 5,
    "title": "Graphs (BFS/DFS)",
-   "focus": "DSA: Graphs (BFS/DFS) · Angular, Performance · Design: Design a Notification System · ~3.0 h",
+   "focus": "DSA: Graphs (BFS/DFS) · Computer Networks, Operating Systems, OOP & Design Principles, DBMS Theory · Design: Observability, SLOs & \"How Do We Know It's Broken?\" · ~3.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-angular-js-event-loop-order",
+     "id": "trap-traps-trap-os-networking-process-vs-thread",
      "type": "trap",
-     "title": "Trap: Event loop: microtasks vs macrotasks",
+     "title": "Trap: What threads share (and what they don't)",
      "minutes": 10,
-     "link": "/traps/trap-angular-js-event-loop-order",
+     "link": "/traps/trap-os-networking-process-vs-thread",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2271,49 +2314,73 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-graphs-word-ladder",
-     "type": "dsa",
-     "title": "Solve: Word Ladder (Hard)",
-     "minutes": 40,
-     "link": "/dsa/graphs/word-ladder"
+     "id": "core-cn-chapter-5",
+     "type": "core",
+     "title": "Computer Networks: read \"DNS & What Happens When You Type a URL\"",
+     "minutes": 20,
+     "link": "/core/cn?chapter=5"
     },
     {
-     "id": "core-angular-qa-2",
+     "id": "core-cn-qa-0",
      "type": "core",
-     "title": "Angular: answer 10 frequently asked questions out loud (set 3 of 3)",
-     "minutes": 25,
-     "link": "/core/angular?view=qa&filter=frequent-todo",
+     "title": "Computer Networks: answer 8 core questions out loud (the most-asked ones)",
+     "minutes": 20,
+     "link": "/core/cn?view=qa&filter=core-todo",
      "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
-     "id": "core-performance-chapter-1",
+     "id": "core-os-chapter-1",
      "type": "core",
-     "title": "Performance: JVM, Database & Caching: read \"Performance Vocabulary: Latency, Throughput, Percentiles and Little's Law\"",
-     "minutes": 25,
-     "link": "/core/performance?chapter=1"
+     "title": "Operating Systems: read \"OS Basics, Processes & Threads\"",
+     "minutes": 20,
+     "link": "/core/os?chapter=1"
     },
     {
-     "id": "sd-system-design-case-studies-notification-system",
+     "id": "core-os-qa-0",
+     "type": "core",
+     "title": "Operating Systems: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/os?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-oop-design-patterns-qa-0",
+     "type": "core",
+     "title": "OOP & Design Principles: answer 5 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/oop-design-patterns?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "core-dbms-qa-0",
+     "type": "core",
+     "title": "DBMS Theory: answer 4 core questions out loud (the most-asked ones)",
+     "minutes": 10,
+     "link": "/core/dbms?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
+    },
+    {
+     "id": "sd-system-design-senior-observability-slos-at-scale",
      "type": "sd",
-     "title": "Design: Design a Notification System",
+     "title": "Senior design: Observability, SLOs & \"How Do We Know It's Broken?\"",
      "minutes": 40,
-     "link": "/system-design/case-studies/notification-system",
+     "link": "/system-design/senior/observability-slos-at-scale",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 32,
+   "day": 33,
    "week": 5,
    "title": "Advanced Graphs",
-   "focus": "DSA: Advanced Graphs · Performance · Design: Design a Chat System (WhatsApp) · ~3.3 h",
+   "focus": "DSA: Advanced Graphs · Cloud, Docker, Kubernetes & CI/CD · Design: Design E-commerce Checkout (Flipkart / Amazon) · ~3.3 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-jpa-hibernate-n-plus-one",
+     "id": "trap-traps-trap-distributed-systems-retry-storm",
      "type": "trap",
-     "title": "Trap: The N+1 select problem",
+     "title": "Trap: Retry storms: retries at every layer, no backoff",
      "minutes": 10,
-     "link": "/traps/trap-jpa-hibernate-n-plus-one",
+     "link": "/traps/trap-distributed-systems-retry-storm",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2332,51 +2399,6 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-advanced-graphs-cheapest-flights-within-k-stops",
-     "type": "dsa",
-     "title": "Solve: Cheapest Flights Within K Stops (Medium)",
-     "minutes": 40,
-     "link": "/dsa/advanced-graphs/cheapest-flights-within-k-stops"
-    },
-    {
-     "id": "core-performance-chapter-2",
-     "type": "core",
-     "title": "Performance: JVM, Database & Caching: read \"JVM Memory and Garbage Collection\"",
-     "minutes": 25,
-     "link": "/core/performance?chapter=2"
-    },
-    {
-     "id": "core-performance-chapter-4",
-     "type": "core",
-     "title": "Performance: JVM, Database & Caching: read \"MySQL Query Performance: EXPLAIN and Index Design\"",
-     "minutes": 25,
-     "link": "/core/performance?chapter=4"
-    },
-    {
-     "id": "sd-system-design-case-studies-chat-whatsapp",
-     "type": "sd",
-     "title": "Design: Design a Chat System (WhatsApp)",
-     "minutes": 40,
-     "link": "/system-design/case-studies/chat-whatsapp",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
-    }
-   ]
-  },
-  {
-   "day": 33,
-   "week": 5,
-   "title": "Advanced Graphs",
-   "focus": "DSA: Advanced Graphs · Performance · Design: Idempotency & Exactly-Once Processing · ~3.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-jpa-hibernate-lazy-initialization",
-     "type": "trap",
-     "title": "Trap: LazyInitializationException and the wrong fixes",
-     "minutes": 10,
-     "link": "/traps/trap-jpa-hibernate-lazy-initialization",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
      "id": "dsa-dsa-advanced-graphs-number-of-provinces",
      "type": "dsa",
      "title": "Solve: Number of Provinces (Medium)",
@@ -2385,41 +2407,25 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-advanced-graphs-accounts-merge",
-     "type": "dsa",
-     "title": "Solve: Accounts Merge (Medium)",
-     "minutes": 40,
-     "link": "/dsa/advanced-graphs/accounts-merge",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-performance-qa-0",
+     "id": "core-cloud-devops-chapter-1",
      "type": "core",
-     "title": "Performance: JVM, Database & Caching: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/performance?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-performance-chapter-5",
-     "type": "core",
-     "title": "Performance: JVM, Database & Caching: read \"Application-to-Database Performance: N+1, Batching, Pools and Replicas\"",
+     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"AWS for Backend Engineers: The Service Map and When to Use What\"",
      "minutes": 25,
-     "link": "/core/performance?chapter=5"
+     "link": "/core/cloud-devops?chapter=1"
     },
     {
-     "id": "core-performance-chapter-6",
+     "id": "core-cloud-devops-chapter-3",
      "type": "core",
-     "title": "Performance: JVM, Database & Caching: read \"Caching Strategy and Pitfalls\"",
+     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"Docker for Spring Boot: Images, Layers and Multi-stage Builds\"",
      "minutes": 25,
-     "link": "/core/performance?chapter=6"
+     "link": "/core/cloud-devops?chapter=3"
     },
     {
-     "id": "sd-system-design-senior-idempotency-exactly-once",
+     "id": "sd-system-design-case-studies-ecommerce-flipkart-checkout",
      "type": "sd",
-     "title": "Senior design: Idempotency & Exactly-Once Processing",
+     "title": "Design: Design E-commerce Checkout (Flipkart / Amazon)",
      "minutes": 40,
-     "link": "/system-design/senior/idempotency-exactly-once",
+     "link": "/system-design/case-studies/ecommerce-flipkart-checkout",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
@@ -2427,31 +2433,24 @@
   {
    "day": 34,
    "week": 5,
-   "title": "Dynamic Programming 1D",
-   "focus": "DSA: Dynamic Programming 1D · Performance, Testing & Code Review · Design: Design an Elevator System · ~5.7 h",
+   "title": "Advanced Graphs + Dynamic Programming 1D",
+   "focus": "DSA: Advanced Graphs, Dynamic Programming 1D · Cloud, Docker, Kubernetes & CI/CD · Design: Design an Elevator System · ~4.8 h",
    "tasks": [
     {
-     "id": "round-rounds-code-review-round",
-     "type": "round",
-     "title": "Round playbook: Code Review Round (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/code-review-round"
-    },
-    {
-     "id": "trap-traps-trap-jpa-hibernate-dirty-checking",
+     "id": "trap-traps-trap-distributed-systems-missing-timeouts",
      "type": "trap",
-     "title": "Trap: Dirty checking: no save() needed (and accidental writes)",
+     "title": "Trap: Missing timeouts cause cascading failure",
      "minutes": 10,
-     "link": "/traps/trap-jpa-hibernate-dirty-checking",
+     "link": "/traps/trap-distributed-systems-missing-timeouts",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-jpa-hibernate-entity-equals-hashcode",
-     "type": "trap",
-     "title": "Trap: equals/hashCode on entities with generated ids",
-     "minutes": 10,
-     "link": "/traps/trap-jpa-hibernate-entity-equals-hashcode",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+     "id": "dsa-dsa-advanced-graphs-accounts-merge",
+     "type": "dsa",
+     "title": "Solve: Accounts Merge (Medium)",
+     "minutes": 40,
+     "link": "/dsa/advanced-graphs/accounts-merge",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-dp-1d",
@@ -2469,41 +2468,26 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-dp-1d-house-robber",
-     "type": "dsa",
-     "title": "Solve: House Robber (Medium)",
-     "minutes": 40,
-     "link": "/dsa/dp-1d/house-robber",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-performance-qa-1",
+     "id": "core-cloud-devops-chapter-4",
      "type": "core",
-     "title": "Performance: JVM, Database & Caching: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/performance?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-testing-code-review-chapter-1",
-     "type": "core",
-     "title": "Testing & Code Review: read \"The Test Pyramid in a Spring Boot Service\"",
+     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"Kubernetes Essentials: Pods, Deployments, Services, Ingress, Config\"",
      "minutes": 25,
-     "link": "/core/testing-code-review?chapter=1"
+     "link": "/core/cloud-devops?chapter=4"
     },
     {
-     "id": "core-testing-code-review-chapter-2",
+     "id": "core-cloud-devops-chapter-6",
      "type": "core",
-     "title": "Testing & Code Review: read \"Unit Testing with JUnit 5 and Mockito\"",
-     "minutes": 20,
-     "link": "/core/testing-code-review?chapter=2"
+     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"CI/CD, Deployment Strategies, Feature Flags and Rollbacks\"",
+     "minutes": 25,
+     "link": "/core/cloud-devops?chapter=6"
     },
     {
-     "id": "core-testing-code-review-chapter-3",
+     "id": "core-cloud-devops-qa-0",
      "type": "core",
-     "title": "Testing & Code Review: read \"Spring Test Slices, Testcontainers and WireMock\"",
-     "minutes": 20,
-     "link": "/core/testing-code-review?chapter=3"
+     "title": "Cloud, Docker, Kubernetes & CI/CD: answer 6 core questions out loud (the most-asked ones)",
+     "minutes": 15,
+     "link": "/core/cloud-devops?view=qa&filter=core-todo",
+     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "sd-system-design-lld-problems-elevator-system",
@@ -2514,11 +2498,11 @@
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
     },
     {
-     "id": "sd-system-design-case-studies-news-feed",
+     "id": "sd-system-design-senior-cost-and-capacity-planning",
      "type": "sd",
-     "title": "Design: Design a News Feed (Twitter / Instagram Feed)",
+     "title": "Senior design: Cost & Capacity Planning",
      "minutes": 40,
-     "link": "/system-design/case-studies/news-feed",
+     "link": "/system-design/senior/cost-and-capacity-planning",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
@@ -2534,68 +2518,15 @@
    "day": 35,
    "week": 5,
    "title": "Mock day",
-   "focus": "DSA: Dynamic Programming 1D · Testing & Code Review · ~5.2 h",
+   "focus": "~2.6 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-api-design-idempotency-keys",
+     "id": "trap-traps-trap-concurrency-hashmap-shared",
      "type": "trap",
-     "title": "Trap: Making POST retries safe with idempotency keys",
+     "title": "Trap: Plain HashMap shared between threads",
      "minutes": 10,
-     "link": "/traps/trap-api-design-idempotency-keys",
+     "link": "/traps/trap-concurrency-hashmap-shared",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-api-design-offset-pagination",
-     "type": "trap",
-     "title": "Trap: Offset pagination drift and deep-page slowness",
-     "minutes": 10,
-     "link": "/traps/trap-api-design-offset-pagination",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-dp-1d-coin-change",
-     "type": "dsa",
-     "title": "Solve: Coin Change (Medium)",
-     "minutes": 40,
-     "link": "/dsa/dp-1d/coin-change",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-testing-code-review-qa-0",
-     "type": "core",
-     "title": "Testing & Code Review: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/testing-code-review?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-testing-code-review-chapter-5",
-     "type": "core",
-     "title": "Testing & Code Review: read \"Tests in Practical Coding Rounds (and Honest TDD)\"",
-     "minutes": 25,
-     "link": "/core/testing-code-review?chapter=5"
-    },
-    {
-     "id": "core-testing-code-review-chapter-6",
-     "type": "core",
-     "title": "Testing & Code Review: read \"The Code Review Round: How to Review Out Loud\"",
-     "minutes": 25,
-     "link": "/core/testing-code-review?chapter=6"
-    },
-    {
-     "id": "core-testing-code-review-chapter-7",
-     "type": "core",
-     "title": "Testing & Code Review: read \"Review Exercises: Flawed Spring Code, Findings Ranked\"",
-     "minutes": 25,
-     "link": "/core/testing-code-review?chapter=7"
-    },
-    {
-     "id": "core-testing-code-review-qa-1",
-     "type": "core",
-     "title": "Testing & Code Review: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/testing-code-review?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "mock-dsa-mock-1-medium-1-medium-hard-in-60-minutes-out-loud",
@@ -2631,21 +2562,54 @@
    "day": 36,
    "week": 6,
    "title": "Dynamic Programming 1D",
-   "focus": "DSA: Dynamic Programming 1D · Behavioral & HR · Design: Multi-Region Architecture & Disaster Recovery · ~3.8 h",
+   "focus": "DSA: Dynamic Programming 1D · Design: Design a Ticket Booking System (BookMyShow) · ~2.2 h",
    "tasks": [
     {
-     "id": "round-rounds-behavioral-leadership",
-     "type": "round",
-     "title": "Round playbook: Behavioral & Leadership (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/behavioral-leadership"
+     "id": "trap-traps-trap-system-design-just-add-kafka",
+     "type": "trap",
+     "title": "Trap: \"Just add Kafka\" without delivery semantics",
+     "minutes": 10,
+     "link": "/traps/trap-system-design-just-add-kafka",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
-     "id": "trap-traps-trap-behavioral-we-instead-of-i",
+     "id": "dsa-dsa-dp-1d-house-robber",
+     "type": "dsa",
+     "title": "Solve: House Robber (Medium)",
+     "minutes": 40,
+     "link": "/dsa/dp-1d/house-robber",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "dsa-dsa-dp-1d-coin-change",
+     "type": "dsa",
+     "title": "Solve: Coin Change (Medium)",
+     "minutes": 40,
+     "link": "/dsa/dp-1d/coin-change",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "sd-system-design-case-studies-ticket-booking-bookmyshow",
+     "type": "sd",
+     "title": "Design: Design a Ticket Booking System (BookMyShow)",
+     "minutes": 40,
+     "link": "/system-design/case-studies/ticket-booking-bookmyshow",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 37,
+   "week": 6,
+   "title": "Dynamic Programming 1D",
+   "focus": "DSA: Dynamic Programming 1D · Design: AI System Design: Production RAG · ~2.2 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-system-design-hot-key",
      "type": "trap",
-     "title": "Trap: Saying \"we\" so the interviewer can't see you",
+     "title": "Trap: Hot key / celebrity problem",
      "minutes": 10,
-     "link": "/traps/trap-behavioral-we-instead-of-i",
+     "link": "/traps/trap-system-design-hot-key",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2665,49 +2629,27 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-behavioral-chapter-1",
-     "type": "core",
-     "title": "Behavioral & HR: read \"The STAR Method & Building Your Story Bank\"",
-     "minutes": 25,
-     "link": "/core/behavioral?chapter=1"
-    },
-    {
-     "id": "core-behavioral-chapter-2",
-     "type": "core",
-     "title": "Behavioral & HR: read \"Presenting Service-Company Projects So They Sound Impactful\"",
-     "minutes": 25,
-     "link": "/core/behavioral?chapter=2"
-    },
-    {
-     "id": "core-behavioral-qa-0",
-     "type": "core",
-     "title": "Behavioral & HR: answer 8 frequently asked questions out loud (set 1 of 3)",
-     "minutes": 20,
-     "link": "/core/behavioral?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-senior-multi-region-disaster-recovery",
+     "id": "sd-system-design-senior-ai-system-design-rag",
      "type": "sd",
-     "title": "Senior design: Multi-Region Architecture & Disaster Recovery",
+     "title": "Senior design: AI System Design: Production RAG",
      "minutes": 40,
-     "link": "/system-design/senior/multi-region-disaster-recovery",
+     "link": "/system-design/senior/ai-system-design-rag",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 37,
+   "day": 38,
    "week": 6,
-   "title": "Dynamic Programming 1D + Dynamic Programming 2D",
-   "focus": "DSA: Dynamic Programming 1D, Dynamic Programming 2D · Behavioral & HR · Design: Design E-commerce Checkout (Flipkart / Amazon) · ~3.3 h",
+   "title": "Dynamic Programming 1D",
+   "focus": "DSA: Dynamic Programming 1D · Design: Design a Payment System (UPI / Payment Gateway) · ~1.5 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-behavioral-blaming-current-company",
+     "id": "trap-traps-trap-system-design-global-id",
      "type": "trap",
-     "title": "Trap: \"Why are you leaving?\" turned into a complaint",
+     "title": "Trap: Generating IDs after sharding",
      "minutes": 10,
-     "link": "/traps/trap-behavioral-blaming-current-company",
+     "link": "/traps/trap-system-design-global-id",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2717,6 +2659,30 @@
      "minutes": 40,
      "link": "/dsa/dp-1d/longest-palindromic-substring",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "sd-system-design-case-studies-payment-system-upi",
+     "type": "sd",
+     "title": "Design: Design a Payment System (UPI / Payment Gateway)",
+     "minutes": 40,
+     "link": "/system-design/case-studies/payment-system-upi",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 39,
+   "week": 6,
+   "title": "Dynamic Programming 2D",
+   "focus": "DSA: Dynamic Programming 2D · Design: Payment Processing Reliability (PSP Orchestration) · ~2.5 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-system-design-read-your-writes",
+     "type": "trap",
+     "title": "Trap: Read-your-writes with async replicas",
+     "minutes": 10,
+     "link": "/traps/trap-system-design-read-your-writes",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-dp-2d",
@@ -2734,50 +2700,43 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-behavioral-chapter-3",
-     "type": "core",
-     "title": "Behavioral & HR: read \"Tell Me About Yourself, Why Switch & Why This Company\"",
-     "minutes": 25,
-     "link": "/core/behavioral?chapter=3"
-    },
-    {
-     "id": "core-behavioral-chapter-4",
-     "type": "core",
-     "title": "Behavioral & HR: read \"Salary Discussion & Negotiation (India Context)\"",
-     "minutes": 25,
-     "link": "/core/behavioral?chapter=4"
-    },
-    {
-     "id": "sd-system-design-case-studies-ecommerce-flipkart-checkout",
-     "type": "sd",
-     "title": "Design: Design E-commerce Checkout (Flipkart / Amazon)",
-     "minutes": 40,
-     "link": "/system-design/case-studies/ecommerce-flipkart-checkout",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
-    }
-   ]
-  },
-  {
-   "day": 38,
-   "week": 6,
-   "title": "Dynamic Programming 2D",
-   "focus": "DSA: Dynamic Programming 2D · Behavioral & HR · Design: Observability, SLOs & \"How Do We Know It's Broken?\" · ~3.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-behavioral-no-measurable-result",
-     "type": "trap",
-     "title": "Trap: Stories with no structure and no measurable result",
-     "minutes": 10,
-     "link": "/traps/trap-behavioral-no-measurable-result",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
      "id": "dsa-dsa-dp-2d-longest-common-subsequence",
      "type": "dsa",
      "title": "Solve: Longest Common Subsequence (Medium)",
      "minutes": 40,
      "link": "/dsa/dp-2d/longest-common-subsequence",
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
+    },
+    {
+     "id": "sd-system-design-senior-payment-processing-reliability",
+     "type": "sd",
+     "title": "Senior design: Payment Processing Reliability (PSP Orchestration)",
+     "minutes": 40,
+     "link": "/system-design/senior/payment-processing-reliability",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 40,
+   "week": 6,
+   "title": "Dynamic Programming 2D",
+   "focus": "DSA: Dynamic Programming 2D · Design: Design a Ride-Hailing System (Uber / Ola) · ~2.0 h",
+   "tasks": [
+    {
+     "id": "career-research-salary-bands-for-your-target-companies-set-walk-awa",
+     "type": "career",
+     "title": "Research salary bands for your target companies; set walk-away and target numbers",
+     "minutes": 30,
+     "link": "/guide"
+    },
+    {
+     "id": "trap-traps-trap-system-design-counting-at-scale",
+     "type": "trap",
+     "title": "Trap: COUNT(*) on every read for likes and views",
+     "minutes": 10,
+     "link": "/traps/trap-system-design-counting-at-scale",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
      "id": "dsa-dsa-dp-2d-edit-distance",
@@ -2788,116 +2747,27 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-behavioral-qa-1",
-     "type": "core",
-     "title": "Behavioral & HR: answer 8 frequently asked questions out loud (set 2 of 3)",
-     "minutes": 20,
-     "link": "/core/behavioral?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-behavioral-chapter-5",
-     "type": "core",
-     "title": "Behavioral & HR: read \"Amazon Leadership Principles & Behavioral Themes\"",
-     "minutes": 25,
-     "link": "/core/behavioral?chapter=5"
-    },
-    {
-     "id": "core-behavioral-qa-2",
-     "type": "core",
-     "title": "Behavioral & HR: answer 7 frequently asked questions out loud (set 3 of 3)",
-     "minutes": 20,
-     "link": "/core/behavioral?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-senior-observability-slos-at-scale",
+     "id": "sd-system-design-case-studies-ride-hailing-uber",
      "type": "sd",
-     "title": "Senior design: Observability, SLOs & \"How Do We Know It's Broken?\"",
+     "title": "Design: Design a Ride-Hailing System (Uber / Ola)",
      "minutes": 40,
-     "link": "/system-design/senior/observability-slos-at-scale",
+     "link": "/system-design/case-studies/ride-hailing-uber",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 39,
-   "week": 6,
-   "title": "Dynamic Programming 2D",
-   "focus": "DSA: Dynamic Programming 2D · AI-Assisted Engineering & AI Literacy · Design: Design a Ticket Booking System (BookMyShow) · ~3.4 h",
-   "tasks": [
-    {
-     "id": "round-rounds-ai-assisted-coding",
-     "type": "round",
-     "title": "Round playbook: AI-Assisted Coding (how it's scored, how to ace it)",
-     "minutes": 25,
-     "link": "/rounds/ai-assisted-coding"
-    },
-    {
-     "id": "trap-traps-trap-dsa-binary-search-bounds",
-     "type": "trap",
-     "title": "Trap: Binary search: infinite loop and wrong bounds",
-     "minutes": 10,
-     "link": "/traps/trap-dsa-binary-search-bounds",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-dp-2d-target-sum",
-     "type": "dsa",
-     "title": "Solve: Target Sum (Medium)",
-     "minutes": 40,
-     "link": "/dsa/dp-2d/target-sum"
-    },
-    {
-     "id": "dsa-dsa-dp-2d-coin-change-ii",
-     "type": "dsa",
-     "title": "Solve: Coin Change II (Medium)",
-     "minutes": 40,
-     "link": "/dsa/dp-2d/coin-change-ii"
-    },
-    {
-     "id": "core-ai-assisted-engineering-chapter-1",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: read \"AI-Assisted Coding Interviews in 2025-26: Formats and Grading\"",
-     "minutes": 25,
-     "link": "/core/ai-assisted-engineering?chapter=1"
-    },
-    {
-     "id": "core-ai-assisted-engineering-chapter-2",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: read \"The Interview Workflow: Clarify, Decompose, Prompt, Verify, Test, Iterate\"",
-     "minutes": 25,
-     "link": "/core/ai-assisted-engineering?chapter=2"
-    },
-    {
-     "id": "sd-system-design-case-studies-ticket-booking-bookmyshow",
-     "type": "sd",
-     "title": "Design: Design a Ticket Booking System (BookMyShow)",
-     "minutes": 40,
-     "link": "/system-design/case-studies/ticket-booking-bookmyshow",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
-    }
-   ]
-  },
-  {
-   "day": 40,
+   "day": 41,
    "week": 6,
    "title": "Greedy",
-   "focus": "DSA: Greedy · AI-Assisted Engineering & AI Literacy · Design: Cost & Capacity Planning · ~3.4 h",
+   "focus": "DSA: Greedy · Design: Design a Pub-Sub Message Queue · ~4.7 h",
    "tasks": [
     {
-     "id": "career-research-salary-bands-for-your-target-companies-set-walk-awa",
-     "type": "career",
-     "title": "Research salary bands for your target companies; set walk-away and target numbers",
-     "minutes": 30,
-     "link": "/guide"
-    },
-    {
-     "id": "trap-traps-trap-dsa-bfs-visited-on-enqueue",
+     "id": "trap-traps-trap-dsa-int-overflow",
      "type": "trap",
-     "title": "Trap: BFS: mark visited on enqueue, not dequeue",
+     "title": "Trap: Integer overflow in sums, products and comparators",
      "minutes": 10,
-     "link": "/traps/trap-dsa-bfs-visited-on-enqueue",
+     "link": "/traps/trap-dsa-int-overflow",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -2916,52 +2786,6 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-greedy-jump-game-ii",
-     "type": "dsa",
-     "title": "Solve: Jump Game II (Medium)",
-     "minutes": 40,
-     "link": "/dsa/greedy/jump-game-ii"
-    },
-    {
-     "id": "core-ai-assisted-engineering-chapter-3",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: read \"Catching AI Mistakes: A Field Guide\"",
-     "minutes": 25,
-     "link": "/core/ai-assisted-engineering?chapter=3"
-    },
-    {
-     "id": "sd-system-design-senior-cost-and-capacity-planning",
-     "type": "sd",
-     "title": "Senior design: Cost & Capacity Planning",
-     "minutes": 40,
-     "link": "/system-design/senior/cost-and-capacity-planning",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
-    }
-   ]
-  },
-  {
-   "day": 41,
-   "week": 6,
-   "title": "Greedy",
-   "focus": "DSA: Greedy · AI-Assisted Engineering & AI Literacy · Design: Design a Pub-Sub Message Queue · ~5.2 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-dsa-int-overflow",
-     "type": "trap",
-     "title": "Trap: Integer overflow in sums, products and comparators",
-     "minutes": 10,
-     "link": "/traps/trap-dsa-int-overflow",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-dsa-greedy-vs-dp",
-     "type": "trap",
-     "title": "Trap: Greedy coin change fails on arbitrary coins",
-     "minutes": 10,
-     "link": "/traps/trap-dsa-greedy-vs-dp",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
      "id": "dsa-dsa-greedy-gas-station",
      "type": "dsa",
      "title": "Solve: Gas Station (Medium)",
@@ -2978,36 +2802,6 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-ai-assisted-engineering-qa-0",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/ai-assisted-engineering?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-ai-assisted-engineering-chapter-5",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: read \"Reviewing AI-Generated Code (Yours and Others')\"",
-     "minutes": 25,
-     "link": "/core/ai-assisted-engineering?chapter=5"
-    },
-    {
-     "id": "core-ai-assisted-engineering-chapter-6",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: read \"LLM Basics Every Backend Developer Is Asked\"",
-     "minutes": 25,
-     "link": "/core/ai-assisted-engineering?chapter=6"
-    },
-    {
-     "id": "core-ai-assisted-engineering-qa-1",
-     "type": "core",
-     "title": "AI-Assisted Engineering & AI Literacy: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/ai-assisted-engineering?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
      "id": "sd-system-design-lld-problems-pub-sub-message-queue",
      "type": "sd",
      "title": "Machine coding: Design a Pub-Sub Message Queue",
@@ -3016,11 +2810,11 @@
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
     },
     {
-     "id": "sd-system-design-case-studies-payment-system-upi",
+     "id": "sd-system-design-senior-distributed-job-scheduler",
      "type": "sd",
-     "title": "Design: Design a Payment System (UPI / Payment Gateway)",
+     "title": "Senior design: Distributed Job Scheduler",
      "minutes": 40,
-     "link": "/system-design/case-studies/payment-system-upi",
+     "link": "/system-design/senior/distributed-job-scheduler",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
@@ -3036,74 +2830,15 @@
    "day": 42,
    "week": 6,
    "title": "Mock day",
-   "focus": "DSA: Intervals · Security for Backend Engineers · ~5.3 h",
+   "focus": "~2.3 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-api-design-status-codes",
+     "id": "trap-traps-trap-concurrency-deadlock-lock-ordering",
      "type": "trap",
-     "title": "Trap: Status codes: 200-with-error, 401 vs 403",
+     "title": "Trap: Deadlock from inconsistent lock order",
      "minutes": 10,
-     "link": "/traps/trap-api-design-status-codes",
+     "link": "/traps/trap-concurrency-deadlock-lock-ordering",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-api-design-put-vs-patch",
-     "type": "trap",
-     "title": "Trap: PUT vs PATCH semantics",
-     "minutes": 10,
-     "link": "/traps/trap-api-design-put-vs-patch",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-intervals",
-     "type": "dsa",
-     "title": "Learn pattern: Intervals (read intro + template)",
-     "minutes": 20,
-     "link": "/dsa/intervals"
-    },
-    {
-     "id": "dsa-dsa-intervals-merge-intervals",
-     "type": "dsa",
-     "title": "Solve: Merge Intervals (Medium)",
-     "minutes": 40,
-     "link": "/dsa/intervals/merge-intervals",
-     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
-    },
-    {
-     "id": "core-security-chapter-1",
-     "type": "core",
-     "title": "Security for Backend Engineers: read \"OWASP Top 10 (2021 and 2025) Through a Spring Boot Lens\"",
-     "minutes": 25,
-     "link": "/core/security?chapter=1"
-    },
-    {
-     "id": "core-security-chapter-3",
-     "type": "core",
-     "title": "Security for Backend Engineers: read \"Injection, XSS, CSRF and CORS: What Actually Protects You\"",
-     "minutes": 25,
-     "link": "/core/security?chapter=3"
-    },
-    {
-     "id": "core-security-qa-0",
-     "type": "core",
-     "title": "Security for Backend Engineers: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/security?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-security-chapter-4",
-     "type": "core",
-     "title": "Security for Backend Engineers: read \"Authentication, Sessions vs JWT and Token Pitfalls\"",
-     "minutes": 25,
-     "link": "/core/security?chapter=4"
-    },
-    {
-     "id": "core-security-chapter-5",
-     "type": "core",
-     "title": "Security for Backend Engineers: read \"OAuth 2.0 and OIDC: Authorization Code + PKCE, Client Credentials\"",
-     "minutes": 20,
-     "link": "/core/security?chapter=5"
     },
     {
      "id": "mock-machine-coding-mock-an-unseen-lld-problem-in-90-minutes-runn",
@@ -3132,15 +2867,30 @@
    "day": 43,
    "week": 7,
    "title": "Intervals",
-   "focus": "DSA: Intervals · Security for Backend Engineers, Senior Engineer Skills · Design: AI System Design: Production RAG · ~3.2 h",
+   "focus": "DSA: Intervals · Design: Design Search Autocomplete (Typeahead) · ~2.5 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-api-design-idor",
+     "id": "trap-traps-trap-dsa-greedy-vs-dp",
      "type": "trap",
-     "title": "Trap: IDOR / broken object-level authorization",
+     "title": "Trap: Greedy coin change fails on arbitrary coins",
      "minutes": 10,
-     "link": "/traps/trap-api-design-idor",
+     "link": "/traps/trap-dsa-greedy-vs-dp",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
+     "id": "dsa-dsa-intervals",
+     "type": "dsa",
+     "title": "Learn pattern: Intervals (read intro + template)",
+     "minutes": 20,
+     "link": "/dsa/intervals"
+    },
+    {
+     "id": "dsa-dsa-intervals-merge-intervals",
+     "type": "dsa",
+     "title": "Solve: Merge Intervals (Medium)",
+     "minutes": 40,
+     "link": "/dsa/intervals/merge-intervals",
+     "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
      "id": "dsa-dsa-intervals-insert-interval",
@@ -3151,6 +2901,30 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
+     "id": "sd-system-design-case-studies-search-autocomplete",
+     "type": "sd",
+     "title": "Design: Design Search Autocomplete (Typeahead)",
+     "minutes": 40,
+     "link": "/system-design/case-studies/search-autocomplete",
+     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
+    }
+   ]
+  },
+  {
+   "day": 44,
+   "week": 7,
+   "title": "Intervals",
+   "focus": "DSA: Intervals · Design: Real-Time Leaderboard & Top-K Trending · ~1.5 h",
+   "tasks": [
+    {
+     "id": "trap-traps-trap-dsa-sliding-window-negatives",
+     "type": "trap",
+     "title": "Trap: Sliding window with negative numbers",
+     "minutes": 10,
+     "link": "/traps/trap-dsa-sliding-window-negatives",
+     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
+    },
+    {
      "id": "dsa-dsa-intervals-meeting-rooms-ii",
      "type": "dsa",
      "title": "Solve: Meeting Rooms II (Medium)",
@@ -3159,49 +2933,27 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-security-qa-1",
-     "type": "core",
-     "title": "Security for Backend Engineers: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/security?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-senior-leadership-chapter-1",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"What Changes from Mid-Level to Senior (SDE-2 and Beyond)\"",
-     "minutes": 25,
-     "link": "/core/senior-leadership?chapter=1"
-    },
-    {
-     "id": "core-senior-leadership-chapter-2",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"Writing Design Docs and RFCs (Template + Worked Example)\"",
-     "minutes": 25,
-     "link": "/core/senior-leadership?chapter=2"
-    },
-    {
-     "id": "sd-system-design-senior-ai-system-design-rag",
+     "id": "sd-system-design-senior-leaderboard-top-k-trending",
      "type": "sd",
-     "title": "Senior design: AI System Design: Production RAG",
+     "title": "Senior design: Real-Time Leaderboard & Top-K Trending",
      "minutes": 40,
-     "link": "/system-design/senior/ai-system-design-rag",
+     "link": "/system-design/senior/leaderboard-top-k-trending",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 44,
+   "day": 45,
    "week": 7,
    "title": "Math & Bit Manipulation",
-   "focus": "DSA: Math & Bit Manipulation · Senior Engineer Skills · Design: Design a Ride-Hailing System (Uber / Ola) · ~3.3 h",
+   "focus": "DSA: Math & Bit Manipulation · Design: Flash Sale Inventory (Big Billion Days Style) · ~2.0 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-behavioral-fake-weakness",
+     "id": "trap-traps-trap-dsa-recursion-complexity",
      "type": "trap",
-     "title": "Trap: The fake weakness (\"I'm a perfectionist\")",
+     "title": "Trap: Naive recursion: exponential time and hidden stack space",
      "minutes": 10,
-     "link": "/traps/trap-behavioral-fake-weakness",
+     "link": "/traps/trap-dsa-recursion-complexity",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -3228,57 +2980,27 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "core-senior-leadership-qa-0",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/senior-leadership?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-senior-leadership-chapter-4",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"Making Trade-offs and Handling Disagreement\"",
-     "minutes": 25,
-     "link": "/core/senior-leadership?chapter=4"
-    },
-    {
-     "id": "core-senior-leadership-chapter-8",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: read \"The Project Deep-Dive Round and Stakes-Action-Outcome Stories\"",
-     "minutes": 25,
-     "link": "/core/senior-leadership?chapter=8"
-    },
-    {
-     "id": "core-senior-leadership-qa-1",
-     "type": "core",
-     "title": "Senior Engineer Skills: Ownership, Design Docs & Leadership: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/senior-leadership?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-case-studies-ride-hailing-uber",
+     "id": "sd-system-design-senior-flash-sale-inventory",
      "type": "sd",
-     "title": "Design: Design a Ride-Hailing System (Uber / Ola)",
+     "title": "Senior design: Flash Sale Inventory (Big Billion Days Style)",
      "minutes": 40,
-     "link": "/system-design/case-studies/ride-hailing-uber",
+     "link": "/system-design/senior/flash-sale-inventory",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
   },
   {
-   "day": 45,
+   "day": 46,
    "week": 7,
    "title": "Math & Bit Manipulation",
-   "focus": "DSA: Math & Bit Manipulation · JavaScript & TypeScript · Design: Payment Processing Reliability (PSP Orchestration) · ~3.2 h",
+   "focus": "DSA: Math & Bit Manipulation · Design: Reliable Webhook Delivery System · ~1.5 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-angular-js-onpush-mutation",
+     "id": "trap-traps-trap-dsa-dijkstra-assumptions",
      "type": "trap",
-     "title": "Trap: OnPush not updating after mutation",
+     "title": "Trap: Dijkstra: negative edges and stale queue entries",
      "minutes": 10,
-     "link": "/traps/trap-angular-js-onpush-mutation",
+     "link": "/traps/trap-dsa-dijkstra-assumptions",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -3290,123 +3012,11 @@
      "detail": "Explain your approach out loud before coding; interviewers grade the reasoning."
     },
     {
-     "id": "dsa-dsa-math-bit-happy-number",
-     "type": "dsa",
-     "title": "Solve: Happy Number (Easy)",
-     "minutes": 25,
-     "link": "/dsa/math-bit/happy-number"
-    },
-    {
-     "id": "core-javascript-typescript-chapter-2",
-     "type": "core",
-     "title": "JavaScript & TypeScript: read \"Closures\"",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?chapter=2"
-    },
-    {
-     "id": "core-javascript-typescript-qa-0",
-     "type": "core",
-     "title": "JavaScript & TypeScript: answer 8 frequently asked questions out loud (set 1 of 3)",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-javascript-typescript-chapter-5",
-     "type": "core",
-     "title": "JavaScript & TypeScript: read \"Event Loop, Call Stack, Microtasks & Macrotasks\"",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?chapter=5"
-    },
-    {
-     "id": "core-javascript-typescript-qa-1",
-     "type": "core",
-     "title": "JavaScript & TypeScript: answer 8 frequently asked questions out loud (set 2 of 3)",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-senior-payment-processing-reliability",
+     "id": "sd-system-design-senior-webhook-delivery-system",
      "type": "sd",
-     "title": "Senior design: Payment Processing Reliability (PSP Orchestration)",
+     "title": "Senior design: Reliable Webhook Delivery System",
      "minutes": 40,
-     "link": "/system-design/senior/payment-processing-reliability",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
-    }
-   ]
-  },
-  {
-   "day": 46,
-   "week": 7,
-   "title": "Math & Bit Manipulation",
-   "focus": "DSA: Math & Bit Manipulation · JavaScript & TypeScript, Computer Networks · Design: Design a Food Delivery Platform (Swiggy / Zomato) · ~3.3 h",
-   "tasks": [
-    {
-     "id": "trap-traps-trap-angular-js-subscription-leaks",
-     "type": "trap",
-     "title": "Trap: Subscription leaks and nested subscribes",
-     "minutes": 10,
-     "link": "/traps/trap-angular-js-subscription-leaks",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "dsa-dsa-math-bit-plus-one",
-     "type": "dsa",
-     "title": "Solve: Plus One (Easy)",
-     "minutes": 25,
-     "link": "/dsa/math-bit/plus-one"
-    },
-    {
-     "id": "core-javascript-typescript-chapter-6",
-     "type": "core",
-     "title": "JavaScript & TypeScript: read \"Promises & Async/Await\"",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?chapter=6"
-    },
-    {
-     "id": "core-javascript-typescript-qa-2",
-     "type": "core",
-     "title": "JavaScript & TypeScript: answer 8 frequently asked questions out loud (set 3 of 3)",
-     "minutes": 20,
-     "link": "/core/javascript-typescript?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-cn-chapter-3",
-     "type": "core",
-     "title": "Computer Networks: read \"HTTP: Methods, Status Codes, HTTP/1.1 vs HTTP/2 vs HTTP/3\"",
-     "minutes": 20,
-     "link": "/core/cn?chapter=3"
-    },
-    {
-     "id": "core-cn-chapter-5",
-     "type": "core",
-     "title": "Computer Networks: read \"DNS & What Happens When You Type a URL\"",
-     "minutes": 20,
-     "link": "/core/cn?chapter=5"
-    },
-    {
-     "id": "core-cn-chapter-6",
-     "type": "core",
-     "title": "Computer Networks: read \"Cookies, Sessions, Tokens & CORS\"",
-     "minutes": 20,
-     "link": "/core/cn?chapter=6"
-    },
-    {
-     "id": "core-cn-qa-0",
-     "type": "core",
-     "title": "Computer Networks: answer 10 frequently asked questions out loud (the most-asked ones)",
-     "minutes": 25,
-     "link": "/core/cn?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-case-studies-food-delivery-swiggy",
-     "type": "sd",
-     "title": "Design: Design a Food Delivery Platform (Swiggy / Zomato)",
-     "minutes": 40,
-     "link": "/system-design/case-studies/food-delivery-swiggy",
+     "link": "/system-design/senior/webhook-delivery-system",
      "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     }
    ]
@@ -3414,54 +3024,16 @@
   {
    "day": 47,
    "week": 7,
-   "title": "Operating Systems + OOP & Design Principles",
-   "focus": "Operating Systems, OOP & Design Principles · Design: Distributed Job Scheduler · ~3.3 h",
+   "title": "Revision",
+   "focus": "~1.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-os-networking-process-vs-thread",
+     "id": "trap-traps-trap-spring-async-self-invocation",
      "type": "trap",
-     "title": "Trap: What threads share (and what they don't)",
+     "title": "Trap: @Async self-invocation, void return and the default executor",
      "minutes": 10,
-     "link": "/traps/trap-os-networking-process-vs-thread",
+     "link": "/traps/trap-spring-async-self-invocation",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "core-os-chapter-1",
-     "type": "core",
-     "title": "Operating Systems: read \"OS Basics, Processes & Threads\"",
-     "minutes": 20,
-     "link": "/core/os?chapter=1"
-    },
-    {
-     "id": "core-os-chapter-4",
-     "type": "core",
-     "title": "Operating Systems: read \"Deadlocks: Conditions, Prevention, Avoidance (Banker's), Detection\"",
-     "minutes": 20,
-     "link": "/core/os?chapter=4"
-    },
-    {
-     "id": "core-os-qa-0",
-     "type": "core",
-     "title": "Operating Systems: answer 10 frequently asked questions out loud (the most-asked ones)",
-     "minutes": 25,
-     "link": "/core/os?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-oop-design-patterns-qa-0",
-     "type": "core",
-     "title": "OOP & Design Principles: answer 10 frequently asked questions out loud (the most-asked ones)",
-     "minutes": 25,
-     "link": "/core/oop-design-patterns?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "sd-system-design-senior-distributed-job-scheduler",
-     "type": "sd",
-     "title": "Senior design: Distributed Job Scheduler",
-     "minutes": 40,
-     "link": "/system-design/senior/distributed-job-scheduler",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-linked-list-lru-cache",
@@ -3482,53 +3054,16 @@
   {
    "day": 48,
    "week": 7,
-   "title": "DBMS Theory + Cloud, Docker, Kubernetes & CI/CD",
-   "focus": "DBMS Theory, Cloud, Docker, Kubernetes & CI/CD · Design: Design an In-Memory Key-Value Store · ~5.2 h",
+   "title": "Revision",
+   "focus": "Design: Design an In-Memory Key-Value Store · ~2.7 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-sql-count-variants",
+     "id": "trap-traps-trap-spring-field-vs-constructor-injection",
      "type": "trap",
-     "title": "Trap: COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col)",
+     "title": "Trap: Field injection vs constructor injection",
      "minutes": 10,
-     "link": "/traps/trap-sql-count-variants",
+     "link": "/traps/trap-spring-field-vs-constructor-injection",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-sql-composite-index-leftmost-prefix",
-     "type": "trap",
-     "title": "Trap: Composite index and the leftmost-prefix rule",
-     "minutes": 10,
-     "link": "/traps/trap-sql-composite-index-leftmost-prefix",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "core-dbms-qa-0",
-     "type": "core",
-     "title": "DBMS Theory: answer 10 frequently asked questions out loud (the most-asked ones)",
-     "minutes": 25,
-     "link": "/core/dbms?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-cloud-devops-chapter-1",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"AWS for Backend Engineers: The Service Map and When to Use What\"",
-     "minutes": 25,
-     "link": "/core/cloud-devops?chapter=1"
-    },
-    {
-     "id": "core-cloud-devops-chapter-3",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"Docker for Spring Boot: Images, Layers and Multi-stage Builds\"",
-     "minutes": 25,
-     "link": "/core/cloud-devops?chapter=3"
-    },
-    {
-     "id": "core-cloud-devops-chapter-4",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"Kubernetes Essentials: Pods, Deployments, Services, Ingress, Config\"",
-     "minutes": 25,
-     "link": "/core/cloud-devops?chapter=4"
     },
     {
      "id": "sd-system-design-lld-problems-in-memory-key-value-store",
@@ -3537,14 +3072,6 @@
      "minutes": 90,
      "link": "/system-design/lld-problems/in-memory-key-value-store",
      "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
-    },
-    {
-     "id": "sd-system-design-case-studies-search-autocomplete",
-     "type": "sd",
-     "title": "Design: Design Search Autocomplete (Typeahead)",
-     "minutes": 40,
-     "link": "/system-design/case-studies/search-autocomplete",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-intervals-merge-intervals",
@@ -3573,53 +3100,15 @@
    "day": 49,
    "week": 7,
    "title": "Mock day",
-   "focus": "Cloud, Docker, Kubernetes & CI/CD · ~4.3 h",
+   "focus": "~2.8 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-distributed-systems-retry-storm",
+     "id": "trap-traps-trap-spring-singleton-thread-safety",
      "type": "trap",
-     "title": "Trap: Retry storms: retries at every layer, no backoff",
+     "title": "Trap: Are Spring singleton beans thread-safe?",
      "minutes": 10,
-     "link": "/traps/trap-distributed-systems-retry-storm",
+     "link": "/traps/trap-spring-singleton-thread-safety",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-distributed-systems-missing-timeouts",
-     "type": "trap",
-     "title": "Trap: Missing timeouts cause cascading failure",
-     "minutes": 10,
-     "link": "/traps/trap-distributed-systems-missing-timeouts",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "core-cloud-devops-qa-0",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: answer 6 frequently asked questions out loud (set 1 of 2)",
-     "minutes": 15,
-     "link": "/core/cloud-devops?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
-    },
-    {
-     "id": "core-cloud-devops-chapter-5",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"Kubernetes in Production: Probes, Resources, HPA and Why Pods Die\"",
-     "minutes": 25,
-     "link": "/core/cloud-devops?chapter=5"
-    },
-    {
-     "id": "core-cloud-devops-chapter-6",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: read \"CI/CD, Deployment Strategies, Feature Flags and Rollbacks\"",
-     "minutes": 25,
-     "link": "/core/cloud-devops?chapter=6"
-    },
-    {
-     "id": "core-cloud-devops-qa-1",
-     "type": "core",
-     "title": "Cloud, Docker, Kubernetes & CI/CD: answer 6 frequently asked questions out loud (set 2 of 2)",
-     "minutes": 15,
-     "link": "/core/cloud-devops?view=qa&filter=frequent-todo",
-     "detail": "Open the model answer only after saying yours. Tick the ones you nail."
     },
     {
      "id": "mock-code-review-debugging-drill-review-one-snippet-debug-one-inc",
@@ -3662,7 +3151,7 @@
    "day": 50,
    "week": 8,
    "title": "Revision",
-   "focus": "Design: Metrics Monitoring & Alerting System · ~2.8 h",
+   "focus": "~2.1 h",
    "tasks": [
     {
      "id": "career-read-the-negotiation-guide-prepare-answers-for-expected-ctc-",
@@ -3679,20 +3168,12 @@
      "link": "/rounds/hiring-manager-and-hr"
     },
     {
-     "id": "trap-traps-trap-system-design-global-id",
+     "id": "trap-traps-trap-jpa-hibernate-dirty-checking",
      "type": "trap",
-     "title": "Trap: Generating IDs after sharding",
+     "title": "Trap: Dirty checking: no save() needed (and accidental writes)",
      "minutes": 10,
-     "link": "/traps/trap-system-design-global-id",
+     "link": "/traps/trap-jpa-hibernate-dirty-checking",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "sd-system-design-senior-metrics-monitoring-system",
-     "type": "sd",
-     "title": "Senior design: Metrics Monitoring & Alerting System",
-     "minutes": 40,
-     "link": "/system-design/senior/metrics-monitoring-system",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-two-pointers-trapping-rain-water",
@@ -3714,23 +3195,15 @@
    "day": 51,
    "week": 8,
    "title": "Revision",
-   "focus": "Design: Real-Time Leaderboard & Top-K Trending · ~1.8 h",
+   "focus": "~1.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-system-design-read-your-writes",
+     "id": "trap-traps-trap-sql-index-sargability",
      "type": "trap",
-     "title": "Trap: Read-your-writes with async replicas",
+     "title": "Trap: Functions on indexed columns kill the index",
      "minutes": 10,
-     "link": "/traps/trap-system-design-read-your-writes",
+     "link": "/traps/trap-sql-index-sargability",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "sd-system-design-senior-leaderboard-top-k-trending",
-     "type": "sd",
-     "title": "Senior design: Real-Time Leaderboard & Top-K Trending",
-     "minutes": 40,
-     "link": "/system-design/senior/leaderboard-top-k-trending",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-sliding-window-minimum-window-substring",
@@ -3752,23 +3225,15 @@
    "day": 52,
    "week": 8,
    "title": "Revision",
-   "focus": "Design: Flash Sale Inventory (Big Billion Days Style) · ~1.8 h",
+   "focus": "~1.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-system-design-counting-at-scale",
+     "id": "trap-traps-trap-sql-nth-highest-with-duplicates",
      "type": "trap",
-     "title": "Trap: COUNT(*) on every read for likes and views",
+     "title": "Trap: Nth highest salary with LIMIT/OFFSET and ties",
      "minutes": 10,
-     "link": "/traps/trap-system-design-counting-at-scale",
+     "link": "/traps/trap-sql-nth-highest-with-duplicates",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "sd-system-design-senior-flash-sale-inventory",
-     "type": "sd",
-     "title": "Senior design: Flash Sale Inventory (Big Billion Days Style)",
-     "minutes": 40,
-     "link": "/system-design/senior/flash-sale-inventory",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-binary-search-median-of-two-sorted-arrays",
@@ -3793,11 +3258,11 @@
    "focus": "~1.9 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-dsa-sliding-window-negatives",
+     "id": "trap-traps-trap-sql-delete-duplicates-mysql-1093",
      "type": "trap",
-     "title": "Trap: Sliding window with negative numbers",
+     "title": "Trap: Deleting duplicates in MySQL (ERROR 1093)",
      "minutes": 10,
-     "link": "/traps/trap-dsa-sliding-window-negatives",
+     "link": "/traps/trap-sql-delete-duplicates-mysql-1093",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -3820,23 +3285,15 @@
    "day": 54,
    "week": 8,
    "title": "Revision",
-   "focus": "Design: Reliable Webhook Delivery System · ~2.5 h",
+   "focus": "~1.8 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-dsa-recursion-complexity",
+     "id": "trap-traps-trap-api-design-offset-pagination",
      "type": "trap",
-     "title": "Trap: Naive recursion: exponential time and hidden stack space",
+     "title": "Trap: Offset pagination drift and deep-page slowness",
      "minutes": 10,
-     "link": "/traps/trap-dsa-recursion-complexity",
+     "link": "/traps/trap-api-design-offset-pagination",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "sd-system-design-senior-webhook-delivery-system",
-     "type": "sd",
-     "title": "Senior design: Reliable Webhook Delivery System",
-     "minutes": 40,
-     "link": "/system-design/senior/webhook-delivery-system",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-heap-kth-largest-element-in-an-array",
@@ -3865,39 +3322,15 @@
    "day": 55,
    "week": 8,
    "title": "Revision",
-   "focus": "Design: Design a Cab Booking System (Uber/Ola LLD) · ~3.5 h",
+   "focus": "~1.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-api-design-rate-limiting",
+     "id": "trap-traps-trap-api-design-status-codes",
      "type": "trap",
-     "title": "Trap: Rate limiting: per-instance counters and wrong status",
+     "title": "Trap: Status codes: 200-with-error, 401 vs 403",
      "minutes": 10,
-     "link": "/traps/trap-api-design-rate-limiting",
+     "link": "/traps/trap-api-design-status-codes",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-angular-js-switchmap-vs-mergemap",
-     "type": "trap",
-     "title": "Trap: Choosing switchMap / mergeMap / concatMap / exhaustMap",
-     "minutes": 10,
-     "link": "/traps/trap-angular-js-switchmap-vs-mergemap",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "sd-system-design-lld-problems-cab-booking-lld",
-     "type": "sd",
-     "title": "Machine coding: Design a Cab Booking System (Uber/Ola LLD)",
-     "minutes": 90,
-     "link": "/system-design/lld-problems/cab-booking-lld",
-     "detail": "Code it yourself in Java with a 60-minute timer, then compare with the solution."
-    },
-    {
-     "id": "sd-system-design-senior-collaborative-editor",
-     "type": "sd",
-     "title": "Senior design: Collaborative Document Editor (Google Docs-like)",
-     "minutes": 40,
-     "link": "/system-design/senior/collaborative-editor",
-     "detail": "Say the design out loud as if to an interviewer: requirements, numbers, API, data, then failures."
     },
     {
      "id": "revise-dsa-graphs-course-schedule",
@@ -3926,22 +3359,14 @@
    "day": 56,
    "week": 8,
    "title": "Mock day",
-   "focus": "~4.2 h",
+   "focus": "~4.1 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-os-networking-deadlock",
+     "id": "trap-traps-trap-api-design-put-vs-patch",
      "type": "trap",
-     "title": "Trap: Deadlock: conditions and the practical fix",
+     "title": "Trap: PUT vs PATCH semantics",
      "minutes": 10,
-     "link": "/traps/trap-os-networking-deadlock",
-     "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
-    },
-    {
-     "id": "trap-traps-trap-os-networking-tcp-vs-udp",
-     "type": "trap",
-     "title": "Trap: TCP vs UDP: what each really guarantees",
-     "minutes": 10,
-     "link": "/traps/trap-os-networking-tcp-vs-udp",
+     "link": "/traps/trap-api-design-put-vs-patch",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -3959,11 +3384,11 @@
      "link": "/dsa/dp-1d/word-break"
     },
     {
-     "id": "revise-core-java-view-cards-filter-frequent-todo",
+     "id": "revise-core-java-view-cards-filter-core-todo",
      "type": "revise",
-     "title": "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)",
+     "title": "Flashcards: core questions you haven't nailed (Java, Spring, SQL)",
      "minutes": 40,
-     "link": "/core/java?view=cards&filter=frequent-todo"
+     "link": "/core/java?view=cards&filter=core-todo"
     },
     {
      "id": "revise-focus",
@@ -3981,11 +3406,11 @@
    "focus": "~3.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-os-networking-url-flow",
+     "id": "trap-traps-trap-api-design-idor",
      "type": "trap",
-     "title": "Trap: What happens when you type a URL",
+     "title": "Trap: IDOR / broken object-level authorization",
      "minutes": 10,
-     "link": "/traps/trap-os-networking-url-flow",
+     "link": "/traps/trap-api-design-idor",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -4010,11 +3435,11 @@
      "link": "/revision"
     },
     {
-     "id": "revise-core-java-view-cards-filter-frequent-todo",
+     "id": "revise-core-java-view-cards-filter-core-todo",
      "type": "revise",
-     "title": "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)",
+     "title": "Flashcards: core questions you haven't nailed (Java, Spring, SQL)",
      "minutes": 40,
-     "link": "/core/java?view=cards&filter=frequent-todo"
+     "link": "/core/java?view=cards&filter=core-todo"
     },
     {
      "id": "revise-focus",
@@ -4032,11 +3457,11 @@
    "focus": "~2.6 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-os-networking-cors",
+     "id": "trap-traps-trap-api-design-rate-limiting",
      "type": "trap",
-     "title": "Trap: CORS is enforced by the browser",
+     "title": "Trap: Rate limiting: per-instance counters and wrong status",
      "minutes": 10,
-     "link": "/traps/trap-os-networking-cors",
+     "link": "/traps/trap-api-design-rate-limiting",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -4054,11 +3479,11 @@
      "link": "/dsa/arrays-hashing/longest-consecutive-sequence"
     },
     {
-     "id": "revise-core-java-view-cards-filter-frequent-todo",
+     "id": "revise-core-java-view-cards-filter-core-todo",
      "type": "revise",
-     "title": "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)",
+     "title": "Flashcards: core questions you haven't nailed (Java, Spring, SQL)",
      "minutes": 40,
-     "link": "/core/java?view=cards&filter=frequent-todo"
+     "link": "/core/java?view=cards&filter=core-todo"
     },
     {
      "id": "revise-focus",
@@ -4076,11 +3501,11 @@
    "focus": "~3.6 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-behavioral-failure-story",
+     "id": "trap-traps-trap-angular-js-onpush-mutation",
      "type": "trap",
-     "title": "Trap: No real failure story (or a disguised humblebrag)",
+     "title": "Trap: OnPush not updating after mutation",
      "minutes": 10,
-     "link": "/traps/trap-behavioral-failure-story",
+     "link": "/traps/trap-angular-js-onpush-mutation",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -4105,11 +3530,11 @@
      "link": "/dsa/arrays-hashing/subarray-sum-equals-k"
     },
     {
-     "id": "revise-core-java-view-cards-filter-frequent-todo",
+     "id": "revise-core-java-view-cards-filter-core-todo",
      "type": "revise",
-     "title": "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)",
+     "title": "Flashcards: core questions you haven't nailed (Java, Spring, SQL)",
      "minutes": 40,
-     "link": "/core/java?view=cards&filter=frequent-todo"
+     "link": "/core/java?view=cards&filter=core-todo"
     },
     {
      "id": "revise-focus",
@@ -4127,11 +3552,11 @@
    "focus": "~3.2 h",
    "tasks": [
     {
-     "id": "trap-traps-trap-behavioral-project-tech-dump",
+     "id": "trap-traps-trap-angular-js-subscription-leaks",
      "type": "trap",
-     "title": "Trap: \"Walk me through your project\" answered with a tech-stack list",
+     "title": "Trap: Subscription leaks and nested subscribes",
      "minutes": 10,
-     "link": "/traps/trap-behavioral-project-tech-dump",
+     "link": "/traps/trap-angular-js-subscription-leaks",
      "detail": "Commit to an answer before revealing. Most candidates get this one wrong."
     },
     {
@@ -4156,11 +3581,11 @@
      "link": "/revision"
     },
     {
-     "id": "revise-core-java-view-cards-filter-frequent-todo",
+     "id": "revise-core-java-view-cards-filter-core-todo",
      "type": "revise",
-     "title": "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)",
+     "title": "Flashcards: core questions you haven't nailed (Java, Spring, SQL)",
      "minutes": 40,
-     "link": "/core/java?view=cards&filter=frequent-todo"
+     "link": "/core/java?view=cards&filter=core-todo"
     },
     {
      "id": "revise-focus",

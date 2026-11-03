@@ -49,6 +49,8 @@ export interface GuideSection { id: string; title: string; icon: string; content
 export interface Guide { sections: GuideSection[]; }
 
 export type Section = 'plan' | 'dsa' | 'sd' | 'core' | 'final' | 'ai' | 'traps' | 'rounds';
+/** One trackable item in catalog.json. */
+export interface CatalogEntry { key: string; section: Section; title: string; link: string; group: string; }
 
 export interface ProgressItem {
   key: string; section: Section; done: boolean; revise: boolean; note?: string | null;
@@ -93,3 +95,33 @@ export interface HabitDayLog { values: Record<string, number>; minutes: number; 
 
 /** Routine settings + daily logs, as stored in localStorage and in export files. */
 export interface HabitData { habits: HabitDef[]; logs: Record<string, HabitDayLog>; }
+
+/** Interview coaching for a DSA problem (learn-dsa.json). */
+export interface DsaCoaching {
+  cue: string; brute: string; edge: string[]; bug: string; follow?: { q: string; a: string };
+}
+/** Learning aids for a note chapter (learn-core.json). */
+export interface ChapterGuide { takeaways: string[]; check: { q: string; a: string }[]; }
+export interface CoreCoaching {
+  /** Q&A id -> the short answer to say first. */
+  qa: Record<string, string>;
+  /** "subjectId:noteId" -> takeaways and self-test questions. */
+  notes: Record<string, ChapterGuide>;
+  /** The core set, shown first everywhere (the rest is one click away): Q&A ids, "subjectId:noteId", design topic ids. */
+  core: string[];
+  coreNotes: string[];
+  coreSd: string[];
+  /** A question asked in two subjects -> the copy to study. */
+  dupOf: Record<string, string>;
+}
+
+/** Which subject a Q&A id belongs to, from its prefix (java-001 -> java). Used to link duplicate questions. */
+const QA_PREFIX_SUBJECT: Record<string, string> = {
+  ng: 'angular', js: 'javascript-typescript', oop: 'oop-design-patterns', hr: 'behavioral', dbg: 'production-debugging',
+  perf: 'performance', conc: 'concurrency-practical', test: 'testing-code-review', cloud: 'cloud-devops', sec: 'security',
+  aie: 'ai-assisted-engineering', lead: 'senior-leadership',
+};
+export function subjectOfQa(id: string): string {
+  const prefix = id.slice(0, id.lastIndexOf('-'));
+  return QA_PREFIX_SUBJECT[prefix] ?? prefix;
+}

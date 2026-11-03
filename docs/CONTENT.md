@@ -7,6 +7,9 @@ blocks with a language: `java`, `python`, `sql`, `ts`, `js`, `bash`, `json`, `ya
 |---|---|---|
 | `plan.json` | 60-day plan (selective, high-yield) | `content-gen/build_plan.py` |
 | `focus.json` | High-Yield Focus list (Tier 1 / Tier 2) | `content-gen/build_focus.py` |
+| `learn-dsa.json` | Interview coaching per DSA problem: how to recognise it, brute force, edge cases, common bug, follow-up | `content-gen/build_learn.py` (`learn_dsa1.py`, `learn_dsa2.py`) |
+| `learn-core.json` | "Say this first" short answers per Q&A id; takeaways and self-test questions per note chapter | `content-gen/build_learn.py` (`learn_core.py`, `learn_core_notes.py`) |
+| `catalog.json` | Index of every trackable item (key, section, title, link, group) for the dashboard, revision list and site search | `content-gen/build_catalog.py` |
 | `guide.json` | Job switch guide | `content-gen/build_guide.py` |
 | `dsa-part1.json`, `dsa-part2.json` | DSA patterns 1-9 and 10-17 | `gen_dsa_part1.py`, `build_dsa_part2.py` |
 | `system-design-hld.json` | HLD concepts + case studies | `sd*`/`hld*` scripts |
@@ -21,7 +24,21 @@ blocks with a language: `java`, `python`, `sql`, `ts`, `js`, `bash`, `json`, `ya
 | `final-round-1.json`, `final-round-2.json` | Final round days 1-7 and 8-14 | `fr1_merge.py`, `fr2_merge.py` |
 | `ai-course-1.json`, `ai-course-2.json` | AI modules 1-6 and 7-14 | `ai1_*`, `ai2_*` |
 
-After any change: `python3 content-gen/validate_content.py` (and `build_plan.py` + `build_focus.py` if ids/titles changed).
+**The core set** is what the plan schedules and what the site shows first; everything else is one click away
+("More ... (optional)", "Show all"). It is defined in two places and validated together:
+- `content-gen/core_order.py`: the chapters and system design topics the plan schedules (with the reason for each cut).
+- `content-gen/learn_core.py`: the core questions (the focus list's Q&A minus duplicates, plus `SENIOR_CORE` and
+  `EXTRA_CORE`) and `DUP_OF` (a question asked in two subjects -> the copy to study). DSA core = `mustDo` problems.
+Every core question needs a short answer and every core chapter a guide; focus Tier 1 must sit inside the core set.
+The plan targets about 3 hours a day: trim duplicated material before cutting practice.
+
+The `learn-*.json` files are overlays keyed by content id: they add coaching without touching the generated
+content. Every DSA problem and every Q&A and chapter on the focus list must have an entry (the validator checks).
+When you add a problem or put a new question or chapter on the focus list, add its coaching too.
+Q&A and note ids are positional (`java-001`, `-n01`): edit entries in place and only append new ones.
+
+After any change: `python3 content-gen/build_learn.py`, `python3 content-gen/build_catalog.py`, then `python3 content-gen/validate_content.py` (it fails when
+`catalog.json` is stale). Also run `build_plan.py` + `build_focus.py` if ids/titles changed.
 
 **Never rename an existing `id`**: ids are part of users' saved progress keys (see ARCHITECTURE.md).
 

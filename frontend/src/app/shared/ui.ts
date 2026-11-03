@@ -1,5 +1,5 @@
-import { Component, Pipe, PipeTransform, computed, effect, inject, input, output, signal } from '@angular/core';
-import { Router, UrlTree } from '@angular/router';
+import { Component, OnDestroy, Pipe, PipeTransform, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { Router, RouterLink, UrlTree } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProgressService } from '../core/progress.service';
 import { Section } from '../core/models';
@@ -69,32 +69,59 @@ export class ReviseToggle {
   }
 }
 
-/** Personal notes for an item, saved on blur. */
+/** Personal notes for an item, saved a moment after typing stops, on blur, and when the page changes. */
 @Component({
   selector: 'app-note-box',
   imports: [FormsModule],
   template: `
     <label class="note-box">
       <span class="muted small">My notes {{ saved() ? '· saved' : '' }}</span>
-      <textarea rows="4" [(ngModel)]="text" (blur)="save()" (ngModelChange)="saved.set(false)"
+      <textarea rows="4" [(ngModel)]="text" (blur)="save()" (ngModelChange)="changed()"
                 placeholder="Key insight, mistakes you made, edge cases..."></textarea>
     </label>
   `,
 })
-export class NoteBox {
+export class NoteBox implements OnDestroy {
   private progress = inject(ProgressService);
   key = input.required<string>();
   section = input.required<Section>();
   text = '';
   saved = signal(false);
+  /** The item `text` belongs to; prev/next navigation reuses this component for another item. */
+  private shownKey = '';
+  private shownSection: Section = 'core';
+  private timer?: ReturnType<typeof setTimeout>;
+
   constructor() {
-    effect(() => { this.text = this.progress.note(this.key()); });
+    effect(() => {
+      const key = this.key();
+      const section = this.section();
+      untracked(() => {
+        if (key !== this.shownKey) this.save(); // keep what was typed for the previous item
+        this.shownKey = key;
+        this.shownSection = section;
+        this.text = this.progress.note(key);
+        this.saved.set(false);
+      });
+    });
   }
+
+  changed() {
+    this.saved.set(false);
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.save(), 1200);
+  }
+
   save() {
-    if (this.text !== this.progress.note(this.key())) {
-      this.progress.setNote(this.key(), this.section(), this.text);
+    clearTimeout(this.timer);
+    if (this.shownKey && this.text !== this.progress.note(this.shownKey)) {
+      this.progress.setNote(this.shownKey, this.shownSection, this.text);
       this.saved.set(true);
     }
+  }
+
+  ngOnDestroy() {
+    this.save();
   }
 }
 
@@ -115,6 +142,30 @@ export const difficultyClass = (d: string) => (d || '').toLowerCase();
 })
 export class Empty {
   dismiss = output<void>();
+}
+
+/** What a detail page shows while its content loads, or when the address points at nothing. */
+@Component({
+  selector: 'app-page-state',
+  imports: [RouterLink],
+  template: `
+    @if (loading()) {
+      <div class="skeleton" aria-busy="true" aria-label="Loading">
+        <span class="sk sk-title"></span><span class="sk"></span><span class="sk"></span><span class="sk sk-short"></span>
+      </div>
+    } @else {
+      <div class="card empty">
+        <h2>Nothing here</h2>
+        <p>This page does not exist, or its address has changed.</p>
+        <a class="btn primary" [routerLink]="backLink()">{{ backLabel() }}</a>
+      </div>
+    }
+  `,
+})
+export class PageState {
+  loading = input.required<boolean>();
+  backLink = input('/');
+  backLabel = input('Back to the dashboard');
 }
 
 /** Turns a content link like "/core/java?chapter=3" into a UrlTree so routerLink keeps the query string. */

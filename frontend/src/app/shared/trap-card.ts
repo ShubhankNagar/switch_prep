@@ -12,7 +12,7 @@ export const TRAP_AREAS: Record<string, string> = {
 };
 
 /** Picks a stable "trap of the day": the same unsolved trap all day, a different one tomorrow. */
-export function trapOfTheDay(traps: Trap[], isDone: (key: string) => boolean, dateIso: string): Trap | undefined {
+export function trapOfTheDay<T extends { id: string }>(traps: T[], isDone: (key: string) => boolean, dateIso: string): T | undefined {
   const open = traps.filter(t => !isDone(keys.trap(t.id)));
   const pool = open.length ? open : traps;
   if (!pool.length) return undefined;

@@ -1,7 +1,7 @@
 import json, os, re, glob, subprocess, sys, shutil
 HERE = os.path.dirname(os.path.abspath(__file__))
 PARTS = os.path.join(HERE, 'fr2_parts')
-OUT = '/home/claude/switch-prep/frontend/public/content/final-round-2.json'
+OUT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/final-round-2.json")
 SCR = '/tmp/claude-0/-home-claude/44e2e59b-5817-588f-a4b0-0b7e801c6498/scratchpad/compile'
 compile_ = '--compile' in sys.argv
 def wc(s): return len(re.sub(r'```.*?```', ' ', s, flags=re.S).split())

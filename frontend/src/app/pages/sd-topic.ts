@@ -2,13 +2,14 @@ import { Component, computed, inject, input, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
-import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
+import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
 import { QaList } from '../shared/qa-list';
 
 @Component({
   selector: 'app-sd-topic',
-  imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, NoteBox, QaList],
+  imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, NoteBox, QaList, PageState],
   template: `
     <a routerLink="/system-design" class="back">← System Design</a>
     @if (data(); as d) {
@@ -42,6 +43,8 @@ import { QaList } from '../shared/qa-list';
         @if (d.prev; as prev) { <a class="btn" [routerLink]="['/system-design', d.group.id, prev.id]">← {{ prev.title }}</a> }
         @if (d.next; as next) { <a class="btn primary" [routerLink]="['/system-design', d.group.id, next.id]">{{ next.title }} →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/system-design" backLabel="All system design topics" />
     }
   `,
 })
@@ -49,7 +52,7 @@ export class SdTopicPage {
   private content = inject(ContentService);
   group = input.required<string>();
   topic = input.required<string>();
-  private res = resource({ loader: () => this.content.systemDesign() });
+  protected res = resource({ loader: () => this.content.systemDesign() });
   protected key = computed(() => keys.sd(this.topic()));
   protected data = computed(() => {
     const group = (this.res.value() ?? []).find(g => g.id === this.group());
@@ -57,4 +60,11 @@ export class SdTopicPage {
     const i = group.topics.findIndex(t => t.id === this.topic());
     return i < 0 ? undefined : { group, t: group.topics[i], prev: group.topics[i - 1], next: group.topics[i + 1] };
   });
+
+  constructor() {
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? d.t.title : undefined;
+    });
+  }
 }

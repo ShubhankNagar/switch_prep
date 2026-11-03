@@ -7,8 +7,8 @@ content and leaves the rest as optional depth on each section page.
   * DSA: every must-do problem plus the most-asked others (about half of each pattern), in pattern order, days 1-46;
     then must-do re-solves.
   * Core: chapters of the owner's stack (Java, Spring Boot, SQL, microservices) and the senior 2027 subjects, a
-    selected few chapters of CS fundamentals / Angular / JS, plus batches of *frequently asked* questions
-    (links use ?filter=frequent-todo, so each batch is simply "the next ~10 you don't know yet").
+    selected few chapters of CS fundamentals / Angular / JS, plus batches of *core* questions
+    (links use ?filter=core-todo, so each batch is simply "the next ~10 core questions you don't know yet").
     Core items fill each day up to a minute budget, in priority order; anything that doesn't fit stays optional.
   * System design: all HLD concepts, the most-asked case studies, the India machine-coding favourites, and the
     senior (production-flavoured) topics.
@@ -19,6 +19,10 @@ Every task has a stable `id` (unique within its day); progress keys are plan:d{d
 Re-run after changing content: python3 content-gen/build_plan.py
 """
 import json, math, pathlib, re
+from build_learn import core_qa
+from core_order import CORE_ORDER, CASES, LLD_FUND, LLD_PROB, SD_SKIP
+
+CORE_QA = set(core_qa())   # the questions worth knowing cold (learn_core.py); the plan practises only these
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 C = ROOT / "frontend/public/content"
@@ -69,7 +73,7 @@ def budget(day):
     return BUDGET_LONG if day in LONG_DAYS else BUDGET_NORMAL
 
 # ---------- DSA: must-do + most-asked, days 1-46 ----------
-DSA_SHARE = 0.5
+DSA_SHARE = 0   # only the must-do problems; the rest stay on the site as optional practice
 DSA_LAST = 46
 selected = {}
 for p in dsa:
@@ -113,20 +117,13 @@ for dd in range(DSA_LAST + 1, DAYS + 1):
             task(dd, "revise", f"Re-solve from scratch, timed: {q['title']}", 30, f"/dsa/{p['id']}/{q['id']}")
 
 # ---------- System design: selective queue ----------
-CASES = ["url-shortener", "rate-limiter-design", "notification-system", "chat-whatsapp", "news-feed",
-         "ecommerce-flipkart-checkout", "ticket-booking-bookmyshow", "payment-system-upi", "ride-hailing-uber",
-         "food-delivery-swiggy", "search-autocomplete"]
-LLD_FUND = ["how-to-approach-lld", "solid-principles", "design-patterns-creational", "design-patterns-structural",
-            "design-patterns-behavioral", "concurrency-for-lld"]
-LLD_PROB = ["parking-lot", "splitwise", "rate-limiter-lld", "snake-and-ladder", "bookmyshow-lld", "elevator-system",
-            "pub-sub-message-queue", "in-memory-key-value-store", "cab-booking-lld"]
 by_id = lambda items: {t["id"]: t for t in items}
 case_map, fund_map, prob_map = by_id(hld["caseStudies"]), by_id(lld["fundamentals"]), by_id(lld["problems"])
-concepts = [("concepts", t) for t in sorted(hld["concepts"], key=lambda t: t["order"])]
+concepts = [("concepts", t) for t in sorted(hld["concepts"], key=lambda t: t["order"]) if t["id"] not in SD_SKIP]
 cases = [("case-studies", case_map[x]) for x in CASES if x in case_map]
 llds = [("lld-fundamentals", fund_map[x]) for x in LLD_FUND if x in fund_map] + \
        [("lld-problems", prob_map[x]) for x in LLD_PROB if x in prob_map]
-seniors = [("senior", t) for t in sorted(senior_sd, key=lambda t: t.get("order", 0))]
+seniors = [("senior", t) for t in sorted(senior_sd, key=lambda t: t.get("order", 0)) if t["id"] not in SD_SKIP]
 # Track A (one a day): concepts, with LLD fundamentals woven in early, then case studies alternating with senior topics.
 # Track B (long days only): machine-coding problems, which need a 90-minute block.
 design = []
@@ -150,7 +147,7 @@ first_day = {}
 
 def sd_minutes(g, t):
     m = int(t.get("minutes", 30))   # content minutes are pure reading time; a study task needs more
-    return {"concepts": max(m, 25), "case-studies": max(m, 40), "lld-fundamentals": max(m, 25),
+    return {"concepts": max(m, 20), "case-studies": max(m, 40), "lld-fundamentals": max(m, 25),
             "lld-problems": 90, "senior": max(m, 40)}[g]
 
 def add_sd(day, g, t):
@@ -215,35 +212,11 @@ for dd, items in MOCKS.items():
 for dd in sorted(REVISE_DAYS):
     task(dd, "revise", "Revise your starred items and notes", 40, "/revision")
 for dd in range(56, DAYS + 1):
-    task(dd, "revise", "Flashcards: frequently asked questions you haven't nailed (Java, Spring, SQL)", 40,
-         "/core/java?view=cards&filter=frequent-todo")
+    task(dd, "revise", "Flashcards: core questions you haven't nailed (Java, Spring, SQL)", 40,
+         "/core/java?view=cards&filter=core-todo")
     task(dd, "revise", "High-yield focus list: close the gaps in Tier 1", 45, "/focus")
 
 # ---------- Core: priority queue filled into each day's remaining budget ----------
-# (subject id, chapters to schedule (1-based) or None for all[, max batches of frequent questions])
-CORE_ORDER = [
-    ("java", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]),
-    ("concurrency-practical", [1, 2, 3, 4, 5, 6, 7]),
-    ("spring-boot", None),
-    ("sql", [1, 2, 3, 4, 5, 6, 7, 8, 10]),
-    ("microservices", [1, 2, 3, 4, 5, 6, 7]),
-    ("production-debugging", [1, 2, 4, 5, 6, 8]),
-    ("angular", [3, 4, 6, 7, 11]),        # on the resume: change detection, signals, DI, RxJS, performance
-    ("performance", [1, 2, 4, 5, 6]),
-    ("testing-code-review", [1, 2, 3, 5, 6, 7]),
-    ("behavioral", [1, 2, 3, 4, 5]),
-    ("ai-assisted-engineering", [1, 2, 3, 5, 6]),
-    ("security", [1, 3, 4, 5]),
-    ("senior-leadership", [1, 2, 4, 8]),
-    ("javascript-typescript", [2, 5, 6]), # closures, event loop, promises
-    # CS fundamentals: lower yield for senior backend loops beyond OAs: the few chapters that keep coming up, plus one
-    # batch of the most-asked questions each
-    ("cn", [3, 5, 6], 1),                 # HTTP versions, what happens when you type a URL, cookies/CORS
-    ("os", [1, 4], 1),                    # processes vs threads, deadlocks
-    ("oop-design-patterns", [], 1),       # the theory is covered by the LLD fundamentals in the design track
-    ("dbms", [], 1),
-    ("cloud-devops", [1, 3, 4, 5, 6]),    # AWS map, Docker, Kubernetes essentials + production, CI/CD
-]
 QA_BATCH = 10
 core_queue = []   # (subject id, kind, payload)
 qa_cap = {}
@@ -252,7 +225,7 @@ for sid, chapters, *cap in CORE_ORDER:
     if not s:
         continue
     idxs = list(range(1, len(s["notes"]) + 1)) if chapters is None else [c for c in chapters if c <= len(s["notes"])]
-    freq = sum(1 for q in s["qa"] if q.get("frequent"))
+    freq = sum(1 for q in s["qa"] if q["id"] in CORE_QA)
     batches = math.ceil(freq / QA_BATCH)
     if cap:
         batches = qa_cap[sid] = min(batches, cap[0])
@@ -296,12 +269,12 @@ for dd in range(1, NEW_CONTENT_LAST + 1):
             minutes = 20 if len(n["content"].split()) < 600 else 25   # dense notes: ~25 words a minute with code
             title, link = f"{s['name']}: read \"{n['title']}\"", f"/core/{sid}?chapter={payload}"
         else:
-            freq = sum(1 for q in s["qa"] if q.get("frequent"))
+            freq = sum(1 for q in s["qa"] if q["id"] in CORE_QA)
             batches = qa_cap.get(sid, math.ceil(freq / QA_BATCH))
             n_q = freq // batches + (1 if payload < freq % batches else 0) if batches * QA_BATCH >= freq else QA_BATCH
-            title = f"{s['name']}: answer {n_q} frequently asked questions out loud" + \
+            title = f"{s['name']}: answer {n_q} core questions out loud" + \
                     (f" (set {payload + 1} of {batches})" if batches > 1 else " (the most-asked ones)")
-            minutes, link = 5 * math.ceil(2.5 * n_q / 5), f"/core/{sid}?view=qa&filter=frequent-todo"
+            minutes, link = 5 * math.ceil(2.5 * n_q / 5), f"/core/{sid}?view=qa&filter=core-todo"
         # always place at least one core item per day; otherwise stop at the budget
         has_core = any(t["type"] == "core" for t in days[dd])
         reserve = 20 if dd in LONG_DAYS else 10   # the day's trap(s), added below
@@ -344,7 +317,7 @@ for dd in range(1, DAYS + 1):
     if any(t["type"] == "sd" for t in days[dd]): areas.append("system-design")
     areas += ["dsa"] if pats else []
     if core_sid == "spring-boot": areas.insert(1, "jpa-hibernate")
-    for _ in range(2 if dd in LONG_DAYS else 1):
+    for _ in range(1):   # one a day: enough to keep the habit without crowding out practice
         t = next_trap([a for a in areas if a])
         if not t: break
         used_traps.add(t["id"])
@@ -409,7 +382,7 @@ def hours(loads):
 
 plan = {
     "intro": "This plan is **selective on purpose**: it schedules the high-yield part of the site (must-do problems, "
-             "frequently asked questions, the senior topics product companies probe in 2026-27) and leaves the rest as "
+             "core questions, the senior topics product companies probe in 2026-27) and leaves the rest as "
              "optional depth. Each day has **DSA**, a **core** block, a **design** topic and one **trap** (a question most "
              "people get wrong). Interview-round playbooks appear on the day their material starts. Long days (6th and 7th "
              "of each week) carry more and an optional AI lesson. The last week before revision is lighter on purpose: use "

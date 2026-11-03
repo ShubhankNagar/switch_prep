@@ -30,7 +30,8 @@ import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
       }
     </div>
 
-    <h2 class="section-title">All problems</h2>
+    <h2 class="section-title">Problems</h2>
+    <p class="muted small">Showing the {{ mustCount() }} must-do problems first; the others are optional extra practice.</p>
     <div class="filters">
       <input type="search" placeholder="Search problems or companies…" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       <select [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)">
@@ -41,8 +42,8 @@ import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
         @for (c of companies(); track c) { <option>{{ c }}</option> }
       </select>
       <select [ngModel]="status()" (ngModelChange)="status.set($event)">
-        <option value="">Any status</option><option value="todo">To do</option><option value="done">Solved</option>
-        <option value="revise">Revise later</option><option value="must">Must-do only</option>
+        <option value="must">Must-do (core)</option><option value="">All problems</option>
+        <option value="todo">To do</option><option value="done">Solved</option><option value="revise">Revise later</option>
       </select>
     </div>
     <table class="table">
@@ -74,11 +75,13 @@ export class DsaPage {
   protected q = signal('');
   protected difficulty = signal('');
   protected company = signal('');
-  protected status = signal('');
+  /** Starts on the must-do problems: the core set the plan schedules. */
+  protected status = signal('must');
 
   protected patterns = computed(() => this.res.value() ?? []);
   private flat = computed(() => this.patterns().flatMap(p => p.problems.map(pr => ({ p: pr, patternId: p.id, patternName: p.name }))));
   protected total = computed(() => this.flat().length);
+  protected mustCount = computed(() => this.flat().filter(r => r.p.mustDo).length);
   protected solved = computed(() => this.progress.countDone(this.flat().map(r => keys.dsa(r.p.id))));
   protected companies = computed(() => [...new Set(this.flat().flatMap(r => r.p.companies))].sort());
 

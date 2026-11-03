@@ -230,6 +230,61 @@ if focus:
 guide = load("guide.json")
 counts["guide sections"] = len((guide or {}).get("sections", []))
 
+# Catalog index: must be regenerated whenever content changes
+if not errors:
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    import build_catalog
+    catalog = load("catalog.json")
+    if catalog is not None and catalog != build_catalog.build():
+        errors.append("catalog.json is out of date: run python3 content-gen/build_catalog.py")
+    counts["catalog items"] = len((catalog or {}).get("items", []))
+
+# Learning overlays (learn-*.json): ids must exist, coverage of DSA and focus Q&A, files up to date
+if not errors:
+    import build_learn
+    expected = build_learn.build_all()
+    for name, data in expected.items():
+        if load(name) != data:
+            errors.append(f"{name} is out of date: run python3 content-gen/build_learn.py")
+    dsa_ids = {q for qs in dsa_index.values() for q in qs}
+    learn_dsa = expected["learn-dsa.json"]["problems"]
+    errors += [f"learn-dsa: unknown problem {i}" for i in learn_dsa if i not in dsa_ids]
+    errors += [f"learn-dsa: no coaching for {i}" for i in sorted(dsa_ids - set(learn_dsa))]
+    qa_ids = {q.get("id") for s in subjects for q in s["qa"]}
+    note_ids = {f"{s['id']}:{n['id']}" for s in subjects for n in s["notes"]}
+    learn_core = expected["learn-core.json"]
+    errors += [f"learn-core: unknown qa {i}" for i in learn_core["qa"] if i not in qa_ids]
+    errors += [f"learn-core: unknown note {i}" for i in learn_core["notes"] if i not in note_ids]
+    for tier in (focus or {}).get("tiers", []):
+        for g in tier["groups"]:
+            for it in g["items"]:
+                k = it["key"]
+                if k.startswith("qa:") and k[3:] not in learn_core["qa"] and k[3:] not in learn_core["dupOf"]:
+                    errors.append(f"learn-core: focus question {k[3:]} has no short answer")
+                if k.startswith("note:") and k[5:] not in learn_core["notes"]:
+                    errors.append(f"learn-core: focus chapter {k[5:]} has no takeaways")
+    core_set = set(learn_core["core"])
+    errors += [f"learn-core: core question {i} does not exist" for i in core_set if i not in qa_ids]
+    errors += [f"learn-core: core question {i} has no short answer" for i in sorted(core_set) if i not in learn_core["qa"]]
+    for dup, main in learn_core["dupOf"].items():
+        if dup not in qa_ids or main not in qa_ids:
+            errors.append(f"learn-core: dupOf {dup} -> {main} names a missing question")
+        if dup in core_set:
+            errors.append(f"learn-core: duplicate {dup} must not be in the core set")
+    counts["core questions"] = len(core_set)
+    errors += [f"learn-core: core chapter {k} has no takeaways" for k in learn_core["coreNotes"] if k not in learn_core["notes"]]
+    # Tier 1 of the focus list is the must-know list, so all of it must be in the core set the site shows first
+    core_by_kind = {"qa": core_set, "note": set(learn_core["coreNotes"]), "sd": set(learn_core["coreSd"]),
+                    "dsa": {q["id"] for p in dsa for q in p["problems"] if q.get("mustDo")}}
+    for g in ((focus or {}).get("tiers") or [{}])[0].get("groups", []):
+        for it in g["items"]:
+            kind, _, rest = it["key"].partition(":")
+            if kind in core_by_kind and rest not in core_by_kind[kind] and rest not in learn_core["dupOf"]:
+                errors.append(f"focus tier 1 item {it['key']} is not in the core set (core_order.py / learn_core.py)")
+    counts["coached problems"] = len(learn_dsa)
+    counts["short answers"] = len(learn_core["qa"])
+    counts["chapter guides"] = len(learn_core["notes"])
+
 for k, v in counts.items():
     print(f"{k:>22}: {v}")
 if errors:

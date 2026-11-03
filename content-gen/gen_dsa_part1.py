@@ -6,7 +6,7 @@ from dsa1_tp_sw_stack import TP, SW, ST
 from dsa1_bs_ll import BS, LL
 from dsa1_trees import TR, TRIE, HEAP
 
-OUT = "/home/claude/switch-prep/frontend/public/content/dsa-part1.json"
+OUT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/dsa-part1.json")
 
 patterns = [AH, TP, SW, ST, BS, LL, TR, TRIE, HEAP]
 

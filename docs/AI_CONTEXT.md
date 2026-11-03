@@ -5,7 +5,7 @@ lives, the contracts you must not break, and the state of the work to take it pu
 `CLAUDE.md` (conventions), `docs/ARCHITECTURE.md`, `docs/CONTENT.md` (JSON schemas), `docs/API.md`,
 `docs/DEPLOYMENT.md` (settings) and `docs/PRODUCTION_PLAN.md` (go-live runbook).
 
-Last verified against the code: 2026-10-28, branch `feat/shubhank` (commit `4efdf16`, pushed to the fork, on top of `2196c09`).
+Last verified against the code: 2026-10-28, fork `main` (`5588de5`, merge of `feat/shubhank`). Live since 2026-10-28.
 
 ## 1. Why it exists
 
@@ -37,7 +37,10 @@ optional parallel track.
 
 ```
 frontend/                 Angular 20, standalone components, signals, hash routing, no NgRx, no UI library
-  public/content/*.json   19 files, ALL study content (static, fetched on first use, cached in memory)
+  public/content/*.json   19 files, ALL study content (static, fetched on first use, cached in memory), plus
+                          catalog.json: a ~70 KB (gzip) index of every item, so the dashboard, revision list and
+                          search do not download the 1.6 MB of content; learn-dsa.json and learn-core.json:
+                          coaching overlays keyed by id (content-gen/learn_*.py, build_learn.py)
   public/config.js        runtime settings: API address + Google client ID (Pages workflow overwrites it)
   public/privacy.html     static privacy page (linked from the Account page and Google's consent screen)
   src/app/core/           models.ts (types) · content.service.ts (load + merge split files)
@@ -104,9 +107,10 @@ Tables: `app_user`, `item_progress` (unique user_id+item_key), `quiz_attempt`, `
 | Interview rounds | 13 round playbooks + trends | `rounds.json` |
 | Final round | 14 days: 280 MCQs, 56 coding, 84 verbal | `final-round-1/2.json` |
 | AI course | 14 modules, 92 lessons, 14 projects | `ai-course-1/2.json` |
-| Plan / focus / guide | 60 days and 487 tasks / 217 tier-1 + 290 tier-2 items / 9 sections | `plan.json`, `focus.json`, `guide.json` |
+| Plan / focus / guide | 60 days, 411 tasks, ~3.1 h/day / 217 tier-1 + 290 tier-2 items / 9 sections | `plan.json`, `focus.json`, `guide.json` |
 
-About 1,960 trackable items per user, so one user's progress is at most ~2,000 small rows.
+Core set (what the plan schedules and the site shows first; see CONTENT.md): 75 must-do problems, 208 questions,
+87 chapters, 53 design topics. About 1,960 trackable items per user, so one user's progress is at most ~2,000 small rows.
 
 ## 6. Contracts you must not break
 
@@ -117,7 +121,8 @@ About 1,960 trackable items per user, so one user's progress is at most ~2,000 s
   groups.
 - **Both storage modes** must keep working for any tracked feature.
 - **Content is data.** Change the generator in `content-gen/` (or the JSON for small fixes), then run
-  `python3 content-gen/validate_content.py`; if ids or titles changed, also `build_plan.py` and `build_focus.py`.
+  `python3 content-gen/build_catalog.py` and `validate_content.py`; if ids or titles changed, also `build_plan.py`
+  and `build_focus.py`.
 - **REST shapes** in `docs/API.md` are used by `progress.service.ts` and `habit.service.ts`; change both sides together
   and add a MockMvc test.
 - Angular: standalone components, signals + `resource()`, `input()` route params, `@if/@for`, CSS variables in
@@ -135,17 +140,20 @@ cd backend && mvn test
 python3 content-gen/validate_content.py          # after any content change
 ```
 
-## 8. Public deployment: state on 2026-10-13
+## 8. Public deployment: live since 2026-10-28
 
-Target (chosen by the owner): GitHub Pages (site) + Render free web service (API, `prod` profile) + TiDB Cloud
-Starter (database) + Google sign-in, open to any Google account, no keep-alive pinger. The runbook is
-`docs/PRODUCTION_PLAN.md`.
+| Part | Where |
+|---|---|
+| Site | GitHub Pages, <https://shubhanknagar.github.io/switch_prep/>, deployed by `pages.yml` on every push to the fork's `main` |
+| API | Render free web service `switchprep-api` (Singapore, `prod` profile), <https://switchprep-api.onrender.com>, redeploys on every push to `main` |
+| Database | TiDB Cloud Starter (AWS Singapore), database `switchprep`, tables created by Hibernate |
+| Sign-in | Google Auth Platform project, published ("In production"), open to any Google account |
+| Site settings | Repository variables `SWITCHPREP_API_URL` and `SWITCHPREP_GOOGLE_CLIENT_ID` (public values) |
+| Secrets | Only in Render's Environment tab (`DB_PASSWORD`, `APP_JWT_SECRET`, ...) and the owner's password manager; never in the repo |
 
-Everything is deployed from the fork (`origin`), not the partner's repo. Code for it is complete on `feat/shubhank`,
-tested locally, committed and pushed to the fork. **Not yet done:** merge to the fork's `main`, and the
-account setup (Google OAuth client, TiDB instance, Render service, two GitHub repository variables).
-**Not yet proven**, because they need those services: a real Google sign-in, the API against TiDB, the Docker
-build on Render, the real wake-up time, and the changed GitHub workflows.
+Everything is deployed from the fork (`origin`), not the partner's repo. Verified by the owner on 2026-10-28:
+Google sign-in, the API against TiDB, the Docker build on Render, both GitHub workflows, sync between devices and
+separate accounts. The free API sleeps after 15 idle minutes; the first request then waits while it wakes.
 
 Review findings and what became of them:
 

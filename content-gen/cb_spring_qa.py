@@ -768,4 +768,34 @@ Log pattern: `%X{correlationId}`. Propagate the header on outgoing calls. In Boo
 
 It doesn't strictly prevent writes in all setups — treat it as an optimisation hint. A common pattern is `@Transactional(readOnly = true)` at class level of a service, overriding with `@Transactional` on write methods.
 ''', I, ["transactions", "performance"], False),
+
+("What changed in Spring Boot 4 and Spring Framework 7, and what matters when upgrading from Boot 3?", r'''
+Spring Boot 4.0 (November 2025) is built on **Spring Framework 7** and moves the baseline to **Jakarta EE 11** (Servlet 6.1, Persistence 3.2, Validation 3.1) with Tomcat 11. It still runs on Java 17 and supports Java 25.
+
+What you will notice:
+- **Jackson 3** by default (new `tools.jackson` packages); Jackson 2 support is deprecated.
+- **HTTP service clients**: declare an interface with `@HttpExchange` methods and Boot auto-configures the client, much like Feign but built in.
+- **API versioning** support for MVC and WebFlux (`spring.mvc.apiversion.*`).
+- **Resilience in core**: `@Retryable` and `@ConcurrencyLimit` (enable with `@EnableResilientMethods`), so simple retry no longer needs Spring Retry.
+- **JSpecify** null-safety annotations across the portfolio, and a more modular codebase with smaller auto-configuration modules.
+- A `spring-boot-starter-opentelemetry` for OTLP metrics and traces.
+
+Upgrade path: first get to the latest 3.5.x with no deprecation warnings, then upgrade and fix Jackson 3 and removed APIs, with tests and the OpenRewrite recipes doing most of the work.
+''', I, ["spring-boot-4", "upgrade"], True),
+
+("Spring Framework 7 has @Retryable and @ConcurrencyLimit built in. When would you still use Resilience4j?", r'''
+Framework 7's core annotations cover the simple cases: `@Retryable` retries a method (by default up to 3 retries with a 1-second delay, configurable backoff and exception filters) and `@ConcurrencyLimit` caps how many calls run at once, which matters with virtual threads because there is no thread pool to limit them. Turn them on with `@EnableResilientMethods`.
+
+```java
+@Retryable(includes = TransientDataAccessException.class, maxRetries = 4, delay = 100, jitter = 10, multiplier = 2)
+public Order load(long id) { ... }
+
+@ConcurrencyLimit(10)   // protect a fragile downstream
+public Quote fetchQuote(String sku) { ... }
+```
+
+Use **Resilience4j** when you need a **circuit breaker**, time limiter, rate limiter, bulkheads with metrics, or per-dependency configuration and dashboards. A sensible split: core annotations for local retries and limits; Resilience4j around remote dependencies that can fail for minutes.
+
+Either way: retry only idempotent operations, add jitter, and keep retries at one layer to avoid retry storms.
+''', I, ["spring-boot-4", "resilience"], False),
 ]

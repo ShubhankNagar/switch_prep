@@ -14,4 +14,4 @@ SOURCES = [
  ("LeetCode Discuss - Interview Experiences", "https://leetcode.com/discuss/interview-experience"),
  ("Java Concurrency in Practice (Goetz et al.)", "https://jcip.net/"),
 ]
-build("java", "Core Java", 1, "☕", "Core Java from OOP and collections internals to streams, modern Java 21 features, concurrency and JVM internals.", NOTES, QA, SOURCES)
+build("java", "Core Java", 1, "☕", "Core Java from OOP and collections internals to streams, modern Java (21 and 25), concurrency and JVM internals.", NOTES, QA, SOURCES)
