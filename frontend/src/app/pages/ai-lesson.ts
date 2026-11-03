@@ -2,13 +2,14 @@ import { Component, computed, inject, input, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
 import { Quiz } from '../shared/quiz';
-import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
+import { DoneToggle, NoteBox, PageState, ReviseToggle } from '../shared/ui';
 
 @Component({
   selector: 'app-ai-lesson',
-  imports: [RouterLink, MarkdownPipe, Quiz, DoneToggle, ReviseToggle, NoteBox],
+  imports: [RouterLink, MarkdownPipe, Quiz, DoneToggle, ReviseToggle, NoteBox, PageState],
   template: `
     @if (data(); as d) {
       <a [routerLink]="['/ai', d.m.id]" class="back">← {{ d.m.title }}</a>
@@ -43,6 +44,8 @@ import { DoneToggle, NoteBox, ReviseToggle } from '../shared/ui';
         @if (d.next; as next) { <a class="btn primary" [routerLink]="['/ai', d.m.id, next.id]">{{ next.title }} →</a> }
         @else { <a class="btn primary" [routerLink]="['/ai', d.m.id]">Module project →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/ai" backLabel="AI Engineer Course" />
     }
   `,
 })
@@ -50,7 +53,7 @@ export class AiLessonPage {
   private content = inject(ContentService);
   module = input.required<string>();
   lesson = input.required<string>();
-  private res = resource({ loader: () => this.content.aiCourse() });
+  protected res = resource({ loader: () => this.content.aiCourse() });
   protected key = computed(() => keys.aiLesson(this.lesson()));
   protected quizKey = computed(() => keys.aiQuiz(this.lesson()));
   protected data = computed(() => {
@@ -59,4 +62,11 @@ export class AiLessonPage {
     const index = m.lessons.findIndex(l => l.id === this.lesson());
     return index < 0 ? undefined : { m, l: m.lessons[index], index, prev: m.lessons[index - 1], next: m.lessons[index + 1] };
   });
+
+  constructor() {
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? d.l.title : undefined;
+    });
+  }
 }

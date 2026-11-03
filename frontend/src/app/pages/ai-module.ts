@@ -2,13 +2,14 @@ import { Component, computed, inject, input, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { ProgressService } from '../core/progress.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
-import { DoneToggle, NoteBox } from '../shared/ui';
+import { DoneToggle, NoteBox, PageState } from '../shared/ui';
 
 @Component({
   selector: 'app-ai-module',
-  imports: [RouterLink, MarkdownPipe, DoneToggle, NoteBox],
+  imports: [RouterLink, MarkdownPipe, DoneToggle, NoteBox, PageState],
   template: `
     <a routerLink="/ai" class="back">← AI Engineer Course</a>
     @if (data(); as d) {
@@ -42,6 +43,8 @@ import { DoneToggle, NoteBox } from '../shared/ui';
         @if (d.prev; as prev) { <a class="btn" [routerLink]="['/ai', prev.id]">← {{ prev.title }}</a> }
         @if (d.next; as next) { <a class="btn primary" [routerLink]="['/ai', next.id]">{{ next.title }} →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/ai" backLabel="AI Engineer Course" />
     }
   `,
 })
@@ -49,7 +52,7 @@ export class AiModulePage {
   protected progress = inject(ProgressService);
   private content = inject(ContentService);
   module = input.required<string>();
-  private res = resource({ loader: () => this.content.aiCourse() });
+  protected res = resource({ loader: () => this.content.aiCourse() });
   protected lessonKey = keys.aiLesson;
   protected quizKey = keys.aiQuiz;
   protected projectKey = computed(() => keys.aiProject(this.module()));
@@ -58,4 +61,11 @@ export class AiModulePage {
     const i = all.findIndex(m => m.id === this.module());
     return i < 0 ? undefined : { m: all[i], prev: all[i - 1], next: all[i + 1] };
   });
+
+  constructor() {
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? d.m.title : undefined;
+    });
+  }
 }

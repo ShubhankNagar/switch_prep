@@ -6,7 +6,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT = "/home/claude/switch-prep/frontend/public/content/ai-course-1.json"
+OUT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/ai-course-1.json")
 NAMES = [n for n in ["ai1_m01", "ai1_m02", "ai1_m03", "ai1_m04", "ai1_m05", "ai1_m06"]
          if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), n + ".py"))]
 

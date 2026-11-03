@@ -4,7 +4,7 @@ import importlib, json, os, subprocess, sys, tempfile
 
 CHUNKS = ["traps2_dsa", "traps2_sd", "traps2_ds", "traps2_api", "traps2_ng", "traps2_os", "traps2_beh"]
 SCRATCH = os.environ.get("TRAPS2_SCRATCH", tempfile.gettempdir())
-FRONT = "/home/claude/switch-prep/frontend"
+FRONT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend")
 
 
 def run_check(c):

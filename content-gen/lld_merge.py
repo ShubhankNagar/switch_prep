@@ -8,7 +8,7 @@ for k in out:
     out[k].sort(key=lambda t: t["order"])
     ids = [t["id"] for t in out[k]]
     assert len(ids) == len(set(ids)), k
-path = "/home/claude/switch-prep/frontend/public/content/system-design-lld.json"
+path = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/system-design-lld.json")
 os.makedirs(os.path.dirname(path), exist_ok=True)
 with open(path, "w") as f:
     json.dump(out, f, ensure_ascii=False, indent=1)

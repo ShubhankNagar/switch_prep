@@ -1,6 +1,6 @@
 import json, os, importlib, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT = "/home/claude/switch-prep/frontend/public/content/final-round-1.json"
+OUT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/final-round-1.json")
 days = [importlib.import_module(f"fr1_d{i}").DAY for i in range(1, 8)]
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8") as f:

@@ -4,7 +4,7 @@ from collections import Counter
 from traps2_common import validate, words
 
 CHUNKS = ["traps2_dsa", "traps2_sd", "traps2_ds", "traps2_api", "traps2_ng", "traps2_os", "traps2_beh"]
-OUT = "/home/claude/switch-prep/frontend/public/content/traps-2.json"
+OUT = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/traps-2.json")
 
 
 def main():

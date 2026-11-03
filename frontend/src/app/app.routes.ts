@@ -22,6 +22,7 @@ export const routes: Routes = [
   { path: 'traps/:id', loadComponent: () => import('./pages/trap').then(m => m.TrapPage), title: 'Common Traps · SwitchPrep' },
   { path: 'rounds', loadComponent: () => import('./pages/rounds').then(m => m.RoundsPage), title: 'Interview Rounds · SwitchPrep' },
   { path: 'rounds/:id', loadComponent: () => import('./pages/round').then(m => m.RoundPage), title: 'Interview Rounds · SwitchPrep' },
+  { path: 'mock', loadComponent: () => import('./pages/mock').then(m => m.MockPage), title: 'Mock Interview · SwitchPrep' },
   { path: 'revision', loadComponent: () => import('./pages/revision').then(m => m.RevisionPage), title: 'Revision · SwitchPrep' },
   { path: 'guide', loadComponent: () => import('./pages/guide').then(m => m.GuidePage), title: 'Job Switch Guide · SwitchPrep' },
   { path: 'account', loadComponent: () => import('./pages/account').then(m => m.AccountPage), title: 'Account & Data · SwitchPrep' },

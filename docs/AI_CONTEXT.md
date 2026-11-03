@@ -37,7 +37,10 @@ optional parallel track.
 
 ```
 frontend/                 Angular 20, standalone components, signals, hash routing, no NgRx, no UI library
-  public/content/*.json   19 files, ALL study content (static, fetched on first use, cached in memory)
+  public/content/*.json   19 files, ALL study content (static, fetched on first use, cached in memory), plus
+                          catalog.json: a ~70 KB (gzip) index of every item, so the dashboard, revision list and
+                          search do not download the 1.6 MB of content; learn-dsa.json and learn-core.json:
+                          coaching overlays keyed by id (content-gen/learn_*.py, build_learn.py)
   public/config.js        runtime settings: API address + Google client ID (Pages workflow overwrites it)
   public/privacy.html     static privacy page (linked from the Account page and Google's consent screen)
   src/app/core/           models.ts (types) · content.service.ts (load + merge split files)
@@ -104,9 +107,10 @@ Tables: `app_user`, `item_progress` (unique user_id+item_key), `quiz_attempt`, `
 | Interview rounds | 13 round playbooks + trends | `rounds.json` |
 | Final round | 14 days: 280 MCQs, 56 coding, 84 verbal | `final-round-1/2.json` |
 | AI course | 14 modules, 92 lessons, 14 projects | `ai-course-1/2.json` |
-| Plan / focus / guide | 60 days and 487 tasks / 217 tier-1 + 290 tier-2 items / 9 sections | `plan.json`, `focus.json`, `guide.json` |
+| Plan / focus / guide | 60 days, 411 tasks, ~3.1 h/day / 217 tier-1 + 290 tier-2 items / 9 sections | `plan.json`, `focus.json`, `guide.json` |
 
-About 1,960 trackable items per user, so one user's progress is at most ~2,000 small rows.
+Core set (what the plan schedules and the site shows first; see CONTENT.md): 75 must-do problems, 208 questions,
+87 chapters, 53 design topics. About 1,960 trackable items per user, so one user's progress is at most ~2,000 small rows.
 
 ## 6. Contracts you must not break
 
@@ -117,7 +121,8 @@ About 1,960 trackable items per user, so one user's progress is at most ~2,000 s
   groups.
 - **Both storage modes** must keep working for any tracked feature.
 - **Content is data.** Change the generator in `content-gen/` (or the JSON for small fixes), then run
-  `python3 content-gen/validate_content.py`; if ids or titles changed, also `build_plan.py` and `build_focus.py`.
+  `python3 content-gen/build_catalog.py` and `validate_content.py`; if ids or titles changed, also `build_plan.py`
+  and `build_focus.py`.
 - **REST shapes** in `docs/API.md` are used by `progress.service.ts` and `habit.service.ts`; change both sides together
   and add a MockMvc test.
 - Angular: standalone components, signals + `resource()`, `input()` route params, `@if/@for`, CSS variables in

@@ -51,13 +51,16 @@ cd backend && mvn test
 python3 content-gen/validate_content.py      # run after ANY content change
 python3 content-gen/build_plan.py            # regenerate the 60-day plan after changing any content ids/titles
 python3 content-gen/build_focus.py           # regenerate the High-Yield Focus list (same rule)
+python3 content-gen/build_catalog.py         # regenerate catalog.json (search/dashboard index) after ANY content change
+python3 content-gen/build_learn.py           # regenerate learn-*.json (coaching overlays) after editing learn_*.py
 python3 content-gen/build_guide.py           # regenerate the job switch guide
 ```
 
 ## Conventions
 
 - **Progress keys are a contract.** They are built only in `frontend/src/app/core/catalog.service.ts` (`keys.*`) and
-  stored in localStorage and the `item_progress` table. Renaming a content `id` or a key format orphans users'
+  stored in localStorage and the `item_progress` table. `build_catalog.py` and `build_focus.py` mirror the formats in
+  Python, so change all three together. Renaming a content `id` or a key format orphans users'
   saved progress. Add new ids freely; don't rename existing ones. Plan task keys use each task's stable `id`
   (`plan:d{day}:{taskId}`); system-design ids must be unique across groups (`sd:{id}` has no group).
 - **Two storage modes.** `ProgressService` works without a backend (localStorage) and, when logged in, writes through

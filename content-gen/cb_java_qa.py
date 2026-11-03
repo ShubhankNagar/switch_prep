@@ -582,15 +582,17 @@ Spring Boot 3.2+: `spring.threads.virtual.enabled=true` makes Tomcat use them.
 Benefits: simple blocking code with reactive-level throughput for I/O-bound apps. Caveats: no speedup for CPU-bound work; don't pool them; **pinning** inside `synchronized` blocks in Java 21-23 (fixed in 24); limit downstream concurrency with semaphores since DB pools are still finite.
 ''', I, ["java21", "concurrency"], True),
 
-("What new features came in Java 11, 17 and 21 that you have used or know about?", r'''
-**Java 11**: `var` in lambdas, `String.isBlank/strip/lines/repeat`, `Files.readString/writeString`, standard `HttpClient`, `Optional.isEmpty`, run single-file programs.
+("What new features came in Java 11, 17, 21 and 25 that you have used or know about?", r'''
+**Java 11**: `var` in lambdas, `String.isBlank/strip/lines/repeat`, `Files.readString`, standard `HttpClient`.
 
-**Java 17**: records, sealed classes, pattern matching for `instanceof`, switch expressions, text blocks, helpful NPE messages, strong encapsulation of JDK internals.
+**Java 17**: records, sealed classes, pattern matching for `instanceof`, switch expressions, text blocks, helpful NPE messages.
 
 **Java 21**: virtual threads, pattern matching for switch, record patterns, sequenced collections (`getFirst/getLast/reversed`), generational ZGC.
 
-Spring Boot 3 requires Java 17+, so most product companies run 17 or 21 now. Mention which you actually used (e.g. "records for DTOs and switch expressions in our order-status mapper").
-''', B, ["java11", "java17", "java21"], True),
+**Java 25** (LTS, September 2025): **scoped values** (a safer `ThreadLocal` for virtual threads), compact source files and instance `main` methods, module import declarations, flexible constructor bodies (statements before `super(...)`), and compact object headers as an option to cut memory. Structured concurrency is still a preview.
+
+Spring Boot 3 and 4 both run on Java 17+; product companies mostly run 17 or 21 and are moving to 25. Say which you actually used (for example "records for DTOs and switch expressions in our order-status mapper").
+''', B, ["java11", "java17", "java21", "java25"], True),
 
 ("What is the difference between a process and a thread? Explain the thread lifecycle.", r'''
 A **process** is an independent program with its own memory space; a **thread** is a unit of execution within a process that shares the heap with other threads but has its own stack and PC. Threads are cheaper to create and switch, but shared memory requires synchronization.
@@ -1017,4 +1019,21 @@ For enums, `==` is fine and null-safe (singletons). For null-safe comparisons us
 
 Diamond rule: if a class inherits the same default method from two interfaces, it must override it and can call a specific one with `InterfaceA.super.method()`. A class's own (or superclass's) method always wins over interface defaults.
 ''', B, ["java8", "interface"], False),
+
+("What are scoped values (Java 25) and why are they preferred over ThreadLocal with virtual threads?", r'''
+A **scoped value** (`ScopedValue`, final in Java 25) shares an **immutable** value with everything a piece of code calls, for a bounded scope, without passing it as a parameter. Typical uses: the current user, tenant or request id.
+
+```java
+static final ScopedValue<String> TENANT = ScopedValue.newInstance();
+
+ScopedValue.where(TENANT, "acme").run(() -> service.handle()); // TENANT.get() == "acme" inside
+```
+
+Why it beats `ThreadLocal`, especially with millions of virtual threads:
+- **Bounded lifetime**: the binding ends when `run` returns, so nothing leaks into a reused thread (a classic ThreadLocal bug in pools).
+- **Immutable**: no `set()` from deep inside the call stack, so data flow is easy to follow.
+- **Cheap to inherit**: child tasks in structured concurrency see the binding without copying maps per thread.
+
+Use ThreadLocal still for mutable per-thread caches (rarely needed with virtual threads). Frameworks such as logging MDC and Spring Security's context are moving in this direction.
+''', I, ["java25", "concurrency", "virtual-threads"], False),
 ]

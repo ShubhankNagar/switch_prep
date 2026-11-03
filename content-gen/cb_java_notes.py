@@ -629,7 +629,7 @@ Optional<Integer> max = nums.stream().reduce(Integer::max);
 - `Stream.toList()` (Java 16) returns an unmodifiable list; `Collectors.toList()` returns a mutable ArrayList (unspecified).
 '''))
 
-NOTES.append(("Modern Java (11 to 21): Records, Sealed Classes, Pattern Matching, Virtual Threads", r'''
+NOTES.append(("Modern Java (11 to 25): Records, Sealed Classes, Pattern Matching, Virtual Threads", r'''
 Product companies increasingly run Java 17 or 21 (LTS). Know what each LTS added.
 
 ## Java 9-11 highlights
@@ -684,7 +684,7 @@ Subclasses must be `final`, `sealed`, or `non-sealed`. Enables exhaustive patter
 
 Also 17: helpful NullPointerExceptions (14) tell you exactly which variable was null; strong encapsulation of JDK internals.
 
-## Java 21 (current widely-adopted LTS)
+## Java 21 (the LTS most companies run today)
 **Pattern matching for switch + record patterns**
 ```java
 double area(Shape s) {
@@ -722,8 +722,11 @@ Spring Boot 3.2+: `spring.threads.virtual.enabled=true`.
 
 **Other 21**: Generational ZGC, String templates (preview, later dropped), structured concurrency and scoped values (preview).
 
-## Beyond 21 (good to mention)
-Java 22-25: unnamed variables `_` (22), stream gatherers (24), and Java 25 is the next LTS (Sept 2025) with scoped values finalised, compact source files / instance main methods, and flexible constructor bodies.
+## Java 25 (LTS, September 2025): what to mention
+- **Scoped values** (final): share an immutable value such as the current tenant with everything a block calls; safer and cheaper than `ThreadLocal` with virtual threads.
+- **Compact source files and instance `main`**, **module import declarations**, and **flexible constructor bodies** (statements before `super(...)`).
+- Also since 21: unnamed variables `_` (22), stream gatherers (24), and no more virtual-thread pinning in `synchronized` (24).
+- Still preview in 25: **structured concurrency**. Java 26 followed in March 2026; companies upgrade LTS to LTS (17 → 21 → 25).
 '''))
 
 NOTES.append(("Multithreading Basics: Threads, synchronized, volatile", r'''

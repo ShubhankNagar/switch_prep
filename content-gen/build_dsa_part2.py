@@ -15,7 +15,7 @@ assert len(ids) == len(set(ids)), "duplicate slugs"
 for pat in data["patterns"]:
     for p in pat["problems"]:
         assert p["difficulty"] in ("Easy", "Medium", "Hard")
-out = "/home/claude/switch-prep/frontend/public/content/dsa-part2.json"
+out = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/public/content/dsa-part2.json")
 os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=1)

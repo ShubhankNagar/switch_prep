@@ -2,7 +2,7 @@ from traps2_common import T
 
 A = "angular-js"
 
-RX = "/home/claude/switch-prep/frontend/node_modules/rxjs"
+RX = str(__import__('pathlib').Path(__file__).resolve().parent.parent / "frontend/node_modules/rxjs")
 
 VAR_LOOP = """for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log(i), 0);

@@ -2,12 +2,13 @@ import { Component, computed, inject, input, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
-import { DoneToggle, LinkPipe, NoteBox } from '../shared/ui';
+import { DoneToggle, LinkPipe, NoteBox, PageState } from '../shared/ui';
 
 @Component({
   selector: 'app-round',
-  imports: [RouterLink, MarkdownPipe, DoneToggle, NoteBox, LinkPipe],
+  imports: [RouterLink, MarkdownPipe, DoneToggle, NoteBox, LinkPipe, PageState],
   template: `
     <a routerLink="/rounds" class="back">← Interview rounds</a>
     @if (data(); as d) {
@@ -49,17 +50,26 @@ import { DoneToggle, LinkPipe, NoteBox } from '../shared/ui';
         @if (d.prev; as prev) { <a class="btn" [routerLink]="['/rounds', prev.id]">← {{ prev.title }}</a> }
         @if (d.next; as next) { <a class="btn primary" [routerLink]="['/rounds', next.id]">{{ next.title }} →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/rounds" backLabel="All interview rounds" />
     }
   `,
 })
 export class RoundPage {
   private content = inject(ContentService);
   id = input.required<string>();
-  private res = resource({ loader: () => this.content.rounds() });
+  protected res = resource({ loader: () => this.content.rounds() });
   protected key = computed(() => keys.round(this.id()));
   protected data = computed(() => {
     const all = this.res.value()?.rounds ?? [];
     const i = all.findIndex(r => r.id === this.id());
     return i < 0 ? undefined : { r: all[i], prev: all[i - 1], next: all[i + 1] };
   });
+
+  constructor() {
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? `${d.r.title} round` : undefined;
+    });
+  }
 }

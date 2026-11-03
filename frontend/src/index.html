@@ -5,11 +5,30 @@
   <title>SwitchPrep · Service to Product Company in 60 Days</title>
   <base href="./">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="All-in-one interview prep and progress tracker: DSA, system design, core subjects, final-round questions and an AI engineer course.">
+  <meta name="description" content="Free interview prep and progress tracker for Java / Spring Boot developers: a 60-day plan, DSA with Java solutions, system design, core subjects, common traps, real final-round questions and an AI engineer course.">
+  <meta name="theme-color" content="#4f46e5">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SwitchPrep · Service to Product Company in 60 Days">
+  <meta property="og:description" content="A 60-day interview plan with DSA, system design, core subjects, common traps and real final-round questions, all in one place, with progress tracking.">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Apply the saved theme before the app starts, so dark mode does not flash white on load.
+    (function () {
+      var theme;
+      try { theme = (JSON.parse(localStorage.getItem('switchprep.v1') || '{}') || {}).theme; } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <script src="config.js"></script>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <div class="boot">Switch<span>Prep</span></div>
+  </app-root>
+  <noscript>SwitchPrep needs JavaScript to run. Please enable it in your browser.</noscript>
 </body>
 </html>

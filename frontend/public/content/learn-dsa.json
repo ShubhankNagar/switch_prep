@@ -1,0 +1,1713 @@
+{
+ "problems": {
+  "two-sum": {
+   "cue": "Find a pair with a target sum in an unsorted array, and you need indices: look up the complement in a hash map.",
+   "brute": "Check every pair: O(n²).",
+   "edge": [
+    "Duplicates that form the pair (`[3,3]`, target 6)",
+    "Negative numbers",
+    "The same index must not be used twice"
+   ],
+   "bug": "Putting all numbers in the map first, then matching an element with itself. Check the map before inserting.",
+   "follow": {
+    "q": "What if the array is sorted?",
+    "a": "Two pointers from both ends, O(1) extra space."
+   }
+  },
+  "contains-duplicate": {
+   "cue": "\"Has any value been seen before?\" is a set-membership question.",
+   "brute": "Compare every pair: O(n²); or sort first, O(n log n).",
+   "edge": [
+    "Empty or single-element array",
+    "Large values (do not use a counting array)"
+   ],
+   "bug": "Sorting the caller's array in place without saying it mutates input."
+  },
+  "valid-anagram": {
+   "cue": "Same letters, same counts: compare frequency counts.",
+   "brute": "Sort both strings and compare: O(n log n).",
+   "edge": [
+    "Different lengths: return false at once",
+    "Unicode input (use a map, not `int[26]`)"
+   ],
+   "bug": "Forgetting the length check, so `\"ab\"` vs `\"abc\"` passes a one-sided count.",
+   "follow": {
+    "q": "Unicode characters?",
+    "a": "Count in a `HashMap<Integer, Integer>` over code points instead of `int[26]`."
+   }
+  },
+  "group-anagrams": {
+   "cue": "Group items that are equal after normalising: build a canonical key (sorted letters or a 26-count signature).",
+   "brute": "Compare every pair of strings for anagram-ness: O(n² · k).",
+   "edge": [
+    "Empty strings (all group together)",
+    "One word",
+    "Words of different lengths never match"
+   ],
+   "bug": "Using `char[].toString()` as the key (it prints an object address). Use `new String(chars)` or `Arrays.toString(count)`.",
+   "follow": {
+    "q": "Faster key than sorting?",
+    "a": "A count signature like `#1#0#2...` is O(k) instead of O(k log k)."
+   }
+  },
+  "top-k-frequent-elements": {
+   "cue": "\"Top k by frequency\": count, then pick k with a min-heap of size k or bucket by frequency.",
+   "brute": "Count, then sort all entries by count: O(n log n).",
+   "edge": [
+    "k equals the number of distinct elements",
+    "All elements equal",
+    "Ties in frequency (any order is fine)"
+   ],
+   "bug": "Using a max-heap of all n entries, which is O(n log n) and misses the point of a size-k heap.",
+   "follow": {
+    "q": "Can you beat O(n log k)?",
+    "a": "Bucket sort by frequency (index = count, at most n): O(n)."
+   }
+  },
+  "product-of-array-except-self": {
+   "cue": "\"Everything except me\" with no division: prefix products from the left times suffix products from the right.",
+   "brute": "For each index multiply all the others: O(n²). Division fails on zeros.",
+   "edge": [
+    "One zero (only that index is non-zero)",
+    "Two or more zeros (all zero)",
+    "Negative numbers"
+   ],
+   "bug": "Using division, which breaks on zero and is disallowed.",
+   "follow": {
+    "q": "O(1) extra space?",
+    "a": "Store prefixes in the output array, then multiply in a running suffix in a second pass."
+   }
+  },
+  "longest-consecutive-sequence": {
+   "cue": "Longest run of consecutive integers in O(n): a hash set, and only start counting at a number whose predecessor is missing.",
+   "brute": "Sort and scan: O(n log n). Or expand from every number: O(n²).",
+   "edge": [
+    "Empty array",
+    "Duplicates",
+    "Negative numbers"
+   ],
+   "bug": "Expanding from every element instead of only sequence starts, which makes it O(n²)."
+  },
+  "subarray-sum-equals-k": {
+   "cue": "Count subarrays with sum k when values can be negative: prefix sums plus a map of how often each prefix sum occurred.",
+   "brute": "Sum every subarray: O(n²).",
+   "edge": [
+    "Negative numbers (sliding window does not work)",
+    "k = 0",
+    "Seed the map with `{0: 1}` for subarrays starting at index 0"
+   ],
+   "bug": "Trying a sliding window, which needs all-positive values. Forgetting the `{0: 1}` seed.",
+   "follow": {
+    "q": "Longest subarray with sum k?",
+    "a": "Store the first index of each prefix sum instead of a count."
+   }
+  },
+  "maximum-subarray": {
+   "cue": "Best contiguous sum: Kadane's, extend the current run or restart at the current element.",
+   "brute": "Every subarray: O(n²).",
+   "edge": [
+    "All negative (answer is the largest single element)",
+    "Single element"
+   ],
+   "bug": "Starting the best at 0, which returns 0 for an all-negative array.",
+   "follow": {
+    "q": "Return the subarray itself?",
+    "a": "Track where the current run started and copy start/end when the best improves."
+   }
+  },
+  "sort-colors": {
+   "cue": "Three values to partition in one pass: Dutch national flag with low, mid and high pointers.",
+   "brute": "Counting sort with two passes, which is fine but they ask for one pass.",
+   "edge": [
+    "All the same colour",
+    "Already sorted",
+    "Length 1"
+   ],
+   "bug": "Advancing `mid` after swapping with `high`: the swapped-in value has not been checked yet."
+  },
+  "majority-element": {
+   "cue": "An element that appears more than n/2 times: Boyer-Moore voting with a candidate and a counter.",
+   "brute": "Count with a hash map: O(n) space. Sort and take the middle: O(n log n).",
+   "edge": [
+    "Single element",
+    "Majority at the very end"
+   ],
+   "bug": "Not verifying the candidate when the problem does not guarantee a majority exists.",
+   "follow": {
+    "q": "No guarantee a majority exists?",
+    "a": "Do a second pass to count the candidate."
+   }
+  },
+  "majority-element-ii": {
+   "cue": "More than n/3 times: at most two answers, so keep two candidates with two counters (extended Boyer-Moore).",
+   "brute": "Hash map counts: O(n) space.",
+   "edge": [
+    "Both candidates equal",
+    "Fewer than two answers",
+    "A verification pass is required"
+   ],
+   "bug": "Skipping the verification pass, so a candidate below n/3 is returned."
+  },
+  "next-permutation": {
+   "cue": "Next lexicographic arrangement: find the rightmost ascent, swap with the next-larger element to its right, reverse the suffix.",
+   "brute": "Generate all permutations and sort: O(n!).",
+   "edge": [
+    "Fully descending (wrap to ascending)",
+    "Duplicates",
+    "Length 1"
+   ],
+   "bug": "Sorting the suffix instead of reversing it (it is already descending, so reversing is O(n))."
+  },
+  "merge-sorted-array": {
+   "cue": "Merge into the first array in place: fill from the back so you never overwrite unread values.",
+   "brute": "Copy, then sort: O((m+n) log(m+n)).",
+   "edge": [
+    "m = 0",
+    "n = 0",
+    "Everything in nums2 is smaller"
+   ],
+   "bug": "Stopping when nums1 is exhausted and forgetting to copy the rest of nums2."
+  },
+  "set-matrix-zeroes": {
+   "cue": "Mark rows and columns to clear: in O(1) space use the first row and first column as markers.",
+   "brute": "Copy the matrix, or keep row/column sets: O(m + n) space.",
+   "edge": [
+    "A zero in the first row or column itself",
+    "No zeros",
+    "All zeros"
+   ],
+   "bug": "Zeroing the first row/column before using them as markers. Record separately whether they had a zero."
+  },
+  "rotate-image": {
+   "cue": "Rotate an n×n matrix in place by 90°: transpose, then reverse each row.",
+   "brute": "Copy into a new matrix: O(n²) extra space.",
+   "edge": [
+    "n = 1",
+    "Odd n (the centre stays)"
+   ],
+   "bug": "Transposing the whole matrix instead of only `j > i`, which swaps every pair twice and undoes the transpose.",
+   "follow": {
+    "q": "Counter-clockwise?",
+    "a": "Transpose, then reverse each column (or reverse rows first, then transpose)."
+   }
+  },
+  "spiral-matrix": {
+   "cue": "Layer-by-layer traversal: four boundaries (top, bottom, left, right) that shrink after each side.",
+   "brute": "Simulate with a visited matrix and direction changes: O(m·n) extra space.",
+   "edge": [
+    "Single row",
+    "Single column",
+    "Non-square matrix"
+   ],
+   "bug": "Not re-checking `top <= bottom` and `left <= right` before the bottom and left passes, which duplicates cells."
+  },
+  "best-time-to-buy-and-sell-stock": {
+   "cue": "One buy then one sell: track the minimum price so far and the best profit selling today.",
+   "brute": "Every pair of days: O(n²).",
+   "edge": [
+    "Prices only fall (answer 0)",
+    "Single day"
+   ],
+   "bug": "Selling before buying, for example taking max minus min regardless of order.",
+   "follow": {
+    "q": "Unlimited transactions?",
+    "a": "Add every positive day-to-day difference."
+   }
+  },
+  "valid-sudoku": {
+   "cue": "Check rows, columns and boxes for repeats: one set per unit, box index = `(r / 3) * 3 + c / 3`.",
+   "brute": "Three separate passes, which is fine but wordier.",
+   "edge": [
+    "Empty cells `.` are skipped",
+    "Only filled cells need to be valid; the board need not be solvable"
+   ],
+   "bug": "Wrong box index formula, which mixes cells from different boxes."
+  },
+  "valid-palindrome": {
+   "cue": "Compare from both ends inward, skipping what does not count.",
+   "brute": "Build a cleaned, reversed copy: O(n) space.",
+   "edge": [
+    "Empty or only punctuation (true)",
+    "Mixed case",
+    "Digits count as alphanumeric"
+   ],
+   "bug": "Skipping characters with an `if` instead of a `while`, so runs of punctuation break it."
+  },
+  "two-sum-ii-input-array-is-sorted": {
+   "cue": "Sorted input plus a pair sum: two pointers, move the side that fixes the sum.",
+   "brute": "Hash map, which works but ignores the sorted order and uses O(n) space.",
+   "edge": [
+    "Negative numbers",
+    "Answer at the two ends",
+    "1-based indices in the output"
+   ],
+   "bug": "Returning 0-based indices when the problem asks for 1-based."
+  },
+  "3sum": {
+   "cue": "Triplets summing to zero without duplicates: sort, fix one element, two pointers on the rest.",
+   "brute": "Three nested loops plus a set to dedupe: O(n³).",
+   "edge": [
+    "All zeros",
+    "Fewer than 3 elements",
+    "Many duplicates"
+   ],
+   "bug": "Deduplicating incorrectly: skip equal fixed elements, and skip equal left/right values only after recording a match.",
+   "follow": {
+    "q": "3Sum closest?",
+    "a": "Same skeleton; track the sum with the smallest absolute difference."
+   }
+  },
+  "4sum": {
+   "cue": "k-sum: sort, fix two elements, two pointers on the rest; dedupe at every level.",
+   "brute": "Four nested loops: O(n⁴).",
+   "edge": [
+    "Overflow: sums can exceed int, use `long`",
+    "Duplicates at every level"
+   ],
+   "bug": "Integer overflow on `nums[i] + nums[j] + nums[l] + nums[r]` with large values."
+  },
+  "container-with-most-water": {
+   "cue": "Maximise width × min height: start at both ends and move the shorter wall inward.",
+   "brute": "Every pair of lines: O(n²).",
+   "edge": [
+    "Two lines",
+    "Equal heights"
+   ],
+   "bug": "Moving the taller wall; the shorter wall caps the area, so only moving it can help."
+  },
+  "trapping-rain-water": {
+   "cue": "Water above a bar = min(max to its left, max to its right) − height: two pointers carrying left and right maxima.",
+   "brute": "For each bar scan left and right for the maxima: O(n²).",
+   "edge": [
+    "Fewer than 3 bars (0)",
+    "Monotonic heights (0)",
+    "Plateaus"
+   ],
+   "bug": "Moving the pointer on the higher side; process the side with the smaller max, because that max is the bound.",
+   "follow": {
+    "q": "Can you do it with a stack?",
+    "a": "Yes: a monotonic decreasing stack fills water layer by layer, also O(n)."
+   }
+  },
+  "remove-duplicates-from-sorted-array": {
+   "cue": "Sorted plus in-place dedupe: a slow write pointer and a fast read pointer.",
+   "brute": "Copy uniques into a new list: O(n) space.",
+   "edge": [
+    "Empty array",
+    "All duplicates"
+   ],
+   "bug": "Returning the last index instead of the new length."
+  },
+  "move-zeroes": {
+   "cue": "Stable in-place partition: write non-zeros forward, then fill the tail with zeros (or swap).",
+   "brute": "Copy into a new array: O(n) space.",
+   "edge": [
+    "No zeros",
+    "All zeros"
+   ],
+   "bug": "Breaking the relative order of the non-zero elements."
+  },
+  "longest-substring-without-repeating-characters": {
+   "cue": "Longest contiguous stretch with a constraint: variable sliding window, shrink when a character repeats.",
+   "brute": "Check every substring: O(n²) to O(n³).",
+   "edge": [
+    "Empty string",
+    "All the same character",
+    "Spaces and symbols count as characters"
+   ],
+   "bug": "Jumping `left` backwards with `left = last[c] + 1`; use `max(left, last[c] + 1)`.",
+   "follow": {
+    "q": "At most k distinct characters?",
+    "a": "Same window; shrink while the map holds more than k keys."
+   }
+  },
+  "longest-repeating-character-replacement": {
+   "cue": "Window that is valid while `length − maxFreq ≤ k`.",
+   "brute": "Try every substring and count: O(n²).",
+   "edge": [
+    "k = 0",
+    "k ≥ length",
+    "One distinct letter"
+   ],
+   "bug": "Recomputing maxFreq on every shrink; it never needs to decrease for the answer to be correct."
+  },
+  "permutation-in-string": {
+   "cue": "Does a substring of s2 have the same counts as s1? A fixed-size window of length |s1| comparing counts.",
+   "brute": "Generate permutations of s1: O(n!).",
+   "edge": [
+    "s1 longer than s2",
+    "Repeated letters"
+   ],
+   "bug": "Comparing whole maps every step; compare `int[26]` arrays or keep a match counter."
+  },
+  "minimum-window-substring": {
+   "cue": "Smallest window containing all of t (with counts): expand until valid, then shrink while still valid.",
+   "brute": "Every substring checked against t: O(n²·m).",
+   "edge": [
+    "t longer than s",
+    "Duplicates in t",
+    "No valid window (return \"\")"
+   ],
+   "bug": "Counting distinct characters instead of required counts, so `t = \"aa\"` matches a single `a`.",
+   "follow": {
+    "q": "Return the count of such windows?",
+    "a": "Every extension to the right of a minimal valid window is also valid; count as you shrink."
+   }
+  },
+  "sliding-window-maximum": {
+   "cue": "Max of every window of size k: a monotonic deque of indices, decreasing values, front is the max.",
+   "brute": "Scan each window: O(n·k). A heap: O(n log n).",
+   "edge": [
+    "k = 1",
+    "k = n",
+    "Duplicate maxima"
+   ],
+   "bug": "Storing values instead of indices, so you cannot tell when the front left the window."
+  },
+  "max-consecutive-ones-iii": {
+   "cue": "Longest window with at most k zeros: variable window counting zeros.",
+   "brute": "Try every start: O(n²).",
+   "edge": [
+    "k = 0",
+    "k ≥ number of zeros (whole array)"
+   ],
+   "bug": "Flipping values in the array instead of counting zeros in the window."
+  },
+  "fruit-into-baskets": {
+   "cue": "Longest subarray with at most 2 distinct values: variable window with a count map.",
+   "brute": "Every start position: O(n²).",
+   "edge": [
+    "Fewer than 3 types (whole array)",
+    "Alternating types"
+   ],
+   "bug": "Forgetting to remove a key when its count drops to 0, so the distinct count is wrong."
+  },
+  "minimum-size-subarray-sum": {
+   "cue": "Shortest subarray with sum ≥ target, all positive: grow, then shrink while the sum is enough.",
+   "brute": "Every subarray: O(n²).",
+   "edge": [
+    "No valid subarray (return 0)",
+    "A single element ≥ target"
+   ],
+   "bug": "Using this window on arrays with negatives; it needs positive values (otherwise prefix sums plus a deque)."
+  },
+  "valid-parentheses": {
+   "cue": "Matching nested pairs: push openers, pop on closers.",
+   "brute": "Repeatedly remove `()`, `[]`, `{}` from the string: O(n²).",
+   "edge": [
+    "Odd length (false)",
+    "Starts with a closer",
+    "Leftover openers at the end"
+   ],
+   "bug": "Returning true without checking the stack is empty at the end."
+  },
+  "min-stack": {
+   "cue": "O(1) minimum with push/pop: keep a second stack (or pairs) holding the minimum at each depth.",
+   "brute": "Scan the stack for the minimum: O(n).",
+   "edge": [
+    "Duplicate minimums",
+    "Pop the current minimum"
+   ],
+   "bug": "Pushing to the min stack only on a strictly smaller value, so popping a duplicate minimum loses it."
+  },
+  "evaluate-reverse-polish-notation": {
+   "cue": "Postfix expression: operands on a stack, apply each operator to the top two.",
+   "brute": "There is no simpler alternative; the stack is the solution.",
+   "edge": [
+    "Negative numbers like `-3` are operands",
+    "Division truncates toward zero"
+   ],
+   "bug": "Wrong operand order: pop `b` first, then `a`, and compute `a - b` and `a / b`."
+  },
+  "daily-temperatures": {
+   "cue": "\"Next greater element to the right\": a monotonic decreasing stack of indices.",
+   "brute": "For each day scan forward: O(n²).",
+   "edge": [
+    "Strictly decreasing temperatures (all 0)",
+    "Equal temperatures do not count as warmer"
+   ],
+   "bug": "Popping on `>=`, which treats equal temperatures as warmer."
+  },
+  "next-greater-element-i": {
+   "cue": "Next greater for each value of nums2 with a monotonic stack, then look up nums1 values in a map.",
+   "brute": "For each query scan nums2: O(n·m).",
+   "edge": [
+    "No greater element (-1)",
+    "nums1 is a subset of nums2 with distinct values"
+   ],
+   "bug": "Running the stack over nums1 instead of nums2."
+  },
+  "largest-rectangle-in-histogram": {
+   "cue": "For each bar, how far can it extend left and right? A monotonic increasing stack gives both boundaries.",
+   "brute": "Expand from every bar: O(n²).",
+   "edge": [
+    "All equal heights",
+    "Strictly increasing or decreasing",
+    "Add a 0-height sentinel at the end to flush the stack"
+   ],
+   "bug": "Wrong width: after popping, the width is `i - stack.peek() - 1`, or `i` when the stack is empty.",
+   "follow": {
+    "q": "Maximal rectangle of 1s in a matrix?",
+    "a": "Build a histogram per row and run this algorithm on each row: O(m·n)."
+   }
+  },
+  "car-fleet": {
+   "cue": "Sort by position and compare arrival times from the front: a car that would arrive sooner than the one ahead joins its fleet.",
+   "brute": "Simulate time steps: slow and fiddly.",
+   "edge": [
+    "One car",
+    "Cars arriving at exactly the same time form one fleet"
+   ],
+   "bug": "Sorting by speed or by arrival time instead of by position."
+  },
+  "asteroid-collision": {
+   "cue": "Only a left-mover meeting a right-mover collides: simulate with a stack.",
+   "brute": "Repeatedly scan for collisions: O(n²).",
+   "edge": [
+    "Equal sizes destroy both",
+    "All moving the same way",
+    "A left-mover with nothing to its left survives"
+   ],
+   "bug": "Treating `-` followed by `+` as a collision; they move apart."
+  },
+  "online-stock-span": {
+   "cue": "Consecutive previous days with price ≤ today: a monotonic stack of (price, span) pairs, merging spans.",
+   "brute": "Walk back each day: O(n) per call, O(n²) in total.",
+   "edge": [
+    "Equal prices count",
+    "Strictly rising prices"
+   ],
+   "bug": "Storing only prices, so you lose the accumulated span of popped days."
+  },
+  "binary-search": {
+   "cue": "Sorted array plus find: halve the search space.",
+   "brute": "Linear scan: O(n).",
+   "edge": [
+    "Empty array",
+    "Target smaller or larger than all elements",
+    "One element"
+   ],
+   "bug": "`mid = (lo + hi) / 2` overflows for large indices; use `lo + (hi - lo) / 2`. Mixing `<` and `<=` loop styles."
+  },
+  "search-a-2d-matrix": {
+   "cue": "Rows sorted and each row starts after the previous ends: treat it as one sorted array of m·n.",
+   "brute": "Scan every cell: O(m·n).",
+   "edge": [
+    "Single row or column",
+    "Target outside the range"
+   ],
+   "bug": "Wrong index mapping: `row = mid / cols`, `col = mid % cols`."
+  },
+  "search-in-rotated-sorted-array": {
+   "cue": "Rotated sorted array: one half around mid is always sorted; check whether the target lies in it.",
+   "brute": "Linear scan: O(n). Or find the pivot first, then search (two passes).",
+   "edge": [
+    "Not rotated",
+    "Two elements",
+    "Target at the pivot"
+   ],
+   "bug": "Using strict `<` when checking which half is sorted, which breaks when `lo == mid`.",
+   "follow": {
+    "q": "With duplicates?",
+    "a": "When `nums[lo] == nums[mid] == nums[hi]` you cannot tell, so shrink both ends; worst case O(n)."
+   }
+  },
+  "find-minimum-in-rotated-sorted-array": {
+   "cue": "Compare mid with the right end: if larger, the minimum is to the right.",
+   "brute": "Linear scan: O(n).",
+   "edge": [
+    "Not rotated",
+    "One or two elements"
+   ],
+   "bug": "Comparing with the left end, which fails when the array is not rotated."
+  },
+  "find-first-and-last-position-of-element-in-sorted-array": {
+   "cue": "Two binary searches for boundaries: lower bound of target and lower bound of target + 1.",
+   "brute": "Find one occurrence, then expand: O(n) in the worst case.",
+   "edge": [
+    "Target missing ([-1, -1])",
+    "All elements equal the target"
+   ],
+   "bug": "Stopping at the first match instead of continuing left (or right) to the boundary."
+  },
+  "koko-eating-bananas": {
+   "cue": "\"Minimum speed or capacity such that a condition holds\": binary search on the answer with a feasibility check.",
+   "brute": "Try every speed from 1 upwards: O(max · n).",
+   "edge": [
+    "h equals the number of piles (answer is the max pile)",
+    "Hour totals overflow int, use `long`"
+   ],
+   "bug": "Hours per pile as `p / k` instead of the ceiling `(p + k - 1) / k`."
+  },
+  "capacity-to-ship-packages-within-d-days": {
+   "cue": "Minimise the maximum load: binary search capacity between max(weight) and sum(weights).",
+   "brute": "Try every capacity: O(sum · n).",
+   "edge": [
+    "days = 1 (sum)",
+    "days = n (max)"
+   ],
+   "bug": "Lower bound of 1 instead of max(weights), so a package can never ship."
+  },
+  "split-array-largest-sum": {
+   "cue": "\"Split into k parts minimising the largest part\": the same binary search on the answer as shipping packages.",
+   "brute": "DP over split points: O(k · n²).",
+   "edge": [
+    "k = 1",
+    "k = n"
+   ],
+   "bug": "Counting parts wrongly: start the count at 1, and add one each time the running sum would exceed the limit."
+  },
+  "find-peak-element": {
+   "cue": "Any peak in O(log n): move toward the larger neighbour, a peak must exist on that side.",
+   "brute": "Linear scan: O(n).",
+   "edge": [
+    "Peak at index 0 or n-1",
+    "One element"
+   ],
+   "bug": "Accessing `mid + 1` out of bounds; loop `while (lo < hi)`."
+  },
+  "time-based-key-value-store": {
+   "cue": "Latest value at or before a timestamp: per key, a list sorted by time plus binary search (or a `TreeMap.floorEntry`).",
+   "brute": "Scan all versions of the key: O(n) per get.",
+   "edge": [
+    "Query earlier than the first set (\"\")",
+    "Unknown key"
+   ],
+   "bug": "Searching for an exact timestamp instead of the floor."
+  },
+  "median-of-two-sorted-arrays": {
+   "cue": "Binary search the partition of the shorter array so both left halves together hold half the elements.",
+   "brute": "Merge, then take the middle: O(m + n).",
+   "edge": [
+    "One array empty",
+    "Odd and even total length",
+    "Partitions at the very ends (use ±∞ sentinels)"
+   ],
+   "bug": "Searching the longer array, which can push the other partition out of range."
+  },
+  "reverse-linked-list": {
+   "cue": "Reverse pointers in place with prev, cur and next.",
+   "brute": "Copy values to a list and rebuild: O(n) space.",
+   "edge": [
+    "Empty list",
+    "One node"
+   ],
+   "bug": "Losing the rest of the list by overwriting `cur.next` before saving it.",
+   "follow": {
+    "q": "Recursively?",
+    "a": "Reverse the rest, then `head.next.next = head; head.next = null`. O(n) stack."
+   }
+  },
+  "merge-two-sorted-lists": {
+   "cue": "Merge step of merge sort with a dummy head.",
+   "brute": "Collect, sort, rebuild: O(n log n).",
+   "edge": [
+    "One or both lists empty",
+    "Equal values"
+   ],
+   "bug": "Forgetting to attach the remaining tail of the longer list."
+  },
+  "linked-list-cycle": {
+   "cue": "Cycle detection in O(1) space: slow and fast pointers.",
+   "brute": "Hash set of visited nodes: O(n) space.",
+   "edge": [
+    "Empty list",
+    "Self-loop on a single node"
+   ],
+   "bug": "Checking `fast.next.next` without checking `fast.next` first, giving a NullPointerException."
+  },
+  "linked-list-cycle-ii": {
+   "cue": "After slow and fast meet, a pointer from head and one from the meeting point meet at the cycle start.",
+   "brute": "Hash set of visited nodes: O(n) space.",
+   "edge": [
+    "No cycle (null)",
+    "Cycle starts at head"
+   ],
+   "bug": "Not being able to explain why it works: distance head→start equals distance meeting→start modulo the cycle length.",
+   "follow": {
+    "q": "Length of the cycle?",
+    "a": "From the meeting point, walk until you return and count the steps."
+   }
+  },
+  "remove-nth-node-from-end-of-list": {
+   "cue": "n-th from the end in one pass: fast pointer n steps ahead, then move both.",
+   "brute": "Count the length, then walk again: two passes.",
+   "edge": [
+    "Remove the head (n = length)",
+    "One-node list"
+   ],
+   "bug": "No dummy node, so removing the head needs a special case."
+  },
+  "reorder-list": {
+   "cue": "Three known steps: find the middle, reverse the second half, merge alternately.",
+   "brute": "Copy nodes into an array and relink: O(n) space.",
+   "edge": [
+    "Odd and even lengths",
+    "One or two nodes"
+   ],
+   "bug": "Not cutting the first half (`mid.next = null`), which leaves a cycle."
+  },
+  "add-two-numbers": {
+   "cue": "Digit-by-digit addition with carry over reversed lists.",
+   "brute": "Convert to numbers: overflows for long lists.",
+   "edge": [
+    "Different lengths",
+    "Final carry creates a new node (5 + 5)"
+   ],
+   "bug": "Dropping the last carry.",
+   "follow": {
+    "q": "Digits stored most-significant first?",
+    "a": "Use two stacks, or reverse both lists first."
+   }
+  },
+  "copy-list-with-random-pointer": {
+   "cue": "Deep copy with extra pointers: a map old→new, or interleave copies to get O(1) space.",
+   "brute": "There is no meaningful brute force; the map version is the baseline.",
+   "edge": [
+    "random is null",
+    "random points to itself",
+    "Empty list"
+   ],
+   "bug": "Not restoring the original list in the interleaving version."
+  },
+  "lru-cache": {
+   "cue": "O(1) get and put with eviction by recency: hash map plus doubly linked list.",
+   "brute": "A list scanned on every access: O(n).",
+   "edge": [
+    "Capacity 1",
+    "put on an existing key updates and refreshes it"
+   ],
+   "bug": "Forgetting to delete the evicted key from the map, or not refreshing recency on get.",
+   "follow": {
+    "q": "Make it thread-safe?",
+    "a": "A lock around get/put (both mutate order), or segmented locks; `LinkedHashMap` + `synchronized` is the simple answer."
+   }
+  },
+  "merge-k-sorted-lists": {
+   "cue": "k sorted streams: a min-heap of the current heads.",
+   "brute": "Merge one list at a time: O(N·k).",
+   "edge": [
+    "Some lists empty",
+    "k = 0"
+   ],
+   "bug": "Adding null heads to the priority queue.",
+   "follow": {
+    "q": "Without a heap?",
+    "a": "Divide and conquer: merge pairs, O(N log k) with no extra space besides recursion."
+   }
+  },
+  "reverse-nodes-in-k-group": {
+   "cue": "Reverse fixed-size chunks: check k nodes exist, reverse them, reconnect to the previous group.",
+   "brute": "Copy to an array and rebuild: O(n) space.",
+   "edge": [
+    "Length not divisible by k (leave the tail)",
+    "k = 1",
+    "k equals the length"
+   ],
+   "bug": "Losing the connection between groups; keep `groupPrev` and the next group's head."
+  },
+  "palindrome-linked-list": {
+   "cue": "O(1) space: find the middle, reverse the second half, compare.",
+   "brute": "Copy into an array: O(n) space.",
+   "edge": [
+    "One node",
+    "Even and odd lengths"
+   ],
+   "bug": "Not restoring the list when the caller expects it unchanged."
+  },
+  "intersection-of-two-linked-lists": {
+   "cue": "Two pointers that switch to the other list's head equalise the lengths.",
+   "brute": "Hash set of one list's nodes: O(n) space.",
+   "edge": [
+    "No intersection (both reach null together)",
+    "Intersection at the head"
+   ],
+   "bug": "Comparing values instead of node references."
+  },
+  "maximum-depth-of-binary-tree": {
+   "cue": "Height = 1 + max of the children's heights.",
+   "brute": "Already optimal; BFS counting levels also works.",
+   "edge": [
+    "Empty tree (0)",
+    "Skewed tree (recursion depth n)"
+   ],
+   "bug": "Returning 1 for null."
+  },
+  "invert-binary-tree": {
+   "cue": "Swap children at every node (any traversal).",
+   "brute": "Already optimal.",
+   "edge": [
+    "Empty tree",
+    "One node"
+   ],
+   "bug": "Overwriting `root.left` before saving it."
+  },
+  "same-tree": {
+   "cue": "Structural recursion: equal values plus equal left and right subtrees.",
+   "brute": "Serialise both and compare strings: more memory.",
+   "edge": [
+    "Both null",
+    "One null"
+   ],
+   "bug": "Not handling the one-null case before reading `.val`."
+  },
+  "subtree-of-another-tree": {
+   "cue": "Try \"same tree\" at every node.",
+   "brute": "This is the simple version: O(n·m). Serialise with null markers plus string matching gives O(n + m).",
+   "edge": [
+    "Equal values with different structure",
+    "subRoot equal to the whole tree"
+   ],
+   "bug": "Serialising without null markers or delimiters, so `12` matches `2`."
+  },
+  "diameter-of-binary-tree": {
+   "cue": "Longest path through a node = left height + right height; update a global maximum during the height recursion.",
+   "brute": "Compute heights separately at every node: O(n²).",
+   "edge": [
+    "Longest path not through the root",
+    "One node (0)"
+   ],
+   "bug": "Returning the diameter from the recursion instead of the height.",
+   "follow": {
+    "q": "Weighted edges?",
+    "a": "Same recursion, add edge weights instead of 1."
+   }
+  },
+  "balanced-binary-tree": {
+   "cue": "Return the height or -1 for unbalanced, so each node is visited once.",
+   "brute": "Compute heights at every node: O(n²).",
+   "edge": [
+    "Empty tree (true)",
+    "Balanced at the root but not deeper"
+   ],
+   "bug": "Checking balance only at the root."
+  },
+  "binary-tree-level-order-traversal": {
+   "cue": "Level by level: BFS with the queue size frozen at the start of each level.",
+   "brute": "DFS passing depth also works.",
+   "edge": [
+    "Empty tree (empty list)",
+    "Skewed tree"
+   ],
+   "bug": "Reading `queue.size()` inside the loop, so the level mixes nodes."
+  },
+  "binary-tree-right-side-view": {
+   "cue": "Last node of each BFS level (or DFS right-first, first visit at each depth).",
+   "brute": "Collect all levels, then take the last of each: same complexity, more memory.",
+   "edge": [
+    "Left nodes visible where the right subtree is shorter"
+   ],
+   "bug": "Following only right children, which misses left nodes in deeper levels."
+  },
+  "binary-tree-zigzag-level-order-traversal": {
+   "cue": "Level-order BFS, reversing the direction of every other level.",
+   "brute": "Reverse alternate lists afterwards: fine, slightly more work.",
+   "edge": [
+    "Empty tree",
+    "One level"
+   ],
+   "bug": "Changing the child insertion order instead of the output order, which scrambles later levels."
+  },
+  "lowest-common-ancestor-of-a-binary-search-tree": {
+   "cue": "BST ordering: the LCA is the first node whose value lies between p and q.",
+   "brute": "The general binary-tree LCA: O(n).",
+   "edge": [
+    "p is an ancestor of q",
+    "p == q"
+   ],
+   "bug": "Ignoring the BST property and doing a full search."
+  },
+  "lowest-common-ancestor-of-a-binary-tree": {
+   "cue": "Post-order: if p and q are found in different subtrees, the current node is the LCA.",
+   "brute": "Store both root-to-node paths and compare: O(n) extra space.",
+   "edge": [
+    "One node is an ancestor of the other",
+    "Nodes not present (state the assumption)"
+   ],
+   "bug": "Stopping early without understanding that returning the found node covers the ancestor case.",
+   "follow": {
+    "q": "Parent pointers available?",
+    "a": "Walk up from both like the linked-list intersection problem."
+   }
+  },
+  "validate-binary-search-tree": {
+   "cue": "Every node must lie within (min, max) bounds inherited from its ancestors, or in-order must be strictly increasing.",
+   "brute": "Check only parent-child pairs, which is wrong rather than slow.",
+   "edge": [
+    "`Integer.MIN_VALUE` and `MAX_VALUE` values (use `long` or null bounds)",
+    "Duplicate values"
+   ],
+   "bug": "Comparing a node only with its direct children."
+  },
+  "kth-smallest-element-in-a-bst": {
+   "cue": "In-order traversal of a BST is sorted: stop at the k-th node.",
+   "brute": "Collect all values and sort: O(n log n).",
+   "edge": [
+    "k = 1",
+    "k = n"
+   ],
+   "bug": "Traversing the whole tree after finding the answer.",
+   "follow": {
+    "q": "Frequent inserts and queries?",
+    "a": "Store subtree sizes in each node for O(h) per query."
+   }
+  },
+  "construct-binary-tree-from-preorder-and-inorder-traversal": {
+   "cue": "Preorder gives the root; its position in inorder splits the left and right subtrees.",
+   "brute": "Search inorder linearly for each root: O(n²).",
+   "edge": [
+    "Single node",
+    "Skewed tree",
+    "Values must be unique"
+   ],
+   "bug": "Linear search for the root in inorder; use a value→index map."
+  },
+  "binary-tree-maximum-path-sum": {
+   "cue": "At each node: best downward gain = val + max(0, left, right); the path through the node uses both sides.",
+   "brute": "Try every pair of endpoints: O(n²).",
+   "edge": [
+    "All negative values (answer is the largest single node)",
+    "One node"
+   ],
+   "bug": "Not clamping negative child gains to 0, or initialising the answer to 0."
+  },
+  "serialize-and-deserialize-binary-tree": {
+   "cue": "Preorder with null markers is enough to rebuild the tree uniquely.",
+   "brute": "Level order with nulls also works; both are O(n).",
+   "edge": [
+    "Empty tree",
+    "Negative and multi-digit values"
+   ],
+   "bug": "Omitting null markers, which makes the structure ambiguous."
+  },
+  "count-good-nodes-in-binary-tree": {
+   "cue": "DFS carrying the maximum seen on the path from the root.",
+   "brute": "Store each root-to-node path: more memory.",
+   "edge": [
+    "Equal values count as good",
+    "One node"
+   ],
+   "bug": "Using `>` instead of `>=`."
+  },
+  "binary-tree-inorder-traversal": {
+   "cue": "Iterative in-order: push left children, pop, visit, go right.",
+   "brute": "Recursion is the baseline; they usually ask for the iterative version.",
+   "edge": [
+    "Empty tree",
+    "Skewed trees"
+   ],
+   "bug": "Pushing the right child before visiting the node."
+  },
+  "maximum-width-of-binary-tree": {
+   "cue": "BFS with position indices (left = 2i, right = 2i + 1); width = last − first + 1 per level.",
+   "brute": "Fill missing nodes with placeholders: exponential.",
+   "edge": [
+    "Index overflow in deep skewed trees: re-base indices per level"
+   ],
+   "bug": "Letting indices grow without re-basing, which overflows."
+  },
+  "all-nodes-distance-k-in-binary-tree": {
+   "cue": "Distance in a tree means moving up too: add parent links (make it a graph), then BFS from the target.",
+   "brute": "Without parent links you need case analysis per ancestor.",
+   "edge": [
+    "k = 0 (the target itself)",
+    "Target is the root"
+   ],
+   "bug": "Not tracking visited nodes, so BFS walks back down."
+  },
+  "flatten-binary-tree-to-linked-list": {
+   "cue": "Preorder order in place: for each node, attach the left subtree between it and its right subtree.",
+   "brute": "Collect preorder into a list and relink: O(n) space.",
+   "edge": [
+    "Empty tree",
+    "Only left children"
+   ],
+   "bug": "Forgetting to set `left = null`."
+  },
+  "implement-trie-prefix-tree": {
+   "cue": "Prefix queries over many words: a tree of characters with an end-of-word flag.",
+   "brute": "A list of words scanned per query: O(n·L).",
+   "edge": [
+    "Empty string",
+    "A word that is a prefix of another"
+   ],
+   "bug": "Making `search` return true for a prefix by not checking the end flag."
+  },
+  "design-add-and-search-words-data-structure": {
+   "cue": "Trie plus DFS that branches on `.` wildcards.",
+   "brute": "Compare against every stored word: O(n·L).",
+   "edge": [
+    "All dots",
+    "Word longer than any stored"
+   ],
+   "bug": "Returning early on the first wildcard branch that fails instead of trying all children."
+  },
+  "word-search-ii": {
+   "cue": "Many words in one grid: put the words in a trie and DFS the grid once.",
+   "brute": "Run Word Search for each word: O(words · m·n·4^L).",
+   "edge": [
+    "The same word found twice (dedupe)",
+    "Overlapping words"
+   ],
+   "bug": "Not pruning: remove found words or empty trie branches, otherwise it times out."
+  },
+  "maximum-xor-of-two-numbers-in-an-array": {
+   "cue": "Maximise XOR bit by bit from the top: a binary trie, prefer the opposite bit.",
+   "brute": "Every pair: O(n²).",
+   "edge": [
+    "One element (0)",
+    "All equal (0)"
+   ],
+   "bug": "Iterating bits from low to high; greedy only works from the most significant bit."
+  },
+  "kth-largest-element-in-a-stream": {
+   "cue": "k-th largest over a stream: a min-heap of size k, its top is the answer.",
+   "brute": "Sort on every add: O(n log n) per call.",
+   "edge": [
+    "Initial array smaller than k"
+   ],
+   "bug": "A max-heap of all elements."
+  },
+  "last-stone-weight": {
+   "cue": "Repeatedly take the two largest: a max-heap.",
+   "brute": "Sort every round: O(n² log n).",
+   "edge": [
+    "One stone",
+    "All stones destroyed (0)"
+   ],
+   "bug": "Using the default (min) `PriorityQueue`; pass `Collections.reverseOrder()`."
+  },
+  "k-closest-points-to-origin": {
+   "cue": "k smallest by distance: a max-heap of size k (or quickselect).",
+   "brute": "Sort all points: O(n log n).",
+   "edge": [
+    "k = n",
+    "Ties in distance"
+   ],
+   "bug": "Using `Math.sqrt` (unnecessary) or squared distances that overflow `int` with large coordinates."
+  },
+  "kth-largest-element-in-an-array": {
+   "cue": "k-th order statistic: a size-k min-heap, or quickselect for O(n) on average.",
+   "brute": "Sort: O(n log n).",
+   "edge": [
+    "Duplicates count separately",
+    "k = 1 or k = n"
+   ],
+   "bug": "Quickselect without a random pivot, which degrades to O(n²) on sorted input.",
+   "follow": {
+    "q": "Guaranteed O(n)?",
+    "a": "Median of medians, but say quickselect with a random pivot is what is used in practice."
+   }
+  },
+  "find-median-from-data-stream": {
+   "cue": "Median of a stream: a max-heap for the lower half, a min-heap for the upper half, kept balanced.",
+   "brute": "Sort on every query: O(n log n).",
+   "edge": [
+    "Even count (average the tops)",
+    "Negative numbers"
+   ],
+   "bug": "Not rebalancing after each insert, so the heaps differ by more than one.",
+   "follow": {
+    "q": "All numbers are 0-100?",
+    "a": "A counting array gives O(100) per median."
+   }
+  },
+  "top-k-frequent-words": {
+   "cue": "Top k with a tie-break: a heap with comparator (count desc, word asc).",
+   "brute": "Sort all words: O(n log n), which is acceptable but not the expected answer.",
+   "edge": [
+    "Ties need lexicographic order",
+    "k equals the number of distinct words"
+   ],
+   "bug": "Getting the comparator backwards in the size-k min-heap, then not reversing the result."
+  },
+  "reorganize-string": {
+   "cue": "Place the most frequent characters first, never the same one twice in a row: a max-heap by count, holding back the last used.",
+   "brute": "Try permutations: O(n!).",
+   "edge": [
+    "Impossible when max count > (n + 1) / 2 (return \"\")",
+    "One character"
+   ],
+   "bug": "Not checking the feasibility condition first."
+  },
+  "subsets": {
+   "cue": "All combinations: at each element choose include or exclude (or loop from a start index).",
+   "brute": "Bitmask over 0..2^n − 1 is equally valid.",
+   "edge": [
+    "Empty set is a subset"
+   ],
+   "bug": "Adding the same list object to the result; add a copy (`new ArrayList<>(path)`)."
+  },
+  "subsets-ii": {
+   "cue": "Subsets with duplicates: sort, then skip a duplicate at the same depth (`i > start && nums[i] == nums[i-1]`).",
+   "brute": "Generate all and dedupe with a set: wasteful.",
+   "edge": [
+    "All duplicates"
+   ],
+   "bug": "Skipping duplicates across depths, which removes valid subsets like `[2, 2]`."
+  },
+  "permutations": {
+   "cue": "All orderings: build position by position with a used[] array (or swap in place).",
+   "brute": "There is no faster way; n! outputs is the lower bound.",
+   "edge": [
+    "One element",
+    "Distinct values assumed"
+   ],
+   "bug": "Forgetting to undo `used[i]` when backtracking.",
+   "follow": {
+    "q": "With duplicates?",
+    "a": "Sort and skip `nums[i] == nums[i-1] && !used[i-1]`."
+   }
+  },
+  "combination-sum": {
+   "cue": "Reusable candidates summing to a target: recurse staying on the same index, prune when the sum exceeds the target.",
+   "brute": "Generate all multisets: exponential without pruning.",
+   "edge": [
+    "No combination",
+    "Target smaller than every candidate"
+   ],
+   "bug": "Restarting from index 0 each call, which produces permutations of the same combination."
+  },
+  "combination-sum-ii": {
+   "cue": "Each candidate used once, duplicates in input: sort, move to `i + 1`, skip same-depth duplicates.",
+   "brute": "Generate all and dedupe: wasteful.",
+   "edge": [
+    "Many equal candidates"
+   ],
+   "bug": "Deduping across depths instead of within the same depth."
+  },
+  "letter-combinations-of-a-phone-number": {
+   "cue": "Cartesian product of choices: one recursion level per digit.",
+   "brute": "Iterative BFS building strings works too.",
+   "edge": [
+    "Empty input (empty list, not `[\"\"]`)",
+    "Digits 7 and 9 have four letters"
+   ],
+   "bug": "Returning `[\"\"]` for empty input."
+  },
+  "palindrome-partitioning": {
+   "cue": "Split points: try every palindromic prefix, recurse on the rest.",
+   "brute": "Check palindromes repeatedly; precompute an `isPal[i][j]` table to save time.",
+   "edge": [
+    "One character",
+    "The whole string is a palindrome"
+   ],
+   "bug": "Not precomputing palindromes, which repeats the same checks."
+  },
+  "word-search": {
+   "cue": "Path in a grid without reusing cells: DFS with a visited mark and undo.",
+   "brute": "There is no simpler approach.",
+   "edge": [
+    "Word longer than the number of cells",
+    "Revisiting a cell"
+   ],
+   "bug": "Not restoring the cell after DFS, so later paths see it as used."
+  },
+  "n-queens": {
+   "cue": "Place one queen per row; check column and both diagonals in O(1) with sets (`r - c` and `r + c`).",
+   "brute": "Check the whole board for each placement: O(n) per check.",
+   "edge": [
+    "n = 1",
+    "n = 2 and 3 have no solution"
+   ],
+   "bug": "Wrong diagonal keys: `r - c` for one diagonal, `r + c` for the other."
+  },
+  "number-of-islands": {
+   "cue": "Count connected regions in a grid: DFS/BFS from each unvisited land cell (or union-find).",
+   "brute": "There is no simpler approach; each cell must be seen.",
+   "edge": [
+    "Empty grid",
+    "All water",
+    "Diagonal cells are not connected"
+   ],
+   "bug": "Deep recursion on a large all-land grid can overflow the stack; mention BFS as the safe option.",
+   "follow": {
+    "q": "Islands added one at a time?",
+    "a": "Union-find with an island counter: near O(1) per addition."
+   }
+  },
+  "max-area-of-island": {
+   "cue": "Connected-component size: DFS returning the count of cells.",
+   "brute": "There is no simpler approach.",
+   "edge": [
+    "No land (0)",
+    "One big island"
+   ],
+   "bug": "Counting a cell twice by marking it visited only after recursing."
+  },
+  "clone-graph": {
+   "cue": "Deep copy of a graph with cycles: DFS/BFS with a map original→copy.",
+   "brute": "There is no meaningful brute force.",
+   "edge": [
+    "null node",
+    "A single node with no neighbours",
+    "Self-loops"
+   ],
+   "bug": "Creating the copy after recursing into neighbours, so cycles recurse forever. Put it in the map first."
+  },
+  "rotting-oranges": {
+   "cue": "Spreading from many sources at once, minimum time: multi-source BFS.",
+   "brute": "Simulate minute by minute scanning the grid: O((m·n)²).",
+   "edge": [
+    "No fresh oranges (0)",
+    "Fresh oranges unreachable (-1)",
+    "No rotten oranges"
+   ],
+   "bug": "Counting minutes per orange instead of per BFS level."
+  },
+  "01-matrix": {
+   "cue": "Distance to the nearest 0 for every cell: multi-source BFS starting from all zeros.",
+   "brute": "BFS from every 1: O((m·n)²).",
+   "edge": [
+    "All zeros",
+    "Single row"
+   ],
+   "bug": "Starting BFS from the ones instead of the zeros."
+  },
+  "course-schedule": {
+   "cue": "Prerequisites = directed graph; can you finish everything? Detect a cycle (Kahn's topological sort or DFS colours).",
+   "brute": "Try every ordering: O(n!).",
+   "edge": [
+    "No prerequisites",
+    "Self-dependency",
+    "Disconnected components"
+   ],
+   "bug": "Using a single visited set in DFS; you need three states (unvisited, visiting, done) to find back edges.",
+   "follow": {
+    "q": "Which courses are in the cycle?",
+    "a": "With DFS colours, keep the recursion stack and print it when you hit a 'visiting' node."
+   }
+  },
+  "course-schedule-ii": {
+   "cue": "Produce the order: Kahn's algorithm, the output order is the queue pop order.",
+   "brute": "Try every ordering: O(n!).",
+   "edge": [
+    "Cycle (return an empty array)",
+    "Several valid orders"
+   ],
+   "bug": "Returning a partial order when a cycle exists; check that the order holds n courses."
+  },
+  "pacific-atlantic-water-flow": {
+   "cue": "\"Can reach the edge\" from every cell is expensive; reverse it: BFS uphill from each ocean's border.",
+   "brute": "DFS from every cell to both oceans: O((m·n)²).",
+   "edge": [
+    "Single row or column",
+    "Equal heights allow flow"
+   ],
+   "bug": "Running the search downhill from every cell instead of uphill from the oceans."
+  },
+  "surrounded-regions": {
+   "cue": "Regions not touching the border get flipped: mark everything connected to the border first, flip the rest.",
+   "brute": "Check every region for border contact: same complexity, messier.",
+   "edge": [
+    "Grid smaller than 3×3",
+    "All O"
+   ],
+   "bug": "Flipping while searching instead of marking the safe cells first."
+  },
+  "word-ladder": {
+   "cue": "Shortest transformation sequence = shortest path in an unweighted graph: BFS over words.",
+   "brute": "DFS over all paths: exponential.",
+   "edge": [
+    "endWord not in the list (0)",
+    "beginWord equals endWord"
+   ],
+   "bug": "Building the full word graph upfront (O(N²·L)); generate neighbours by changing one letter, or use wildcard buckets.",
+   "follow": {
+    "q": "Return all shortest paths?",
+    "a": "BFS to build parent links by level, then DFS back from endWord (Word Ladder II)."
+   }
+  },
+  "is-graph-bipartite": {
+   "cue": "Two-colour the graph: BFS/DFS assigning alternating colours; a conflict means not bipartite.",
+   "brute": "Try all 2^n colourings.",
+   "edge": [
+    "Disconnected graph (start from every uncoloured node)",
+    "Isolated nodes"
+   ],
+   "bug": "Only starting from node 0, which misses other components."
+  },
+  "shortest-path-in-binary-matrix": {
+   "cue": "Shortest path in a grid with equal step cost: BFS with 8 directions.",
+   "brute": "DFS over all paths: exponential.",
+   "edge": [
+    "Start or end blocked (-1)",
+    "1×1 grid"
+   ],
+   "bug": "Marking cells visited when popped instead of when pushed, which adds duplicates to the queue."
+  },
+  "network-delay-time": {
+   "cue": "Single-source shortest path with non-negative weights: Dijkstra; the answer is the largest distance.",
+   "brute": "Bellman-Ford: O(V·E).",
+   "edge": [
+    "Unreachable node (-1)",
+    "Several edges between the same pair"
+   ],
+   "bug": "Not skipping stale heap entries (`if (d > dist[u]) continue`)."
+  },
+  "cheapest-flights-within-k-stops": {
+   "cue": "Shortest path with a limit on edges: Bellman-Ford for k + 1 rounds (or BFS by stops).",
+   "brute": "DFS over all paths up to k stops: exponential.",
+   "edge": [
+    "No route (-1)",
+    "k = 0 (direct flight only)"
+   ],
+   "bug": "Relaxing from the array you are updating in the same round, which lets a path use more edges than allowed. Copy it first."
+  },
+  "min-cost-to-connect-all-points": {
+   "cue": "Connect all points with minimum total edge cost: a minimum spanning tree (Prim's on the dense graph).",
+   "brute": "Kruskal over all n² edges: O(n² log n).",
+   "edge": [
+    "One point (0)",
+    "Duplicate points"
+   ],
+   "bug": "Using Kruskal with all edges sorted when Prim's O(n²) without a heap is better for dense graphs."
+  },
+  "redundant-connection": {
+   "cue": "Find the edge that creates a cycle in an undirected graph: union-find; the first edge whose ends are already joined.",
+   "brute": "Remove each edge and check connectivity: O(n²).",
+   "edge": [
+    "Several candidates: return the last in input order"
+   ],
+   "bug": "Union-find without path compression or union by rank, then claiming O(α(n)) complexity."
+  },
+  "number-of-provinces": {
+   "cue": "Count connected components from an adjacency matrix: DFS or union-find.",
+   "brute": "There is no simpler approach.",
+   "edge": [
+    "All isolated",
+    "All connected"
+   ],
+   "bug": "Iterating only over the upper triangle and missing connections."
+  },
+  "accounts-merge": {
+   "cue": "Merge records that share any email: union-find over emails (or a graph plus DFS).",
+   "brute": "Compare every pair of accounts repeatedly until nothing changes: O(n²·k) per round.",
+   "edge": [
+    "Same name, different people",
+    "One account"
+   ],
+   "bug": "Merging by name instead of by shared email."
+  },
+  "alien-dictionary": {
+   "cue": "Ordering constraints between letters from adjacent words: build edges, then topological sort.",
+   "brute": "Try all letter orders: O(26!).",
+   "edge": [
+    "A word followed by its own prefix is invalid (`abc` before `ab`)",
+    "Letters with no constraints",
+    "A cycle means invalid"
+   ],
+   "bug": "Comparing all pairs of words instead of adjacent ones, or adding edges after the first differing letter."
+  },
+  "swim-in-rising-water": {
+   "cue": "Minimise the maximum height along a path: Dijkstra on the max-edge value (or binary search the time plus BFS).",
+   "brute": "Try every time t with a BFS: O(n² · n²).",
+   "edge": [
+    "1×1 grid",
+    "Start is the highest cell"
+   ],
+   "bug": "Summing heights like a normal shortest path instead of taking the maximum."
+  },
+  "climbing-stairs": {
+   "cue": "Ways to reach step n using steps of 1 or 2: ways(n) = ways(n−1) + ways(n−2).",
+   "brute": "Plain recursion: O(2^n).",
+   "edge": [
+    "n = 1",
+    "n = 2"
+   ],
+   "bug": "Recursing without memoisation."
+  },
+  "house-robber": {
+   "cue": "Choose non-adjacent elements to maximise the sum: `dp[i] = max(dp[i−1], dp[i−2] + nums[i])`.",
+   "brute": "Try all subsets of non-adjacent houses: O(2^n).",
+   "edge": [
+    "One house",
+    "Two houses"
+   ],
+   "bug": "Greedy picking of the largest values, which fails on `[2, 1, 1, 2]`."
+  },
+  "house-robber-ii": {
+   "cue": "Circular street: run House Robber twice, excluding the first house, then excluding the last.",
+   "brute": "Try all valid subsets: O(2^n).",
+   "edge": [
+    "One house (return it)",
+    "Two houses"
+   ],
+   "bug": "Returning 0 for a single house because both ranges are empty."
+  },
+  "coin-change": {
+   "cue": "Fewest coins for an amount, unlimited supply: unbounded knapsack, `dp[a] = min(dp[a − c] + 1)`.",
+   "brute": "Recursion over every coin choice: exponential.",
+   "edge": [
+    "amount = 0 (0)",
+    "Impossible (-1)",
+    "A coin larger than the amount"
+   ],
+   "bug": "Greedy largest-coin-first, which fails for coins `[1, 3, 4]`, amount 6.",
+   "follow": {
+    "q": "Count the ways instead?",
+    "a": "That is Coin Change II: loop coins outside amounts so combinations are counted once."
+   }
+  },
+  "longest-increasing-subsequence": {
+   "cue": "Not contiguous, increasing: O(n²) DP, or patience sorting with binary search for O(n log n).",
+   "brute": "All subsequences: O(2^n).",
+   "edge": [
+    "Strictly increasing (equal values do not extend)",
+    "All equal (1)"
+   ],
+   "bug": "Presenting the `tails` array as the actual subsequence; it only has the right length.",
+   "follow": {
+    "q": "Return the sequence?",
+    "a": "Keep a predecessor index for each element and rebuild from the end."
+   }
+  },
+  "word-break": {
+   "cue": "Can the string be split into dictionary words? `dp[i]` = prefix of length i is breakable.",
+   "brute": "Recursion trying every prefix: exponential without memoisation.",
+   "edge": [
+    "Empty string (true)",
+    "Words that are prefixes of others"
+   ],
+   "bug": "Not putting the dictionary in a `HashSet`, which makes each lookup O(words)."
+  },
+  "decode-ways": {
+   "cue": "Count decodings of a digit string: like climbing stairs, a 1-digit or 2-digit step when valid.",
+   "brute": "Recursion: exponential.",
+   "edge": [
+    "Leading zero (0)",
+    "`\"10\"`, `\"20\"`, `\"30\"` (the last is invalid)",
+    "`\"06\"` is not 6"
+   ],
+   "bug": "Treating a `0` as a valid single digit."
+  },
+  "partition-equal-subset-sum": {
+   "cue": "Split into two equal sums = subset with sum total/2: 0/1 knapsack on a boolean array.",
+   "brute": "All subsets: O(2^n).",
+   "edge": [
+    "Odd total (false at once)",
+    "One element"
+   ],
+   "bug": "Iterating sums upwards in the 1-D array, which reuses an item; go from high to low."
+  },
+  "maximum-product-subarray": {
+   "cue": "Product, not sum: keep both the max and the min ending here, because a negative flips them.",
+   "brute": "All subarrays: O(n²).",
+   "edge": [
+    "Zeros reset the run",
+    "A single negative number",
+    "Two negatives make a positive"
+   ],
+   "bug": "Updating max before computing min with the old max; use temporaries."
+  },
+  "longest-palindromic-substring": {
+   "cue": "Expand around each centre (2n − 1 centres) for O(n²) with O(1) space.",
+   "brute": "Check every substring: O(n³).",
+   "edge": [
+    "Even-length palindromes",
+    "All equal characters",
+    "One character"
+   ],
+   "bug": "Only expanding around single characters, which misses even-length palindromes.",
+   "follow": {
+    "q": "Linear time?",
+    "a": "Manacher's algorithm; naming it is usually enough."
+   }
+  },
+  "palindromic-substrings": {
+   "cue": "Count palindromes by expanding around every centre.",
+   "brute": "Check every substring: O(n³).",
+   "edge": [
+    "Each single character counts",
+    "Even centres"
+   ],
+   "bug": "Missing the even centres."
+  },
+  "unique-paths": {
+   "cue": "Grid with right/down moves: `dp[r][c] = dp[r−1][c] + dp[r][c−1]`, or the combination C(m+n−2, m−1).",
+   "brute": "Recursion: exponential.",
+   "edge": [
+    "1×n or m×1 (1)"
+   ],
+   "bug": "Overflow when computing the combination with factorials; multiply and divide step by step using `long`."
+  },
+  "longest-common-subsequence": {
+   "cue": "Two strings, compare prefixes: match → diagonal + 1, else max of left and up.",
+   "brute": "All subsequences of one string: O(2^n).",
+   "edge": [
+    "One string empty",
+    "No common characters"
+   ],
+   "bug": "Off-by-one: use a table of size (m+1)×(n+1) with an empty-prefix row and column."
+  },
+  "edit-distance": {
+   "cue": "Minimum insert/delete/replace: `dp[i][j]` from three neighbours plus the diagonal when characters match.",
+   "brute": "Recursion over three choices: O(3^(m+n)).",
+   "edge": [
+    "One string empty (length of the other)",
+    "Identical strings (0)"
+   ],
+   "bug": "Forgetting the base row and column (i deletions, j insertions)."
+  },
+  "target-sum": {
+   "cue": "Assign + or − to reach a target: it reduces to counting subsets with sum (total + target) / 2.",
+   "brute": "Try all 2^n sign choices.",
+   "edge": [
+    "(total + target) odd or negative (0)",
+    "Zeros double the count"
+   ],
+   "bug": "Not checking `|target| > total` before indexing the array."
+  },
+  "coin-change-ii": {
+   "cue": "Count combinations (not permutations): loop coins in the outer loop, amounts in the inner.",
+   "brute": "Recursion: exponential.",
+   "edge": [
+    "amount = 0 (1 way)"
+   ],
+   "bug": "Swapping the loops, which counts permutations."
+  },
+  "interleaving-string": {
+   "cue": "Can s3 interleave s1 and s2? `dp[i][j]` = first i of s1 and first j of s2 form the first i + j of s3.",
+   "brute": "Recursion: exponential without memoisation.",
+   "edge": [
+    "Lengths do not add up (false)",
+    "Empty strings"
+   ],
+   "bug": "Skipping the length check."
+  },
+  "distinct-subsequences": {
+   "cue": "Count ways t appears as a subsequence of s: match → use it or skip it, else skip.",
+   "brute": "Enumerate subsequences: O(2^n).",
+   "edge": [
+    "t empty (1)",
+    "t longer than s (0)"
+   ],
+   "bug": "Integer overflow in intermediate counts; the problem bounds the answer, but intermediate values may need `long`."
+  },
+  "longest-increasing-path-in-a-matrix": {
+   "cue": "Longest path in a DAG implied by strictly increasing values: DFS with memoisation.",
+   "brute": "DFS from every cell without memo: exponential.",
+   "edge": [
+    "All equal (1)",
+    "Single cell"
+   ],
+   "bug": "Using a visited set; strict increase already prevents cycles, so memoisation is all you need."
+  },
+  "burst-balloons": {
+   "cue": "Interval DP: choose the last balloon to burst in each range so its neighbours are fixed.",
+   "brute": "Try every burst order: O(n!).",
+   "edge": [
+    "Pad with 1 on both ends",
+    "One balloon"
+   ],
+   "bug": "Choosing the first balloon to burst, which leaves neighbours unknown."
+  },
+  "best-time-to-buy-and-sell-stock-with-cooldown": {
+   "cue": "Stock problems with rules = a small state machine (hold, sold, rest) per day.",
+   "brute": "Recursion over buy/sell/skip: exponential.",
+   "edge": [
+    "Prices only fall (0)",
+    "One day"
+   ],
+   "bug": "Allowing a buy the day after a sell."
+  },
+  "jump-game": {
+   "cue": "Can you reach the end? Track the furthest reachable index.",
+   "brute": "DP or BFS over positions: O(n²).",
+   "edge": [
+    "One element (true)",
+    "A zero you cannot pass"
+   ],
+   "bug": "Continuing after `i > furthest`; you are already stuck."
+  },
+  "jump-game-ii": {
+   "cue": "Minimum jumps: BFS by levels in one pass; each level is the range reachable with k jumps.",
+   "brute": "DP: O(n²).",
+   "edge": [
+    "One element (0 jumps)",
+    "Already able to reach the end from index 0"
+   ],
+   "bug": "Counting a jump at the last index."
+  },
+  "gas-station": {
+   "cue": "If total gas ≥ total cost a solution exists; restart after any prefix whose tank goes negative.",
+   "brute": "Simulate from every start: O(n²).",
+   "edge": [
+    "Exactly enough gas",
+    "One station"
+   ],
+   "bug": "Not being able to justify why no station inside a failed prefix can be the start."
+  },
+  "hand-of-straights": {
+   "cue": "Form consecutive groups: always start a group at the smallest remaining card (TreeMap of counts).",
+   "brute": "Try every grouping: exponential.",
+   "edge": [
+    "n not divisible by groupSize (false)",
+    "Duplicates"
+   ],
+   "bug": "Starting groups at arbitrary cards instead of the smallest."
+  },
+  "partition-labels": {
+   "cue": "Each part must contain every occurrence of its letters: record each letter's last index, cut when you reach the furthest one.",
+   "brute": "Try every partition: exponential.",
+   "edge": [
+    "All distinct letters (every part has size 1)",
+    "One letter repeated"
+   ],
+   "bug": "Cutting at the current letter's last index instead of the running maximum."
+  },
+  "valid-parenthesis-string": {
+   "cue": "With `*` wildcards, track the range [low, high] of possible open counts.",
+   "brute": "Try all 3^k replacements.",
+   "edge": [
+    "Only stars",
+    "low goes negative (clamp to 0)"
+   ],
+   "bug": "Not clamping low at 0, or not failing when high goes negative."
+  },
+  "task-scheduler": {
+   "cue": "Idle time is driven by the most frequent task: `(maxCount − 1) · (n + 1) + tasksWithMaxCount`, at least the number of tasks.",
+   "brute": "Simulate with a heap: O(total time · log 26).",
+   "edge": [
+    "n = 0",
+    "Several tasks tied for the maximum"
+   ],
+   "bug": "Forgetting the `max(formula, tasks.length)` case when there are many distinct tasks."
+  },
+  "merge-intervals": {
+   "cue": "Overlapping intervals: sort by start, then extend or append.",
+   "brute": "Compare every pair repeatedly: O(n²).",
+   "edge": [
+    "Touching intervals (`[1,2],[2,3]` merge)",
+    "One interval",
+    "Fully contained intervals"
+   ],
+   "bug": "Setting the end to the new interval's end instead of `max(end, newEnd)`, which shrinks contained intervals.",
+   "follow": {
+    "q": "Intervals arrive as a stream?",
+    "a": "Keep them in a `TreeMap` by start and merge with the floor and ceiling neighbours."
+   }
+  },
+  "insert-interval": {
+   "cue": "Sorted, non-overlapping list plus one new interval: copy those before, merge the overlaps, copy those after.",
+   "brute": "Append and run Merge Intervals: O(n log n).",
+   "edge": [
+    "Insert at the start or end",
+    "New interval covers everything"
+   ],
+   "bug": "Off-by-one on the touching condition (`end >= newStart`)."
+  },
+  "non-overlapping-intervals": {
+   "cue": "Minimum removals = n − maximum non-overlapping set: sort by end and keep greedily.",
+   "brute": "Try all subsets: O(2^n).",
+   "edge": [
+    "Touching intervals do not overlap here"
+   ],
+   "bug": "Sorting by start without handling which interval to keep."
+  },
+  "meeting-rooms-ii": {
+   "cue": "Maximum number of overlapping intervals: sort starts and ends separately (or a min-heap of end times).",
+   "brute": "Check every time point: depends on the time range.",
+   "edge": [
+    "A meeting ending when another starts can reuse the room",
+    "One meeting"
+   ],
+   "bug": "Using `<` vs `<=` wrongly at touching end and start times.",
+   "follow": {
+    "q": "Which room does each meeting get?",
+    "a": "A min-heap of (endTime, roomId) and a free-rooms heap (Meeting Rooms III)."
+   }
+  },
+  "minimum-number-of-arrows-to-burst-balloons": {
+   "cue": "Interval stabbing: sort by end, shoot at the end of the first, skip all it covers.",
+   "brute": "Try positions one by one.",
+   "edge": [
+    "Touching balloons share an arrow",
+    "Large values: compare without subtraction overflow"
+   ],
+   "bug": "Comparator `a[1] - b[1]` overflows for values near `Integer.MIN/MAX`; use `Integer.compare`."
+  },
+  "single-number": {
+   "cue": "Every element twice except one: XOR everything, the pairs cancel.",
+   "brute": "A hash set or counts: O(n) space.",
+   "edge": [
+    "One element",
+    "Negative numbers"
+   ],
+   "bug": "Not being able to explain why: `a ^ a = 0` and `a ^ 0 = a`, and XOR is commutative.",
+   "follow": {
+    "q": "Every element three times except one?",
+    "a": "Count each bit modulo 3."
+   }
+  },
+  "counting-bits": {
+   "cue": "Bits of i from smaller numbers: `bits[i] = bits[i >> 1] + (i & 1)`.",
+   "brute": "Count bits for every number: O(n log n).",
+   "edge": [
+    "n = 0"
+   ],
+   "bug": "Recomputing from scratch for each i."
+  },
+  "number-of-1-bits": {
+   "cue": "Count set bits: `n &= n − 1` clears the lowest set bit each step.",
+   "brute": "Check all 32 bits.",
+   "edge": [
+    "Treat input as unsigned in Java (negative ints)"
+   ],
+   "bug": "Using `>>` on a negative number, which loops forever; use `>>>` or the `n & (n − 1)` trick."
+  },
+  "reverse-bits": {
+   "cue": "Shift the result left and the input right 32 times, moving one bit each time.",
+   "brute": "Convert to a string and reverse.",
+   "edge": [
+    "Unsigned interpretation in Java"
+   ],
+   "bug": "Using `>>` instead of `>>>` on the input."
+  },
+  "missing-number": {
+   "cue": "0..n with one missing: XOR of indices and values, or `n(n+1)/2 − sum`.",
+   "brute": "Sort and scan: O(n log n). Hash set: O(n) space.",
+   "edge": [
+    "Missing 0",
+    "Missing n"
+   ],
+   "bug": "Sum overflow for large n; XOR avoids it."
+  },
+  "sum-of-two-integers": {
+   "cue": "Add without `+`: XOR is the sum without carry, `(a & b) << 1` is the carry; repeat until the carry is 0.",
+   "brute": "There is no other approach without arithmetic operators.",
+   "edge": [
+    "Negative numbers (Java's 32-bit ints terminate)"
+   ],
+   "bug": "Assuming it loops forever on negatives; in Java the carry shifts out after 32 bits."
+  },
+  "powx-n": {
+   "cue": "Fast exponentiation: square the base, halve the exponent.",
+   "brute": "Multiply n times: O(n).",
+   "edge": [
+    "n negative (invert x)",
+    "`n = Integer.MIN_VALUE` (negating overflows, use `long`)",
+    "x = 0"
+   ],
+   "bug": "Negating `Integer.MIN_VALUE` in an `int`."
+  },
+  "happy-number": {
+   "cue": "A repeating process that may cycle: detect the cycle with a set or Floyd's slow/fast pointers.",
+   "brute": "There is no simpler approach.",
+   "edge": [
+    "1 is happy",
+    "Cycles that never reach 1"
+   ],
+   "bug": "Looping without cycle detection."
+  },
+  "plus-one": {
+   "cue": "Add with carry from the last digit; only all-9s grows the array.",
+   "brute": "Convert to a number: overflows.",
+   "edge": [
+    "All 9s (`[1, 0, ..., 0]`)",
+    "One digit"
+   ],
+   "bug": "Not handling the extra leading digit."
+  }
+ }
+}

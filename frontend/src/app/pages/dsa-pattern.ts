@@ -2,13 +2,14 @@ import { Component, computed, inject, input, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { keys } from '../core/catalog.service';
 import { ContentService } from '../core/content.service';
+import { RecentService } from '../core/recent.service';
 import { ProgressService } from '../core/progress.service';
 import { MarkdownPipe } from '../shared/markdown.pipe';
-import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
+import { DoneToggle, PageState, ProgressBar, ReviseToggle } from '../shared/ui';
 
 @Component({
   selector: 'app-dsa-pattern',
-  imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, ProgressBar],
+  imports: [RouterLink, MarkdownPipe, DoneToggle, ReviseToggle, ProgressBar, PageState],
   template: `
     <a routerLink="/dsa" class="back">← All patterns</a>
     @if (data(); as d) {
@@ -35,6 +36,8 @@ import { DoneToggle, ProgressBar, ReviseToggle } from '../shared/ui';
         @if (d.prev; as prev) { <a class="btn" [routerLink]="['/dsa', prev.id]">← {{ prev.name }}</a> }
         @if (d.next; as next) { <a class="btn primary" [routerLink]="['/dsa', next.id]">{{ next.name }} →</a> }
       </div>
+    } @else {
+      <app-page-state [loading]="res.isLoading()" backLink="/dsa" backLabel="All DSA patterns" />
     }
   `,
 })
@@ -42,7 +45,7 @@ export class DsaPatternPage {
   protected progress = inject(ProgressService);
   private content = inject(ContentService);
   pattern = input.required<string>();
-  private res = resource({ loader: () => this.content.dsa() });
+  protected res = resource({ loader: () => this.content.dsa() });
   protected key = keys.dsa;
 
   protected data = computed(() => {
@@ -51,4 +54,11 @@ export class DsaPatternPage {
     return i < 0 ? undefined : { p: all[i], prev: all[i - 1], next: all[i + 1] };
   });
   protected done = computed(() => this.progress.countDone((this.data()?.p.problems ?? []).map(p => keys.dsa(p.id))));
+
+  constructor() {
+    inject(RecentService).track(() => {
+      const d = this.data();
+      return d ? `${d.p.name} · DSA` : undefined;
+    });
+  }
 }

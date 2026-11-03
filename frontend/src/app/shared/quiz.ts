@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Mcq } from '../core/models';
 import { ProgressService } from '../core/progress.service';
@@ -95,6 +95,19 @@ export class Quiz implements OnDestroy {
     return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`;
   });
 
+  constructor() {
+    // the next day or lesson reuses this component: start it fresh
+    effect(() => {
+      this.quizKey();
+      untracked(() => {
+        clearInterval(this.timer);
+        this.started.set(false);
+        this.submitted.set(false);
+        this.picked.set({});
+      });
+    });
+  }
+
   reveal(i: number): boolean {
     return this.submitted() || (!this.exam() && this.picked()[i] !== undefined);
   }
@@ -107,6 +120,7 @@ export class Quiz implements OnDestroy {
     this.startedAt = Date.now();
     if (exam) {
       this.remaining.set(this.questions().length * this.secondsPerQuestion());
+      clearInterval(this.timer);
       this.timer = setInterval(() => {
         this.remaining.update(r => r - 1);
         if (this.remaining() <= 0) this.submit();
